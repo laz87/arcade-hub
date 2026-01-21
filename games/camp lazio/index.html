@@ -278,7 +278,7 @@
         const LEVELS = [
             {
                 number: 1,
-                target: 75,
+                target: 40,
                 counselors: [
                     { startX: 5, startY: 10, patrol: 'horizontal', range: [3, 12], speed: 1.5 },
                     { startX: 15, startY: 10, patrol: 'vertical', range: [5, 15], speed: 1.5 }
@@ -291,7 +291,20 @@
             },
             {
                 number: 2,
-                target: 80,
+                target: 50,
+                counselors: [
+                    { startX: 5, startY: 10, patrol: 'horizontal', range: [3, 12], speed: 1.5 },
+                    { startX: 15, startY: 10, patrol: 'vertical', range: [5, 15], speed: 1.5 }
+                ],
+                obstacles: [
+                    { x: 10, y: 5 }, { x: 10, y: 6 },
+                    { x: 8, y: 14 }, { x: 11, y: 14 }, { x: 12, y: 7 },
+                ],
+                paintCans: 5
+            },
+            {
+                number: 3,
+                target: 55,
                 counselors: [
                     { startX: 5, startY: 5, patrol: 'horizontal', range: [2, 10], speed: 2 },
                     { startX: 15, startY: 10, patrol: 'vertical', range: [5, 15], speed: 1.8 },
@@ -299,14 +312,14 @@
                 ],
                 obstacles: [
                     { x: 7, y: 7 }, { x: 12, y: 7 },
-                    { x: 7, y: 13 }, { x: 12, y: 13 },
+                    { x: 7, y: 13 }, { x: 12, y: 13 }, { x: 9, y: 10 },
                     { x: 10, y: 10 }
                 ],
                 paintCans: 6
             },
             {
-                number: 3,
-                target: 85,
+                number: 5,
+                target: 70,
                 counselors: [
                     { startX: 4, startY: 8, patrol: 'rectangle', points: [{x:4,y:8},{x:10,y:8},{x:10,y:12},{x:4,y:12}], speed: 2.2 },
                     { startX: 15, startY: 6, patrol: 'vertical', range: [3, 16], speed: 2.5 },
@@ -314,12 +327,12 @@
                     { startX: 8, startY: 16, patrol: 'horizontal', range: [2, 14], speed: 2 }
                 ],
                 obstacles: [
-                    { x: 3, y: 3 }, { x: 16, y: 3 },
-                    { x: 3, y: 16 }, { x: 16, y: 16 },
+                    { x: 3, y: 3 }, { x: 16, y: 3 }, { x: 7, y: 7 },
+                    { x: 3, y: 16 }, { x: 16, y: 16 }, { x: 11, y: 7 },
                     { x: 10, y: 10 }, { x: 9, y: 10 }, { x: 11, y: 10 }
                 ],
                 paintCans: 7
-            }
+            }          
         ];
         
         // Game state
