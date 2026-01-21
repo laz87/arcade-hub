@@ -344,6 +344,7 @@
                 </div>
             </div>
 
+            <!-- Game 3: 2048 -->
             <div class="game-card" data-category="puzzle"
             onclick="playGame('2048')">
                 <div class="game-thumbnail">📈</div>
@@ -357,6 +358,7 @@
                 </div>
             </div>
 
+            <!-- Game 4: Puzzle ball -->
             <div class="game-card" data-category="puzzle"
             onclick="playGame('puzzle ball')">
                 <div class="game-thumbnail">🧠</div>
@@ -370,14 +372,21 @@
                 </div>
             </div>
 
-            <div class="game-card coming-soon" data-category="arcade">
-                <div class="game-thumbnail">🐦</div>
+            <!-- Game 5: Camper -->
+            <div class="game-card" data-category="puzzle"
+            onclick="playGame('camper')">
+                <div class="game-thumbnail">🔴</div>
                 <div class="game-info">
-                    <div class="game-title">Flappy Bird</div>
-                    <span class="game-category">Coming Soon</span>
+                    <div class="game-title">Camper</div>
+                    <span class="game-category">puzzle</span>
+                    <div class="game-stats">
+                        <span class="play-count">1K plays</span>
+                        <span class="rating">4.8</span>
+                    </div>
                 </div>
             </div>
 
+            <!-- Game 6: Camper -->
             <div class="game-card coming-soon" data-category="arcade">
                 <div class="game-thumbnail">👾</div>
                 <div class="game-info">
@@ -457,7 +466,8 @@
                 'mahjong': 'games/mahjong/index.html',
                 'snake': 'games/snake/index.html',
                 '2048': 'games/2048/index.html',
-                'puzzle ball': 'games/puzzle ball/index.html'
+                'puzzle ball': 'games/puzzle ball/index.html',
+                'camper': 'games/camper/index.html'
             };
             
             if (gameUrls[gameName]) {
