@@ -316,6 +316,7 @@
     <section class="games-container">
         <h2 class="section-title">Featured Games</h2>
         <div class="games-grid" id="gamesGrid">
+
             <!-- Game 1: Mahjong -->
             <div class="game-card" data-category="puzzle" onclick="playGame('mahjong')">
                 <div class="game-thumbnail">🀄</div>
@@ -329,12 +330,17 @@
                 </div>
             </div>
 
-            <!-- Coming Soon Games -->
-            <div class="game-card coming-soon" data-category="arcade">
+            <!-- Game 2: Snake -->
+            <div class="game-card" data-category="arcade"
+            onclick="playGame('snake')">
                 <div class="game-thumbnail">🐍</div>
                 <div class="game-info">
                     <div class="game-title">Snake Game</div>
-                    <span class="game-category">Coming Soon</span>
+                    <span class="game-category">Arcade</span>
+                    <div class="game-stats">
+                        <span class="play-count">1K plays</span>
+                        <span class="rating">4.8</span>
+                    </div>
                 </div>
             </div>
 
