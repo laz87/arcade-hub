@@ -223,38 +223,41 @@
         // Enemy class
         class Enemy {
             constructor(type = 'basic') {
-                this.type = type;
-                this.x = GAME_WIDTH + 50;
-                this.y = Math.random() * (GAME_HEIGHT - 100) + 50;
-                this.startY = this.y;
-                this.time = 0;
-                
-                if (type === 'basic') {
-                    this.hp = 1;
-                    this.maxHp = 1;
-                    this.speed = 2.5;
-                    this.size = 25;
-                    this.points = 10;
-                    this.amplitude = 60;
-                    this.frequency = 0.03;
-                } else if (type === 'armored') {
-                    this.hp = 3;
-                    this.maxHp = 3;
-                    this.speed = 1.5;
-                    this.size = 35;
-                    this.points = 30;
-                    this.amplitude = 40;
-                    this.frequency = 0.02;
-                } else { // speed
-                    this.hp = 1;
-                    this.maxHp = 1;
-                    this.speed = 5;
-                    this.size = 20;
-                    this.points = 25;
-                    this.amplitude = 80;
-                    this.frequency = 0.05;
-                }
-            }
+    this.type = type;
+    this.x = GAME_WIDTH + 50;
+    this.y = Math.random() * (GAME_HEIGHT - 100) + 50;
+    this.startY = this.y;
+    this.time = 0;
+
+    // Difficulty scaling: speed increases by 10% every 10 points
+    const difficultyMultiplier = 1 + (Math.floor(game.score / 100) * 0.1);
+    
+    if (type === 'basic') {
+        this.hp = 1;
+        this.maxHp = 1;
+        this.speed = 4 * difficultyMultiplier; // Increased from 2.5
+        this.size = 25;
+        this.points = 10;
+        this.amplitude = 60;
+        this.frequency = 0.03;
+    } else if (type === 'armored') {
+        this.hp = 3;
+        this.maxHp = 3;
+        this.speed = 4 * difficultyMultiplier; // Increased from 1.5
+        this.size = 35;
+        this.points = 30;
+        this.amplitude = 40;
+        this.frequency = 0.02;
+    } else { // speed type
+        this.hp = 1;
+        this.maxHp = 1;
+        this.speed = 8 * difficultyMultiplier; // Increased from 5
+        this.size = 20;
+        this.points = 25;
+        this.amplitude = 80;
+        this.frequency = 0.05;
+    }
+}
             
             update() {
                 this.x -= this.speed;
@@ -543,9 +546,19 @@
                 enemies = enemies.filter(e => e.update());
                 
                 // Spawn enemies
+               // Spawn enemies
                 const now = Date.now();
-                if (now - lastEnemySpawn > 2000) {
+                // Calculate dynamic spawn rate (starts at 2000ms, drops as score goes up, floor at 400ms)
+                const currentSpawnRate = Math.max(400, 200 - (Math.floor(game.score / 150) * 100));
+
+                if (now - lastEnemySpawn > currentSpawnRate) {
                     spawnEnemy();
+                    
+                    // Chance for a "Double Spawn" once score is over 1000
+                    if (game.score > 50 && Math.random() > 0.7) {
+                        spawnEnemy();
+                    }
+                    
                     lastEnemySpawn = now;
                 }
                 
