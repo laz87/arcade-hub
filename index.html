@@ -443,10 +443,16 @@
 
         // Play game
         function playGame(gameName) {
-            if (gameName === 'mahjong') {
-                window.location.href = 'games/mahjong/index.html';
+            const gameUrls = {
+                'mahjong': 'games/mahjong/index.html',
+                'snake': 'games/snake/index.html',
+                '2048': 'games/2048/index.html'
+            };
+            
+            if (gameUrls[gameName]) {
+                window.location.href = gameUrls[gameName];
             } else {
-                alert('Coming soon! This game is under development. 🎮');
+                alert('Coming soon! 🎮');
             }
         }
 
