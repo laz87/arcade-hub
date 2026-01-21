@@ -416,12 +416,25 @@
         }
 
         // Spawn enemy
-        function spawnEnemy() {
+                function spawnEnemy() {
             const rand = Math.random();
             let type = 'basic';
-            if (rand > 0.95) type = 'speed';
+            if (rand > 0.90) type = 'speed';
             else if (rand > 0.70) type = 'armored';
-            enemies.push(new Enemy(type));
+            else if (rand < 0.20) type = 'swarmer'; // New type
+            
+            if (type === 'swarmer') {
+                // Spawn 3 small ones at once
+                for(let i=0; i<3; i++) {
+                    const e = new Enemy('basic');
+                    e.size = 15;
+                    e.speed = 4;
+                    e.points = 5;
+                    enemies.push(e);
+                }
+            } else {
+                enemies.push(new Enemy(type));
+            }
         }
 
         // Create particles
