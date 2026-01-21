@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Hub - Free Online Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 45px 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: #999;
+        }
+
+        /* Hero Section */
+        .hero {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+        }
+
+        /* Categories */
+        .categories {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-btn {
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Games Grid */
+        .games-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::after {
+            content: '▶';
+            position: absolute;
+            font-size: 3rem;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .game-card:hover .game-thumbnail::after {
+            opacity: 0.8;
+        }
+
+        .game-info {
+            padding: 20px;
+        }
+
+        .game-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .game-category {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .play-count::before {
+            content: '▶ ';
+        }
+
+        .rating::before {
+            content: '⭐ ';
+        }
+
+        /* Coming Soon Card */
+        .coming-soon {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        .coming-soon .game-thumbnail {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 2rem;
+        }
+
+        .coming-soon .game-info {
+            color: white;
+        }
+
+        .coming-soon .game-title {
+            color: white;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 60px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .game-thumbnail {
+                height: 150px;
+                font-size: 3rem;
+            }
+
+            .game-title {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">🎮 Arcade Hub</div>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames()">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Play Free Online Games</h1>
+        <p>Hundreds of games to play instantly - No downloads required!</p>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories">
+        <button class="category-btn active" onclick="filterGames('all')">All Games</button>
+        <button class="category-btn" onclick="filterGames('puzzle')">Puzzle</button>
+        <button class="category-btn" onclick="filterGames('action')">Action</button>
+        <button class="category-btn" onclick="filterGames('arcade')">Arcade</button>
+        <button class="category-btn" onclick="filterGames('strategy')">Strategy</button>
+        <button class="category-btn" onclick="filterGames('casual')">Casual</button>
+    </section>
+
+    <!-- Games Grid -->
+    <section class="games-container">
+        <h2 class="section-title">Featured Games</h2>
+        <div class="games-grid" id="gamesGrid">
+            <!-- Game 1: Mahjong -->
+            <div class="game-card" data-category="puzzle" onclick="playGame('mahjong')">
+                <div class="game-thumbnail">🀄</div>
+                <div class="game-info">
+                    <div class="game-title">Mahjong Solitaire</div>
+                    <span class="game-category">Puzzle</span>
+                    <div class="game-stats">
+                        <span class="play-count">1.2K plays</span>
+                        <span class="rating">4.8</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coming Soon Games -->
+            <div class="game-card coming-soon" data-category="arcade">
+                <div class="game-thumbnail">🐍</div>
+                <div class="game-info">
+                    <div class="game-title">Snake Game</div>
+                    <span class="game-category">Coming Soon</span>
+                </div>
+            </div>
+
+            <div class="game-card coming-soon" data-category="puzzle">
+                <div class="game-thumbnail">🎯</div>
+                <div class="game-info">
+                    <div class="game-title">2048</div>
+                    <span class="game-category">Coming Soon</span>
+                </div>
+            </div>
+
+            <div class="game-card coming-soon" data-category="casual">
+                <div class="game-thumbnail">🧠</div>
+                <div class="game-info">
+                    <div class="game-title">Memory Match</div>
+                    <span class="game-category">Coming Soon</span>
+                </div>
+            </div>
+
+            <div class="game-card coming-soon" data-category="arcade">
+                <div class="game-thumbnail">🐦</div>
+                <div class="game-info">
+                    <div class="game-title">Flappy Bird</div>
+                    <span class="game-category">Coming Soon</span>
+                </div>
+            </div>
+
+            <div class="game-card coming-soon" data-category="arcade">
+                <div class="game-thumbnail">👾</div>
+                <div class="game-info">
+                    <div class="game-title">Space Invaders</div>
+                    <span class="game-category">Coming Soon</span>
+                </div>
+            </div>
+
+            <div class="game-card coming-soon" data-category="puzzle">
+                <div class="game-thumbnail">🧩</div>
+                <div class="game-info">
+                    <div class="game-title">Tetris</div>
+                    <span class="game-category">Coming Soon</span>
+                </div>
+            </div>
+
+            <div class="game-card coming-soon" data-category="action">
+                <div class="game-thumbnail">🏓</div>
+                <div class="game-info">
+                    <div class="game-title">Pong</div>
+                    <span class="game-category">Coming Soon</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Arcade Hub. All games are free to play!</p>
+        <p>Built with ❤️ for gamers</p>
+    </footer>
+
+    <script>
+        // Game data structure
+        const games = [
+            { name: 'Mahjong Solitaire', category: 'puzzle', plays: '1.2K', rating: '4.8', url: 'games/mahjong/index.html' },
+            // Add more games here as you create them
+        ];
+
+        // Filter games by category
+        function filterGames(category) {
+            const cards = document.querySelectorAll('.game-card');
+            const buttons = document.querySelectorAll('.category-btn');
+            
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter cards
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Search games
+        function searchGames() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.game-card');
+            
+            cards.forEach(card => {
+                const title = card.querySelector('.game-title').textContent.toLowerCase();
+                if (title.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Play game
+        function playGame(gameName) {
+            if (gameName === 'mahjong') {
+                window.location.href = 'games/mahjong/index.html';
+            } else {
+                alert('Coming soon! This game is under development. 🎮');
+            }
+        }
+
+        // Add animation on scroll
+        window.addEventListener('scroll', () => {
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach(card => {
+                const cardTop = card.getBoundingClientRect().top;
+                if (cardTop < window.innerHeight - 100) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        // Initialize cards with animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.5s ease';
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

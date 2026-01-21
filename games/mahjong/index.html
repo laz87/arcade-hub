@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Mahjong Solitaire</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            width: 100%;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ffd700;
+        }
+        
+        h1 {
+            font-size: 3em;
+            color: #fff;
+            text-shadow: 0 0 20px #ff1493, 0 0 40px #ff1493;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .stat-label {
+            color: #ffd700;
+            margin-right: 10px;
+        }
+        
+        .game-board {
+            background: rgba(0,0,0,0.4);
+            padding: 40px;
+            border-radius: 20px;
+            border: 4px solid #ffd700;
+            position: relative;
+            min-height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .tiles-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+        }
+        
+        .tile {
+            position: absolute;
+            width: 70px;
+            height: 90px;
+            background: linear-gradient(145deg, #ffffff, #e0e0e0);
+            border: 3px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+        }
+        
+        .tile:hover:not(.matched):not(.blocked) {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            border-color: #ffd700;
+        }
+        
+        .tile.selected {
+            border-color: #00ff00;
+            border-width: 4px;
+            box-shadow: 0 0 20px #00ff00;
+            transform: translateY(-8px) scale(1.1);
+        }
+        
+        .tile.matched {
+            animation: matchAnimation 0.5s ease-out forwards;
+        }
+        
+        @keyframes matchAnimation {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3) rotate(10deg); opacity: 0.7; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        .tile.blocked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .tile-icon {
+            font-size: 2.5em;
+            margin-bottom: 2px;
+        }
+        
+        .tile-label {
+            font-size: 0.7em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        
+        .btn-new {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .btn-hint {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .btn-shuffle {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 4px solid #ffd700;
+            animation: modalPop 0.5s ease-out;
+        }
+        
+        @keyframes modalPop {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal h2 {
+            font-size: 3em;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ffd700;
+        }
+        
+        .modal-stats {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #fff;
+            font-size: 1.3em;
+        }
+        
+        .modal-stat {
+            margin: 10px 0;
+        }
+        
+        .hint-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .hint-arrow {
+            position: absolute;
+            font-size: 3em;
+            animation: bounce 1s infinite;
+            text-shadow: 0 0 10px #ffd700;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .difficulty-select {
+            margin: 20px 0;
+        }
+        
+        .difficulty-btn {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: 3px solid #ffd700;
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn.active {
+            background: #ffd700;
+            color: #333;
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            font-size: 2em;
+            animation: float 4s linear infinite;
+            opacity: 0.3;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <h1>🎴 ANIME MAHJONG SOLITAIRE 🎴</h1>
+            <p style="color: #ffd700; font-size: 1.3em; margin-top: 10px;">
+                Match identical anime character tiles!
+            </p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">⏱️ Time:</span>
+                    <span id="timer">0:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🎯 Matches:</span>
+                    <span id="matches">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🎴 Remaining:</span>
+                    <span id="remaining">72</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">💡 Hints:</span>
+                    <span id="hints">3</span>
+                </div>
+            </div>
+            
+            <div class="difficulty-select">
+                <span style="color: #fff; font-size: 1.2em; margin-right: 15px;">Difficulty:</span>
+                <button class="difficulty-btn active" onclick="setDifficulty('easy')">Easy</button>
+                <button class="difficulty-btn" onclick="setDifficulty('medium')">Medium</button>
+                <button class="difficulty-btn" onclick="setDifficulty('hard')">Hard</button>
+            </div>
+        </header>
+        
+        <div class="game-board">
+            <div class="tiles-container" id="tilesContainer">
+                <div class="hint-overlay" id="hintOverlay"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-new" onclick="newGame()">🎮 New Game</button>
+            <button class="btn btn-hint" onclick="showHint()" id="hintBtn">💡 Hint (<span id="hintCount">3</span>)</button>
+            <button class="btn btn-shuffle" onclick="shuffleTiles()" id="shuffleBtn">🔀 Shuffle (1)</button>
+        </div>
+    </div>
+    
+    <div id="winModal" class="modal">
+        <div class="modal-content">
+            <h2>🎉 CONGRATULATIONS! 🎉</h2>
+            <p style="color: #ffd700; font-size: 1.5em;">You cleared the board!</p>
+            <div class="modal-stats">
+                <div class="modal-stat">⏱️ Time: <span id="finalTime">0:00</span></div>
+                <div class="modal-stat">🎯 Matches: <span id="finalMatches">0</span></div>
+                <div class="modal-stat">⭐ Score: <span id="finalScore">0</span></div>
+            </div>
+            <button class="btn btn-new" onclick="closeModal(); newGame();">Play Again</button>
+        </div>
+    </div>
+    
+    <script>
+        const animeCharacters = [
+            { icon: '👧', name: 'Sakura', color: '#ffb3ba' },
+            { icon: '🧑', name: 'Naruto', color: '#ffdfba' },
+            { icon: '👨', name: 'Goku', color: '#ffffba' },
+            { icon: '👩', name: 'Mikasa', color: '#baffc9' },
+            { icon: '🦸', name: 'Luffy', color: '#bae1ff' },
+            { icon: '🧙', name: 'Megumin', color: '#d4baff' },
+            { icon: '🥷', name: 'Sasuke', color: '#ffb3e6' },
+            { icon: '👸', name: 'Asuna', color: '#ffd9b3' },
+            { icon: '🤴', name: 'Light', color: '#b3f0ff' },
+            { icon: '🧝', name: 'Kirito', color: '#e0b3ff' },
+            { icon: '🧛', name: 'Alucard', color: '#ff9999' },
+            { icon: '🦹', name: 'Deku', color: '#99ff99' },
+            { icon: '👹', name: 'Tanjiro', color: '#9999ff' },
+            { icon: '😈', name: 'Ryuk', color: '#ff99cc' },
+            { icon: '🤖', name: 'Edward', color: '#99ffff' },
+            { icon: '👾', name: 'Zero Two', color: '#ff66b3' },
+            { icon: '🎭', name: 'Kaneki', color: '#cc99ff' },
+            { icon: '⚡', name: 'Pikachu', color: '#ffff99' }
+        ];
+
+        let gameState = {
+            tiles: [],
+            selectedTile: null,
+            matches: 0,
+            hints: 3,
+            shuffles: 1,
+            startTime: null,
+            timerInterval: null,
+            difficulty: 'easy'
+        };
+
+        const layouts = {
+            easy: [
+                { x: 2, y: 2, z: 0 }, { x: 3, y: 2, z: 0 }, { x: 4, y: 2, z: 0 }, { x: 5, y: 2, z: 0 },
+                { x: 2, y: 3, z: 0 }, { x: 3, y: 3, z: 0 }, { x: 4, y: 3, z: 0 }, { x: 5, y: 3, z: 0 },
+                { x: 2, y: 4, z: 0 }, { x: 3, y: 4, z: 0 }, { x: 4, y: 4, z: 0 }, { x: 5, y: 4, z: 0 },
+                { x: 6, y: 2, z: 0 }, { x: 6, y: 3, z: 0 }, { x: 6, y: 4, z: 0 }, { x: 1, y: 2, z: 0 },
+                { x: 1, y: 3, z: 0 }, { x: 1, y: 4, z: 0 }, { x: 7, y: 2, z: 0 }, { x: 7, y: 3, z: 0 },
+                { x: 7, y: 4, z: 0 }, { x: 0, y: 3, z: 0 }, { x: 8, y: 3, z: 0 }, { x: 4, y: 1, z: 0 },
+                { x: 4, y: 5, z: 0 }, { x: 3, y: 1, z: 0 }, { x: 3, y: 5, z: 0 }, { x: 5, y: 1, z: 0 },
+                { x: 5, y: 5, z: 0 }, { x: 3, y: 3, z: 1 }, { x: 4, y: 3, z: 1 }, { x: 5, y: 3, z: 1 },
+                { x: 4, y: 2, z: 1 }, { x: 4, y: 4, z: 1 }, { x: 4, y: 3, z: 2 }, { x: 4, y: 3, z: 2 }
+            ]
+        };
+
+        function setDifficulty(level) {
+            gameState.difficulty = level;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            newGame();
+        }
+
+        function newGame() {
+            clearInterval(gameState.timerInterval);
+            gameState = {
+                tiles: [],
+                selectedTile: null,
+                matches: 0,
+                hints: 3,
+                shuffles: 1,
+                startTime: Date.now(),
+                timerInterval: null,
+                difficulty: gameState.difficulty
+            };
+            
+            createTiles();
+            renderTiles();
+            updateStats();
+            startTimer();
+            createParticles();
+        }
+
+        function createTiles() {
+            const layout = layouts.easy;
+            const positions = [...layout];
+            
+            const numPairs = positions.length / 2;
+            const characters = [];
+            
+            for (let i = 0; i < numPairs; i++) {
+                const char = animeCharacters[i % animeCharacters.length];
+                characters.push(char, char);
+            }
+            
+            for (let i = characters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [characters[i], characters[j]] = [characters[j], characters[i]];
+            }
+            
+            gameState.tiles = positions.map((pos, i) => ({
+                ...pos,
+                id: i,
+                character: characters[i],
+                matched: false
+            }));
+        }
+
+        function renderTiles() {
+            const container = document.getElementById('tilesContainer');
+            container.innerHTML = '<div class="hint-overlay" id="hintOverlay"></div>';
+            
+            gameState.tiles.forEach(tile => {
+                if (tile.matched) return;
+                
+                const tileEl = document.createElement('div');
+                tileEl.className = 'tile';
+                tileEl.id = `tile-${tile.id}`;
+                tileEl.style.left = (tile.x * 80 + tile.z * 5) + 'px';
+                tileEl.style.top = (tile.y * 95 - tile.z * 5) + 'px';
+                tileEl.style.zIndex = tile.z;
+                tileEl.style.background = `linear-gradient(145deg, ${tile.character.color}, #e0e0e0)`;
+                
+                tileEl.innerHTML = `
+                    <div class="tile-icon">${tile.character.icon}</div>
+                    <div class="tile-label">${tile.character.name}</div>
+                `;
+                
+                tileEl.onclick = () => selectTile(tile);
+                container.appendChild(tileEl);
+                
+                updateTileStatus(tile);
+            });
+        }
+
+        function updateTileStatus(tile) {
+            const tileEl = document.getElementById(`tile-${tile.id}`);
+            if (!tileEl) return;
+            
+            if (isTileBlocked(tile)) {
+                tileEl.classList.add('blocked');
+            } else {
+                tileEl.classList.remove('blocked');
+            }
+        }
+
+        function isTileBlocked(tile) {
+            const hasLeftNeighbor = gameState.tiles.some(t => 
+                !t.matched && t.x === tile.x - 1 && t.y === tile.y && t.z === tile.z
+            );
+            const hasRightNeighbor = gameState.tiles.some(t => 
+                !t.matched && t.x === tile.x + 1 && t.y === tile.y && t.z === tile.z
+            );
+            const hasTopTile = gameState.tiles.some(t => 
+                !t.matched && t.x === tile.x && t.y === tile.y && t.z === tile.z + 1
+            );
+            
+            return (hasLeftNeighbor && hasRightNeighbor) || hasTopTile;
+        }
+
+        function selectTile(tile) {
+            if (tile.matched || isTileBlocked(tile)) return;
+            
+            const tileEl = document.getElementById(`tile-${tile.id}`);
+            
+            if (gameState.selectedTile === tile) {
+                gameState.selectedTile = null;
+                tileEl.classList.remove('selected');
+                return;
+            }
+            
+            if (gameState.selectedTile) {
+                const prevEl = document.getElementById(`tile-${gameState.selectedTile.id}`);
+                prevEl.classList.remove('selected');
+                
+                if (gameState.selectedTile.character.name === tile.character.name) {
+                    matchTiles(gameState.selectedTile, tile);
+                    gameState.selectedTile = null;
+                } else {
+                    gameState.selectedTile = tile;
+                    tileEl.classList.add('selected');
+                }
+            } else {
+                gameState.selectedTile = tile;
+                tileEl.classList.add('selected');
+            }
+        }
+
+        function matchTiles(tile1, tile2) {
+            tile1.matched = true;
+            tile2.matched = true;
+            
+            const el1 = document.getElementById(`tile-${tile1.id}`);
+            const el2 = document.getElementById(`tile-${tile2.id}`);
+            
+            el1.classList.add('matched');
+            el2.classList.add('matched');
+            
+            setTimeout(() => {
+                el1.style.display = 'none';
+                el2.style.display = 'none';
+            }, 500);
+            
+            gameState.matches++;
+            updateStats();
+            
+            gameState.tiles.forEach(updateTileStatus);
+            
+            const remaining = gameState.tiles.filter(t => !t.matched).length;
+            if (remaining === 0) {
+                setTimeout(showWinModal, 1000);
+            }
+        }
+
+        function showHint() {
+            if (gameState.hints <= 0) return;
+            
+            const matches = findPossibleMatches();
+            if (matches.length === 0) return;
+            
+            gameState.hints--;
+            updateStats();
+            
+            const [tile1, tile2] = matches[0];
+            const overlay = document.getElementById('hintOverlay');
+            overlay.innerHTML = '';
+            
+            const arrow1 = document.createElement('div');
+            arrow1.className = 'hint-arrow';
+            arrow1.textContent = '👇';
+            arrow1.style.left = (tile1.x * 80 + tile1.z * 5 + 20) + 'px';
+            arrow1.style.top = (tile1.y * 95 - tile1.z * 5 - 40) + 'px';
+            
+            const arrow2 = document.createElement('div');
+            arrow2.className = 'hint-arrow';
+            arrow2.textContent = '👇';
+            arrow2.style.left = (tile2.x * 80 + tile2.z * 5 + 20) + 'px';
+            arrow2.style.top = (tile2.y * 95 - tile2.z * 5 - 40) + 'px';
+            
+            overlay.appendChild(arrow1);
+            overlay.appendChild(arrow2);
+            
+            setTimeout(() => {
+                overlay.innerHTML = '';
+            }, 2000);
+        }
+
+        function findPossibleMatches() {
+            const matches = [];
+            const availableTiles = gameState.tiles.filter(t => !t.matched && !isTileBlocked(t));
+            
+            for (let i = 0; i < availableTiles.length; i++) {
+                for (let j = i + 1; j < availableTiles.length; j++) {
+                    if (availableTiles[i].character.name === availableTiles[j].character.name) {
+                        matches.push([availableTiles[i], availableTiles[j]]);
+                    }
+                }
+            }
+            
+            return matches;
+        }
+
+        function shuffleTiles() {
+            if (gameState.shuffles <= 0) return;
+            
+            gameState.shuffles--;
+            
+            const unmatchedTiles = gameState.tiles.filter(t => !t.matched);
+            const characters = unmatchedTiles.map(t => t.character);
+            
+            for (let i = characters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [characters[i], characters[j]] = [characters[j], characters[i]];
+            }
+            
+            unmatchedTiles.forEach((tile, i) => {
+                tile.character = characters[i];
+            });
+            
+            renderTiles();
+            updateStats();
+        }
+
+        function startTimer() {
+            gameState.timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function updateStats() {
+            document.getElementById('matches').textContent = gameState.matches;
+            document.getElementById('remaining').textContent = 
+                gameState.tiles.filter(t => !t.matched).length;
+            document.getElementById('hints').textContent = gameState.hints;
+            document.getElementById('hintCount').textContent = gameState.hints;
+            document.getElementById('hintBtn').disabled = gameState.hints <= 0;
+            document.getElementById('shuffleBtn').disabled = gameState.shuffles <= 0;
+        }
+
+        function showWinModal() {
+            clearInterval(gameState.timerInterval);
+            
+            const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            const score = Math.floor(10000 / elapsed * gameState.matches);
+            
+            document.getElementById('finalTime').textContent = timeStr;
+            document.getElementById('finalMatches').textContent = gameState.matches;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('winModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('winModal').style.display = 'none';
+        }
+
+        function createParticles() {
+            const container = document.getElementById('particles');
+            container.innerHTML = '';
+            const particleIcons = ['🌸', '⭐', '💫', '✨', '🎴'];
+            
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = particleIcons[Math.floor(Math.random() * particleIcons.length)];
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 4 + 's';
+                particle.style.animationDuration = (3 + Math.random() * 2) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        newGame();
+    </script>
+</body>
+</html>
