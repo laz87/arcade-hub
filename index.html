@@ -400,11 +400,17 @@
                 </div>
             </div>
 
-            <div class="game-card coming-soon" data-category="puzzle">
-                <div class="game-thumbnail">🧩</div>
+            <!-- Game 7: seed shorter -->
+            <div class="game-card" data-category="action"
+            onclick="playGame('seed shooter')">
+                <div class="game-thumbnail">🥜</div>
                 <div class="game-info">
-                    <div class="game-title">Tetris</div>
-                    <span class="game-category">Coming Soon</span>
+                    <div class="game-title">Seed Shooter</div>
+                    <span class="game-category">action</span>
+                    <div class="game-stats">
+                        <span class="play-count">1K plays</span>
+                        <span class="rating">4.8</span>
+                    </div>
                 </div>
             </div>
 
@@ -473,7 +479,8 @@
                 '2048': 'games/2048/index.html',
                 'puzzle ball': 'games/puzzle ball/index.html',
                 'camper': 'games/camper/index.html',
-                'fly defeater': 'games/fly defeater/index.html'
+                'fly defeater': 'games/fly defeater/index.html',
+                'seed shooter': 'games/seed shooter/index.html'
             };
             
             if (gameUrls[gameName]) {
