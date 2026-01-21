@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camp Lazlo: Paintcan Panic</title>
+    <title>Camper: Paint PX</title>
     <style>
         * {
             margin: 0;
@@ -217,6 +217,7 @@
 </head>
 <body>
 
+    <!--Remove from the inside gameContainer and gameCanvas div for user to view gameplay better-->
   <div class="hud" id="hud" style="display: none;">
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill">0%</div>
@@ -226,14 +227,14 @@
                 <span>Target: <span id="targetPercent">75</span>%</span>
             </div>
         </div>
+
+    <!--was under gameCanvas div-->
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
-        
-        
         <div class="modal" id="startModal">
-            <h1>CAMP LAZLO</h1>
-            <h2 style="color: #FF6347;">Paintcan Panic!</h2>
+            <h1>Camper</h1>
+            <h2 style="color: #FF6347;">Paint PX!</h2>
             <div class="controls">
                 <p>🎮 Arrow Keys / WASD to Move</p>
                 <p>🦘 SPACE to Hop over Obstacles</p>
@@ -320,8 +321,24 @@
                 paintCans: 6
             },
             {
-                number: 5,
+                number: 4,
                 target: 70,
+                counselors: [
+                    { startX: 4, startY: 8, patrol: 'rectangle', points: [{x:4,y:8},{x:10,y:8},{x:10,y:12},{x:4,y:12}], speed: 2.2 },
+                    { startX: 15, startY: 6, patrol: 'vertical', range: [3, 16], speed: 2.5 },
+                    { startX: 10, startY: 3, patrol: 'horizontal', range: [5, 15], speed: 2.3 },
+                    { startX: 8, startY: 16, patrol: 'horizontal', range: [2, 14], speed: 2 }
+                ],
+                obstacles: [
+                    { x: 3, y: 3 }, { x: 16, y: 3 }, { x: 7, y: 7 },
+                    { x: 3, y: 16 }, { x: 16, y: 16 }, { x: 11, y: 7 },
+                    { x: 10, y: 10 }, { x: 9, y: 10 },
+                ],
+                paintCans: 7
+            },    
+            {
+                number: 5,
+                target: 80,
                 counselors: [
                     { startX: 4, startY: 8, patrol: 'rectangle', points: [{x:4,y:8},{x:10,y:8},{x:10,y:12},{x:4,y:12}], speed: 2.2 },
                     { startX: 15, startY: 6, patrol: 'vertical', range: [3, 16], speed: 2.5 },
@@ -333,8 +350,8 @@
                     { x: 3, y: 16 }, { x: 16, y: 16 }, { x: 11, y: 7 },
                     { x: 10, y: 10 }, { x: 9, y: 10 }, { x: 11, y: 10 }
                 ],
-                paintCans: 7
-            }          
+                paintCans: 8
+            }                
         ];
         
         // Game state
