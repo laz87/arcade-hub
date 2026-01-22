@@ -176,30 +176,6 @@
             color: #667eea;
         }
 
-        /* Mobile controls */
-        .mobile-controls {
-            display: none;
-            margin-top: 20px;
-        }
-
-        .dpad {
-            display: grid;
-            grid-template-columns: repeat(3, 60px);
-            grid-template-rows: repeat(3, 60px);
-            gap: 5px;
-            justify-content: center;
-        }
-
-        .dpad button {
-            padding: 0;
-            font-size: 1.5rem;
-        }
-
-        .dpad .up { grid-column: 2; grid-row: 1; }
-        .dpad .left { grid-column: 1; grid-row: 2; }
-        .dpad .right { grid-column: 3; grid-row: 2; }
-        .dpad .down { grid-column: 2; grid-row: 3; }
-
         @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
@@ -242,18 +218,9 @@
             <button class="btn-secondary" onclick="window.location.href='../../index.html'">Back to Games</button>
         </div>
 
-        <div class="mobile-controls">
-            <div class="dpad">
-                <button class="up" onclick="changeDirection('UP')">▲</button>
-                <button class="left" onclick="changeDirection('LEFT')">◀</button>
-                <button class="right" onclick="changeDirection('RIGHT')">▶</button>
-                <button class="down" onclick="changeDirection('DOWN')">▼</button>
-            </div>
-        </div>
-
         <div class="instructions">
             <h3>How to Play</h3>
-            <p>Use arrow keys (or on-screen buttons on mobile) to control the snake. Eat the red food to grow and increase your score. Don't hit the walls or yourself!</p>
+            <p>Use arrow keys (or Swipe Controls on mobile) to control the snake. Eat the red food to grow and increase your score. Don't hit the walls or yourself!</p>
         </div>
     </div>
 
@@ -519,6 +486,56 @@
                     break;
             }
         });
+
+       // Touch/Swipe controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
+        const minSwipeDistance = 30; // Minimum distance for a swipe to register
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }, { passive: false });
+
+        function handleSwipe() {
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const absDeltaX = Math.abs(deltaX);
+            const absDeltaY = Math.abs(deltaY);
+
+            // Check if swipe is long enough
+            if (absDeltaX < minSwipeDistance && absDeltaY < minSwipeDistance) {
+                return;
+            }
+
+            // Determine swipe direction
+            if (absDeltaX > absDeltaY) {
+                // Horizontal swipe
+                if (deltaX > 0) {
+                    changeDirection('RIGHT');
+                } else {
+                    changeDirection('LEFT');
+                }
+            } else {
+                // Vertical swipe
+                if (deltaY > 0) {
+                    changeDirection('DOWN');
+                } else {
+                    changeDirection('UP');
+                }
+            }
+        }
 
         // Draw initial screen
         draw();
