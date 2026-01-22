@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Totemia: Cursed Marbles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background: #1a1a1a;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            touch-action: none;
+        }
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #2d4a2e, #1a2f1b);
+            image-rendering: crisp-edges;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            color: #ffd700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            pointer-events: none;
+            font-size: 24px;
+            z-index: 10;
+        }
+        #score {
+            float: left;
+            background: rgba(62, 39, 21, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 3px solid #8b6914;
+        }
+        #level {
+            float: right;
+            background: rgba(62, 39, 21, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 3px solid #8b6914;
+        }
+        #modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #3e2715, #5a3a1f);
+            padding: 40px;
+            border-radius: 20px;
+            border: 5px solid #ffd700;
+            text-align: center;
+            display: none;
+            z-index: 20;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+        #modal h2 {
+            color: #ffd700;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.9);
+        }
+        #modal p {
+            color: #fff;
+            font-size: 24px;
+            margin: 15px 0;
+        }
+        #modal button {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border: 3px solid #8b6914;
+            padding: 15px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            color: #3e2715;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+            pointer-events: all;
+            transition: transform 0.1s;
+        }
+        #modal button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #ffed4e, #ffd700);
+        }
+        #modal button:active {
+            transform: scale(0.95);
+        }
+        #muteBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(62, 39, 21, 0.8);
+            border: 3px solid #8b6914;
+            color: #ffd700;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 10;
+            pointer-events: all;
+        }
+        #muteBtn:hover {
+            background: rgba(82, 59, 41, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">
+        <div id="score">Score: 0</div>
+        <div id="level">Level: 1</div>
+    </div>
+    <div id="modal">
+        <h2 id="modalTitle">Game Over</h2>
+        <p id="modalText">Your Score: 0</p>
+        <button id="restartBtn">Play Again</button>
+    </div>
+    <button id="muteBtn">🔊</button>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalText = document.getElementById('modalText');
+        const restartBtn = document.getElementById('restartBtn');
+        const muteBtn = document.getElementById('muteBtn');
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Audio system
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let muted = false;
+
+        function playSound(freq, duration, type = 'sine') {
+            if (muted) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = freq;
+            osc.type = type;
+            gain.gain.value = 0.1;
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        muteBtn.addEventListener('click', () => {
+            muted = !muted;
+            muteBtn.textContent = muted ? '🔇' : '🔊';
+        });
+
+        // Colors
+        const COLORS = ['#ff4444', '#4444ff', '#44ff44', '#ffff44', '#ff44ff'];
+        const COLOR_NAMES = ['red', 'blue', 'green', 'yellow', 'purple'];
+
+        // Game state
+        let gameState = {
+            score: 0,
+            level: 1,
+            gameOver: false,
+            won: false,
+            combo: 0
+        };
+
+        // Path generation (spiral)
+        function generatePath() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const points = [];
+            const turns = 4;
+            const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+            
+            for (let i = 0; i <= 200; i++) {
+                const t = i / 200;
+                const angle = t * Math.PI * 2 * turns;
+                const radius = maxRadius * (1 - t);
+                points.push({
+                    x: centerX + Math.cos(angle) * radius,
+                    y: centerY + Math.sin(angle) * radius
+                });
+            }
+            return points;
+        }
+
+        // Marble chain
+        class MarbleChain {
+            constructor(level) {
+                this.path = generatePath();
+                this.marbles = [];
+                this.speed = 0.3 + level * 0.1;
+                this.marbleRadius = 15;
+                this.spacing = this.marbleRadius * 2.2;
+                
+                // Initialize chain
+                const numColors = Math.min(4 + Math.floor(level / 3), 5);
+                const numMarbles = 30 + level * 5;
+                for (let i = 0; i < numMarbles; i++) {
+                    this.marbles.push({
+                        color: COLORS[Math.floor(Math.random() * numColors)],
+                        distance: -i * this.spacing
+                    });
+                }
+            }
+
+            update() {
+                for (let marble of this.marbles) {
+                    marble.distance += this.speed;
+                }
+            }
+
+            getPosition(distance) {
+                const totalLength = this.path.length - 1;
+                const index = Math.min(Math.max(0, distance), totalLength);
+                const idx = Math.floor(index);
+                const t = index - idx;
+                
+                if (idx >= this.path.length - 1) {
+                    return this.path[this.path.length - 1];
+                }
+                
+                const p1 = this.path[idx];
+                const p2 = this.path[idx + 1];
+                return {
+                    x: p1.x + (p2.x - p1.x) * t,
+                    y: p1.y + (p2.y - p1.y) * t
+                };
+            }
+
+            draw() {
+                // Draw path
+                ctx.strokeStyle = 'rgba(101, 67, 33, 0.5)';
+                ctx.lineWidth = this.marbleRadius * 2.5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                for (let i = 0; i < this.path.length; i++) {
+                    const p = this.path[i];
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                }
+                ctx.stroke();
+
+                // Draw marbles
+                for (let marble of this.marbles) {
+                    const pos = this.getPosition(marble.distance);
+                    this.drawMarble(pos.x, pos.y, marble.color);
+                }
+            }
+
+            drawMarble(x, y, color) {
+                const gradient = ctx.createRadialGradient(x - 5, y - 5, 0, x, y, this.marbleRadius);
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(0.3, color);
+                gradient.addColorStop(1, this.darkenColor(color));
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, this.marbleRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Shine
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.beginPath();
+                ctx.arc(x - 5, y - 5, this.marbleRadius * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            darkenColor(color) {
+                const r = parseInt(color.slice(1, 3), 16);
+                const g = parseInt(color.slice(3, 5), 16);
+                const b = parseInt(color.slice(5, 7), 16);
+                return `rgb(${r * 0.5}, ${g * 0.5}, ${b * 0.5})`;
+            }
+
+            insertMarble(color, distance) {
+                this.marbles.push({ color, distance });
+                this.marbles.sort((a, b) => b.distance - a.distance);
+                
+                // Check for matches
+                setTimeout(() => this.checkMatches(), 50);
+            }
+
+            checkMatches() {
+                let matched = false;
+                let i = 0;
+                
+                while (i < this.marbles.length) {
+                    let j = i;
+                    const color = this.marbles[i].color;
+                    
+                    while (j < this.marbles.length && this.marbles[j].color === color) {
+                        j++;
+                    }
+                    
+                    if (j - i >= 3) {
+                        matched = true;
+                        const matchCount = j - i;
+                        this.marbles.splice(i, matchCount);
+                        gameState.score += matchCount * 10 * (gameState.combo + 1);
+                        gameState.combo++;
+                        playSound(400 + gameState.combo * 100, 0.1, 'square');
+                        
+                        // Create particles
+                        for (let k = 0; k < matchCount; k++) {
+                            const pos = this.getPosition(this.marbles[Math.max(0, i - 1)]?.distance || 0);
+                            particles.push(new Particle(pos.x, pos.y, color));
+                        }
+                        
+                        updateScore();
+                        setTimeout(() => this.checkMatches(), 100);
+                        return;
+                    }
+                    i = j;
+                }
+                
+                if (!matched) {
+                    gameState.combo = 0;
+                }
+            }
+
+            isGameOver() {
+                return this.marbles.length > 0 && this.marbles[this.marbles.length - 1].distance >= this.path.length - 1;
+            }
+
+            isEmpty() {
+                return this.marbles.length === 0;
+            }
+        }
+
+        // Launcher
+        class Launcher {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 80;
+                this.angle = -Math.PI / 2;
+                this.currentColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+                this.nextColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+                this.marbleRadius = 15;
+            }
+
+            update(mouseX, mouseY) {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 80;
+                this.angle = Math.atan2(mouseY - this.y, mouseX - this.x);
+            }
+
+            draw() {
+                // Launcher body
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                
+                ctx.fillStyle = '#654321';
+                ctx.beginPath();
+                ctx.moveTo(0, -20);
+                ctx.lineTo(50, -10);
+                ctx.lineTo(50, 10);
+                ctx.lineTo(0, 20);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.strokeStyle = '#8b6914';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Current marble
+                chain.drawMarble(35, 0, this.currentColor);
+                
+                ctx.restore();
+                
+                // Next marble preview
+                ctx.fillStyle = 'rgba(62, 39, 21, 0.8)';
+                ctx.strokeStyle = '#8b6914';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y + 50, 25, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                chain.drawMarble(this.x, this.y + 50, this.nextColor);
+            }
+
+            shoot() {
+                if (gameState.gameOver) return;
+                
+                playSound(300, 0.1, 'sawtooth');
+                
+                const speed = 8;
+                projectiles.push({
+                    x: this.x,
+                    y: this.y,
+                    vx: Math.cos(this.angle) * speed,
+                    vy: Math.sin(this.angle) * speed,
+                    color: this.currentColor,
+                    radius: this.marbleRadius
+                });
+                
+                this.currentColor = this.nextColor;
+                this.nextColor = COLORS[Math.floor(Math.random() * Math.min(4 + Math.floor(gameState.level / 3), 5))];
+            }
+        }
+
+        // Projectile system
+        const projectiles = [];
+
+        function updateProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // Check collision with chain
+                let collided = false;
+                for (let marble of chain.marbles) {
+                    const pos = chain.getPosition(marble.distance);
+                    const dx = p.x - pos.x;
+                    const dy = p.y - pos.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < p.radius + chain.marbleRadius) {
+                        chain.insertMarble(p.color, marble.distance);
+                        projectiles.splice(i, 1);
+                        collided = true;
+                        break;
+                    }
+                }
+                
+                if (!collided && (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height)) {
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawProjectiles() {
+            for (let p of projectiles) {
+                // Trail effect
+                ctx.fillStyle = p.color + '44';
+                ctx.beginPath();
+                ctx.arc(p.x - p.vx * 2, p.y - p.vy * 2, p.radius * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                chain.drawMarble(p.x, p.y, p.color);
+            }
+        }
+
+        // Particle system
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 4;
+                this.vy = (Math.random() - 0.5) * 4;
+                this.life = 1;
+                this.color = color;
+                this.size = Math.random() * 5 + 3;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.2;
+                this.life -= 0.02;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color + Math.floor(this.life * 255).toString(16).padStart(2, '0');
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const particles = [];
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            for (let p of particles) {
+                p.draw();
+            }
+        }
+
+        // Initialize game objects
+        let chain = new MarbleChain(gameState.level);
+        let launcher = new Launcher();
+
+        // Input handling
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('click', () => {
+            launcher.shoot();
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.touches[0].clientX - rect.left;
+            mouseY = e.touches[0].clientY - rect.top;
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            launcher.shoot();
+        });
+
+        // UI updates
+        function updateScore() {
+            scoreEl.textContent = `Score: ${gameState.score}`;
+            levelEl.textContent = `Level: ${gameState.level}`;
+        }
+
+        function showModal(won) {
+            gameState.gameOver = true;
+            modal.style.display = 'block';
+            modalTitle.textContent = won ? 'Victory!' : 'Game Over';
+            modalText.textContent = `Final Score: ${gameState.score}`;
+            
+            if (won) {
+                playSound(523, 0.2);
+                setTimeout(() => playSound(659, 0.2), 150);
+                setTimeout(() => playSound(784, 0.3), 300);
+            } else {
+                playSound(200, 0.5, 'sawtooth');
+            }
+        }
+
+        restartBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            gameState = { score: 0, level: 1, gameOver: false, won: false, combo: 0 };
+            chain = new MarbleChain(gameState.level);
+            launcher = new Launcher();
+            projectiles.length = 0;
+            particles.length = 0;
+            updateScore();
+        });
+
+        // Draw totem
+        function drawTotem() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Totem face
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(centerX - 30, centerY - 40, 60, 80);
+            
+            ctx.strokeStyle = '#8b6914';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(centerX - 30, centerY - 40, 60, 80);
+            
+            // Eyes
+            ctx.fillStyle = gameState.gameOver ? '#ff0000' : '#ffd700';
+            ctx.beginPath();
+            ctx.arc(centerX - 15, centerY - 10, 8, 0, Math.PI * 2);
+            ctx.arc(centerX + 15, centerY - 10, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Mouth
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY + 15, 15, 0, Math.PI);
+            ctx.stroke();
+        }
+
+        // Game loop
+        function gameLoop() {
+            // Clear
+            ctx.fillStyle = 'rgba(45, 74, 46, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background elements
+            drawTotem();
+            
+            if (!gameState.gameOver) {
+                chain.update();
+                updateProjectiles();
+                updateParticles();
+                launcher.update(mouseX, mouseY);
+                
+                // Check win/lose
+                if (chain.isGameOver()) {
+                    showModal(false);
+                } else if (chain.isEmpty()) {
+                    gameState.level++;
+                    gameState.score += 500;
+                    updateScore();
+                    chain = new MarbleChain(gameState.level);
+                    playSound(659, 0.3);
+                }
+            }
+            
+            // Draw
+            chain.draw();
+            drawProjectiles();
+            drawParticles();
+            launcher.draw();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        updateScore();
+        gameLoop();
+    </script>
+</body>
+</html>
