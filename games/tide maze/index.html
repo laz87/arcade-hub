@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tide Maze</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+        body { background: #020508; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: 'Courier New', monospace; overflow: hidden; color: #ffd700; }
+        #gameContainer { position: relative; width: 95vmin; height: 95vmin; border: 6px solid #3d2b1f; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        canvas { width: 100% !important; height: 100% !important; background: #001a2d; }
+        #ui { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; padding: 15px; }
+        .hud { display: flex; justify-content: space-between; font-size: 4vmin; text-shadow: 2px 2px #000; }
+        #msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 6vmin; text-align: center; opacity: 0; transition: opacity 0.3s; }
+        #msg.show { opacity: 1; }
+        #moveHint { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 2.5vmin; opacity: 0.6; }
+        #soundBtn { position: absolute; bottom: 40px; right: 15px; pointer-events: auto; background: #3d2b1f; color: #ffd700; border: 2px solid #ffd700; padding: 5px 10px; cursor: pointer; font-family: inherit; z-index: 10; }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <div class="hud">
+                <div id="levelDisplay">Map 1</div>
+                <div id="timer">0:00</div>
+            </div>
+            <div id="msg">BOUNTY SECURED!</div>
+            <div id="moveHint">Move: WASD/Arrows | Reset: R</div>
+            <button id="soundBtn">🔇 Sound Off</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800; canvas.height = 800;
+
+        // --- ENHANCED AUDIO ENGINE ---
+        let audioCtx = null;
+        let isMuted = true;
+        let sailGain = null; // Node for sailing sound
+        let sailFilter = null;
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Setup Sail Sound (White Noise)
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
+
+            const whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = noiseBuffer;
+            whiteNoise.loop = true;
+
+            sailFilter = audioCtx.createBiquadFilter();
+            sailFilter.type = 'lowpass';
+            sailFilter.frequency.value = 400;
+
+            sailGain = audioCtx.createGain();
+            sailGain.gain.value = 0;
+
+            whiteNoise.connect(sailFilter);
+            sailFilter.connect(sailGain);
+            sailGain.connect(audioCtx.destination);
+            whiteNoise.start();
+
+            playMusicLoop();
+        }
+
+        function playSound(freq, type, duration, vol) {
+            if (!audioCtx || isMuted) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playMusicLoop() {
+            const shanty = [110, 0, 110, 130, 146, 0, 146, 164]; 
+            let step = 0;
+            setInterval(() => {
+                if (!isMuted && shanty[step % shanty.length] !== 0) {
+                    playSound(shanty[step % shanty.length], 'triangle', 0.4, 0.08);
+                }
+                step++;
+            }, 250);
+        }
+
+        // --- GAME STATE ---
+        let level = 1; let mazeSize = 8; let cellSize = 100; let maze = [];
+        let player = { x: 0, y: 0, vx: 0, vy: 0, radius: 22, accel: 0.4, fric: 0.93 };
+        let exit = { x: 0, y: 0 }; let keys = {}; let touchStart = null; let touchCurrent = null;
+        let gameState = 'playing'; let levelStartTime = Date.now(); let treasureTime = 0;
+
+        document.getElementById('soundBtn').onclick = () => {
+            initAudio();
+            isMuted = !isMuted;
+            document.getElementById('soundBtn').textContent = isMuted ? "🔇 Sound Off" : "🔊 Sound On";
+        };
+
+        function generateMaze(size) {
+            const grid = Array.from({ length: size }, (_, y) => Array.from({ length: size }, (_, x) => ({ x, y, visited: false, walls: { top: true, right: true, bottom: true, left: true } })));
+            const stack = []; const start = grid[0][0]; start.visited = true; stack.push(start);
+            while (stack.length > 0) {
+                const current = stack[stack.length - 1];
+                const neighbors = [];
+                if (current.y > 0 && !grid[current.y - 1][current.x].visited) neighbors.push(grid[current.y - 1][current.x]);
+                if (current.x < size - 1 && !grid[current.y][current.x + 1].visited) neighbors.push(grid[current.y][current.x + 1]);
+                if (current.y < size - 1 && !grid[current.y + 1][current.x].visited) neighbors.push(grid[current.y + 1][current.x]);
+                if (current.x > 0 && !grid[current.y][current.x - 1].visited) neighbors.push(grid[current.y][current.x - 1]);
+                if (neighbors.length > 0) {
+                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    if (next.x > current.x) { current.walls.right = false; next.walls.left = false; }
+                    else if (next.x < current.x) { current.walls.left = false; next.walls.right = false; }
+                    else if (next.y > current.y) { current.walls.bottom = false; next.walls.top = false; }
+                    else if (next.y < current.y) { current.walls.top = false; next.walls.bottom = false; }
+                    next.visited = true; stack.push(next);
+                } else stack.pop();
+            }
+            return grid;
+        }
+
+        function relocateTreasure() {
+    // 1. Define all possible corner locations
+    const locs = [
+        {x: mazeSize - 1, y: mazeSize - 1}, 
+        {x: 0, y: mazeSize - 1}, 
+        {x: mazeSize - 1, y: 0}
+    ];
+    
+    // 2. Logic to ensure it doesn't pick the SAME spot it's already in
+    let newLoc;
+    do {
+        newLoc = locs[Math.floor(Math.random() * locs.length)];
+    } while (
+        Math.floor(exit.x / cellSize) === newLoc.x && 
+        Math.floor(exit.y / cellSize) === newLoc.y
+    );
+
+    // 3. Set the new position
+    exit.x = (newLoc.x + 0.5) * cellSize; 
+    exit.y = (newLoc.y + 0.5) * cellSize; 
+    
+    // 4. IMPORTANT: Reset the timer so it doesn't jump again immediately
+    treasureTime = Date.now(); 
+    
+    playSound(200, 'sine', 0.5, 0.05); // Play move sound
+}
+
+        function update() {
+            if (gameState !== 'playing') { if(sailGain) sailGain.gain.value = 0; return; }
+
+            if (keys['w'] || keys['arrowup']) player.vy -= player.accel;
+            if (keys['s'] || keys['arrowdown']) player.vy += player.accel;
+            if (keys['a'] || keys['arrowleft']) player.vx -= player.accel;
+            if (keys['d'] || keys['arrowright']) player.vx += player.accel;
+
+            if (touchStart && touchCurrent) {
+                const dx = touchCurrent.x - touchStart.x, dy = touchCurrent.y - touchStart.y;
+                const d = Math.hypot(dx, dy);
+                if (d > 10) { player.vx += (dx/d)*player.accel; player.vy += (dy/d)*player.accel; }
+            }
+
+            player.vx *= player.fric; player.vy *= player.fric;
+            player.x += player.vx; player.y += player.vy;
+
+            // Sailing Sound Logic
+            if (sailGain && !isMuted) {
+                const speed = Math.hypot(player.vx, player.vy);
+                sailGain.gain.setTargetAtTime(Math.min(speed / 15, 0.15), audioCtx.currentTime, 0.1);
+                sailFilter.frequency.setTargetAtTime(400 + (speed * 100), audioCtx.currentTime, 0.1);
+            }
+
+            const cx = Math.floor(player.x/cellSize), cy = Math.floor(player.y/cellSize);
+            if(cx>=0 && cx<mazeSize && cy>=0 && cy<mazeSize) {
+                const cell = maze[cy][cx]; const r = player.radius; const x = cell.x*cellSize, y = cell.y*cellSize;
+                if (cell.walls.top && player.y-r < y) { player.y=y+r; player.vy*=-0.5; }
+                if (cell.walls.bottom && player.y+r > y+cellSize) { player.y=y+cellSize-r; player.vy*=-0.5; }
+                if (cell.walls.left && player.x-r < x) { player.x=x+r; player.vx*=-0.5; }
+                if (cell.walls.right && player.x+r > x+cellSize) { player.x=x+cellSize-r; player.vx*=-0.5; }
+            }
+
+            if (Date.now() - treasureTime > 25000) relocateTreasure();
+            if (Math.hypot(player.x - exit.x, player.y - exit.y) < 40) {
+                gameState = 'won'; playSound(600, 'square', 0.4, 0.1);
+                document.getElementById('msg').classList.add('show');
+                setTimeout(() => { level++; document.getElementById('msg').classList.remove('show'); initLevel(); gameState = 'playing'; }, 1500);
+            }
+        }
+
+        function drawShip(x, y, vx, vy) {
+            ctx.save(); ctx.translate(x, y); ctx.rotate(vx * 0.04);
+            ctx.fillStyle = '#4e342e'; ctx.beginPath(); ctx.moveTo(-20,0); ctx.quadraticCurveTo(0,15,20,0); ctx.lineTo(16,-8); ctx.lineTo(-16,-8); ctx.fill();
+            ctx.fillStyle = '#f5f5f5'; ctx.beginPath(); ctx.moveTo(-2,-8); ctx.lineTo(-15,-25); ctx.lineTo(15,-25); ctx.fill();
+            ctx.fillStyle = '#000'; ctx.fillRect(-2,-32,18,10); ctx.fillStyle = '#fff'; ctx.font='bold 12px Arial'; ctx.fillText('☠', 2,-24);
+            ctx.restore();
+        }
+
+        function render() {
+            const time = Date.now() * 0.002;
+            ctx.fillStyle = '#002642'; ctx.fillRect(0,0,800,800);
+            ctx.strokeStyle = '#003d66'; ctx.lineWidth = 2;
+            for(let i=0; i<800; i+=40) { ctx.beginPath(); for(let j=0; j<800; j+=10) { ctx.lineTo(i + Math.sin(time + j*0.05)*5, j); } ctx.stroke(); }
+            
+            ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+            maze.forEach(row => row.forEach(cell => {
+                const x = cell.x*cellSize, y = cell.y*cellSize;
+                ctx.globalAlpha = Math.max(0, 1 - Math.hypot(x+cellSize/2-player.x, y+cellSize/2-player.y)/350);
+                ctx.beginPath();
+                if (cell.walls.top) { ctx.moveTo(x,y); ctx.lineTo(x+cellSize,y); }
+                if (cell.walls.bottom) { ctx.moveTo(x,y+cellSize); ctx.lineTo(x+cellSize,y+cellSize); }
+                if (cell.walls.left) { ctx.moveTo(x,y); ctx.lineTo(x,y+cellSize); }
+                if (cell.walls.right) { ctx.moveTo(x+cellSize,y); ctx.lineTo(x+cellSize,y+cellSize); }
+                ctx.stroke();
+            }));
+            ctx.globalAlpha = 1;
+            ctx.save(); ctx.translate(exit.x, exit.y); ctx.fillStyle = '#ffd700'; ctx.shadowBlur = 20; ctx.shadowColor = 'gold'; ctx.fillRect(-15,-10,30,20); ctx.restore();
+            drawShip(player.x, player.y, player.vx, player.vy);
+        }
+
+        function initLevel() {
+            mazeSize = Math.min(15, 6+level); cellSize = 800/mazeSize; maze = generateMaze(mazeSize);
+            player.x = cellSize/2; player.y = cellSize/2; player.vx = 0; player.vy = 0; relocateTreasure();
+            document.getElementById('levelDisplay').textContent = `Map ${level}`; levelStartTime = Date.now();
+        }
+
+        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+        canvas.addEventListener('touchstart', e => { initAudio(); touchStart = {x:e.touches[0].clientX, y:e.touches[0].clientY}; touchCurrent = touchStart; });
+        canvas.addEventListener('touchmove', e => { touchCurrent = {x:e.touches[0].clientX, y:e.touches[0].clientY}; });
+        canvas.addEventListener('touchend', () => { touchStart = null; touchCurrent = null; });
+
+        initLevel();
+        function loop() { update(); render(); const s = Math.floor((Date.now()-levelStartTime)/1000); document.getElementById('timer').textContent = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; requestAnimationFrame(loop); }
+        loop();
+    </script>
+</body>
+</html>
