@@ -2,18 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astray 2D</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Ball</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: none;
         }
         
         body {
             background: #000;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -21,489 +23,360 @@
             overflow: hidden;
         }
         
+          /* Graffiti Title */
+        #gameTitle {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 3rem;
+            color: #fff;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-shadow: 
+                0 0 10px #fff,
+                0 0 20px #ff00ff,
+                0 0 40px #ff00ff,
+                2px 2px 0px #00ffff;
+            transform: rotate(-3deg);
+            z-index: 10;
+        }
+
         #gameContainer {
             position: relative;
+            width: 95vw;
+            height: 95vw;
+            max-width: 600px;
+            max-height: 600px;
         }
         
         canvas {
-            display: block;
+            width: 100%;
+            height: 100%;
             background: #0a0a0a;
-            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+            border: 2px solid #00ffff;
         }
         
         #ui {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
             color: #00ffff;
         }
         
-        #levelDisplay {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 24px;
-            text-shadow: 0 0 10px #00ffff;
-        }
+        #levelDisplay { position: absolute; top: 15px; left: 15px; font-size: 18px; text-shadow: 0 0 10px #00ffff; }
+        #timer { position: absolute; top: 15px; right: 15px; font-size: 16px; }
         
-        #restartHint {
-            position: absolute;
-            bottom: 20px;
+        /* Neon Mute Button */
+        #muteBtn {
+            position: fixed;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 14px;
-            opacity: 0.6;
-            text-shadow: 0 0 5px #00ffff;
+            padding: 8px 16px;
+            background: transparent;
+            color: #ff00ff;
+            border: 2px solid #ff00ff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px #ff00ff;
+            text-shadow: 0 0 5px #ff00ff;
+            pointer-events: auto;
+            z-index: 100;
+            transition: 0.2s;
         }
-        
+
+        #muteBtn.muted {
+            color: #555;
+            border-color: #555;
+            box-shadow: none;
+            text-shadow: none;
+        }
+
         #levelComplete {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 48px;
+            font-size: 32px;
+            text-align: center;
             text-shadow: 0 0 20px #00ff00;
             color: #00ff00;
             opacity: 0;
             transition: opacity 0.5s;
         }
-        
-        #levelComplete.show {
-            opacity: 1;
+        #levelComplete.show { opacity: 1; }
+
+        #joystickContainer {
+            position: fixed;
+            bottom: 30px; left: 30px;
+            width: 100px; height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: none;
+            border: 1px solid rgba(0, 255, 255, 0.3);
         }
-        
-        #timer {
+        #joystickKnob {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 18px;
-            text-shadow: 0 0 10px #00ffff;
+            top: 50%; left: 50%;
+            width: 40px; height: 40px;
+            background: #00ffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px #00ffff;
         }
+
+        @media (pointer: coarse) { #joystickContainer { display: block; } }
     </style>
 </head>
 <body>
+
+    <h1 id="gameTitle">Neon Ball</h1>
+    <button id="muteBtn">Audio: ON</button>
+
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="ui">
             <div id="levelDisplay">Level 1</div>
             <div id="timer">0:00</div>
-            <div id="restartHint">Press R to Restart</div>
             <div id="levelComplete">LEVEL COMPLETE!</div>
         </div>
     </div>
 
+    <div id="joystickContainer"><div id="joystickKnob"></div></div>
+
     <script>
-        // ========== CANVAS SETUP ==========
+        // ========== AUDIO ENGINE (Synthesized) ==========
+        const AudioEngine = (() => {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            let isMuted = false;
+            let bgOsc = null;
+            let bgGain = null;
+
+            const playSound = (freq, type, duration, volume) => {
+                if (isMuted || ctx.state === 'suspended') return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(volume, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            };
+
+            return {
+                toggle: () => { 
+                    isMuted = !isMuted; 
+                    if(isMuted && bgGain) bgGain.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
+                    else if(bgGain) bgGain.gain.setTargetAtTime(0.05, ctx.currentTime, 0.1);
+                    return isMuted; 
+                },
+                startMusic: () => {
+                    if (bgOsc) return;
+                    bgGain = ctx.createGain();
+                    bgGain.gain.value = isMuted ? 0 : 0.05;
+                    bgGain.connect(ctx.destination);
+                    
+                    const playNote = () => {
+                        const osc = ctx.createOscillator();
+                        osc.type = 'triangle';
+                        // Ethereal minor scale melody
+                        const notes = [164.81, 196.00, 220.00, 246.94];
+                        osc.frequency.value = notes[Math.floor(Math.random()*notes.length)];
+                        osc.connect(bgGain);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 2);
+                        setTimeout(playNote, 2000);
+                    };
+                    playNote();
+                },
+                playBounce: () => playSound(150, 'sine', 0.1, 0.1),
+                playWin: () => {
+                    playSound(440, 'square', 0.2, 0.1);
+                    setTimeout(() => playSound(880, 'square', 0.4, 0.1), 150);
+                },
+                resume: () => ctx.resume()
+            };
+        })();
+
+        // ========== GAME LOGIC ==========
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = 800;
-        canvas.height = 800;
+        canvas.width = 800; canvas.height = 800;
 
-        // ========== GAME STATE ==========
-        let level = 1;
-        let mazeSize = 10;
-        let cellSize = 60;
-        let maze = [];
-        let player = {
-            x: cellSize / 2,
-            y: cellSize / 2,
-            vx: 0,
-            vy: 0,
-            radius: 12,
-            maxSpeed: 4,
-            acceleration: 0.3,
-            friction: 0.92
+        let level = 1, mazeSize = 10, cellSize = 60, maze = [];
+        let player = { x: 0, y: 0, vx: 0, vy: 0, radius: 12, maxSpeed: 5, acceleration: 0.4, friction: 0.92 };
+        let exit = { x: 0, y: 0 }, keys = {}, gameState = 'playing', transitionAlpha = 0, levelStartTime = Date.now();
+
+        // Mute Toggle Listener
+        document.getElementById('muteBtn').addEventListener('click', (e) => {
+            AudioEngine.resume();
+            AudioEngine.startMusic();
+            const muted = AudioEngine.toggle();
+            e.target.textContent = muted ? "Audio: OFF" : "Audio: ON";
+            e.target.classList.toggle('muted', muted);
+        });
+
+        // Joystick Logic
+        let touchActive = false, joystickPos = { x: 0, y: 0 };
+        const joystickBase = document.getElementById('joystickContainer'), knob = document.getElementById('joystickKnob');
+
+        const handleTouch = (e) => {
+            AudioEngine.resume(); // Unlock audio on first touch
+            AudioEngine.startMusic();
+            if (e.touches.length > 0) {
+                touchActive = true;
+                const rect = joystickBase.getBoundingClientRect();
+                const dx = e.touches[0].clientX - (rect.left + rect.width/2);
+                const dy = e.touches[0].clientY - (rect.top + rect.height/2);
+                const dist = Math.min(rect.width/2, Math.sqrt(dx*dx + dy*dy));
+                const angle = Math.atan2(dy, dx);
+                joystickPos = { x: Math.cos(angle) * (dist/(rect.width/2)), y: Math.sin(angle) * (dist/(rect.width/2)) };
+                knob.style.transform = `translate(calc(-50% + ${dx*(dist/Math.hypot(dx,dy))}px), calc(-50% + ${dy*(dist/Math.hypot(dx,dy))}px))`;
+            }
         };
-        let exit = { x: 0, y: 0 };
-        let keys = {};
-        let gameState = 'playing'; // 'playing', 'transitioning'
-        let transitionAlpha = 0;
-        let levelStartTime = Date.now();
+        joystickBase.addEventListener('touchstart', handleTouch);
+        joystickBase.addEventListener('touchmove', handleTouch);
+        joystickBase.addEventListener('touchend', () => { touchActive = false; joystickPos = {x:0,y:0}; knob.style.transform = `translate(-50%, -50%)`; });
 
-        // ========== MAZE GENERATION (Recursive Backtracking) ==========
-        class Cell {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.walls = { top: true, right: true, bottom: true, left: true };
-                this.visited = false;
-            }
-        }
-
+        // Maze Gen
         function generateMaze(size) {
-            // Initialize grid
-            const grid = [];
-            for (let y = 0; y < size; y++) {
-                grid[y] = [];
-                for (let x = 0; x < size; x++) {
-                    grid[y][x] = new Cell(x, y);
-                }
-            }
-
-            // Recursive backtracking algorithm
+            const grid = Array.from({length: size}, (_, y) => Array.from({length: size}, (_, x) => ({x, y, walls: {top:true,right:true,bottom:true,left:true}, visited: false})));
             const stack = [];
-            const start = grid[0][0];
-            start.visited = true;
-            stack.push(start);
-
+            const start = grid[0][0]; start.visited = true; stack.push(start);
             while (stack.length > 0) {
-                const current = stack[stack.length - 1];
-                const neighbors = getUnvisitedNeighbors(current, grid, size);
-
+                const curr = stack[stack.length - 1];
+                const neighbors = [];
+                const {x, y} = curr;
+                if (y > 0 && !grid[y-1][x].visited) neighbors.push(grid[y-1][x]);
+                if (x < size-1 && !grid[y][x+1].visited) neighbors.push(grid[y][x+1]);
+                if (y < size-1 && !grid[y+1][x].visited) neighbors.push(grid[y+1][x]);
+                if (x > 0 && !grid[y][x-1].visited) neighbors.push(grid[y][x-1]);
                 if (neighbors.length > 0) {
                     const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-                    removeWallBetween(current, next);
-                    next.visited = true;
-                    stack.push(next);
-                } else {
-                    stack.pop();
-                }
+                    if (next.x > curr.x) { curr.walls.right = false; next.walls.left = false; }
+                    else if (next.x < curr.x) { curr.walls.left = false; next.walls.right = false; }
+                    else if (next.y > curr.y) { curr.walls.bottom = false; next.walls.top = false; }
+                    else if (next.y < curr.y) { curr.walls.top = false; next.walls.bottom = false; }
+                    next.visited = true; stack.push(next);
+                } else stack.pop();
             }
-
             return grid;
         }
 
-        function getUnvisitedNeighbors(cell, grid, size) {
-            const neighbors = [];
-            const { x, y } = cell;
-
-            if (y > 0 && !grid[y - 1][x].visited) neighbors.push(grid[y - 1][x]); // top
-            if (x < size - 1 && !grid[y][x + 1].visited) neighbors.push(grid[y][x + 1]); // right
-            if (y < size - 1 && !grid[y + 1][x].visited) neighbors.push(grid[y + 1][x]); // bottom
-            if (x > 0 && !grid[y][x - 1].visited) neighbors.push(grid[y][x - 1]); // left
-
-            return neighbors;
-        }
-
-        function removeWallBetween(current, next) {
-            const dx = next.x - current.x;
-            const dy = next.y - current.y;
-
-            if (dx === 1) { // next is to the right
-                current.walls.right = false;
-                next.walls.left = false;
-            } else if (dx === -1) { // next is to the left
-                current.walls.left = false;
-                next.walls.right = false;
-            } else if (dy === 1) { // next is below
-                current.walls.bottom = false;
-                next.walls.top = false;
-            } else if (dy === -1) { // next is above
-                current.walls.top = false;
-                next.walls.bottom = false;
+        function resolveWall(x1, y1, x2, y2) {
+            const dx = x2 - x1, dy = y2 - y1;
+            const t = Math.max(0, Math.min(1, ((player.x - x1) * dx + (player.y - y1) * dy) / (dx * dx + dy * dy)));
+            const nx = x1 + t * dx, ny = y1 + t * dy;
+            const dist = Math.hypot(player.x - nx, player.y - ny);
+            if (dist < player.radius) {
+                AudioEngine.playBounce();
+                const overlap = player.radius - dist;
+                const normX = (player.x - nx) / dist, normY = (player.y - ny) / dist;
+                player.x += normX * overlap; player.y += normY * overlap;
+                const dot = player.vx * normX + player.vy * normY;
+                player.vx -= 1.6 * dot * normX; player.vy -= 1.6 * dot * normY;
             }
         }
 
-        // ========== PHYSICS & COLLISION ==========
-        function updatePlayer() {
-            // Apply acceleration based on input
-            if (keys['ArrowUp'] || keys['w'] || keys['k']) player.vy -= player.acceleration;
-            if (keys['ArrowDown'] || keys['s'] || keys['j']) player.vy += player.acceleration;
-            if (keys['ArrowLeft'] || keys['a'] || keys['h']) player.vx -= player.acceleration;
-            if (keys['ArrowRight'] || keys['d'] || keys['l']) player.vx += player.acceleration;
-
-            // Apply friction
-            player.vx *= player.friction;
-            player.vy *= player.friction;
-
-            // Cap speed
-            const speed = Math.sqrt(player.vx * player.vx + player.vy * player.vy);
-            if (speed > player.maxSpeed) {
-                player.vx = (player.vx / speed) * player.maxSpeed;
-                player.vy = (player.vy / speed) * player.maxSpeed;
+        function update() {
+            if (touchActive) { player.vx += joystickPos.x * player.acceleration; player.vy += joystickPos.y * player.acceleration; }
+            else {
+                if (keys['ArrowUp'] || keys['w']) player.vy -= player.acceleration;
+                if (keys['ArrowDown'] || keys['s']) player.vy += player.acceleration;
+                if (keys['ArrowLeft'] || keys['a']) player.vx -= player.acceleration;
+                if (keys['ArrowRight'] || keys['d']) player.vx += player.acceleration;
             }
-
-            // Store old position for collision resolution
-            const oldX = player.x;
-            const oldY = player.y;
-
-            // Update position
-            player.x += player.vx;
-            player.y += player.vy;
-
-            // Check collisions with maze walls
-            checkCollisions(oldX, oldY);
-
-            // Check if reached exit
-            const distToExit = Math.sqrt(
-                Math.pow(player.x - exit.x, 2) + Math.pow(player.y - exit.y, 2)
-            );
-            if (distToExit < player.radius + 15 && gameState === 'playing') {
-                levelComplete();
-            }
-        }
-
-        function checkCollisions(oldX, oldY) {
-            const cellX = Math.floor(player.x / cellSize);
-            const cellY = Math.floor(player.y / cellSize);
-
-            // Check cells around player
+            player.vx *= player.friction; player.vy *= player.friction;
+            player.x += player.vx; player.y += player.vy;
+            const cx = Math.floor(player.x / cellSize), cy = Math.floor(player.y / cellSize);
             for (let dy = -1; dy <= 1; dy++) {
                 for (let dx = -1; dx <= 1; dx++) {
-                    const cx = cellX + dx;
-                    const cy = cellY + dy;
-                    if (cx >= 0 && cx < mazeSize && cy >= 0 && cy < mazeSize) {
-                        checkCellCollision(maze[cy][cx], oldX, oldY);
+                    const nx = cx + dx, ny = cy + dy;
+                    if (nx >= 0 && nx < mazeSize && ny >= 0 && ny < mazeSize) {
+                        const cell = maze[ny][nx], x = cell.x * cellSize, y = cell.y * cellSize;
+                        if (cell.walls.top) resolveWall(x, y, x + cellSize, y);
+                        if (cell.walls.right) resolveWall(x + cellSize, y, x + cellSize, y + cellSize);
+                        if (cell.walls.bottom) resolveWall(x, y + cellSize, x + cellSize, y + cellSize);
+                        if (cell.walls.left) resolveWall(x, y, x, y + cellSize);
                     }
                 }
             }
+            if (Math.hypot(player.x - exit.x, player.y - exit.y) < 30 && gameState === 'playing') levelComplete();
         }
 
-        function checkCellCollision(cell, oldX, oldY) {
-            const x = cell.x * cellSize;
-            const y = cell.y * cellSize;
-
-            // Check each wall of the cell
-            if (cell.walls.top) checkWallCollision(x, y, x + cellSize, y, oldX, oldY);
-            if (cell.walls.right) checkWallCollision(x + cellSize, y, x + cellSize, y + cellSize, oldX, oldY);
-            if (cell.walls.bottom) checkWallCollision(x, y + cellSize, x + cellSize, y + cellSize, oldX, oldY);
-            if (cell.walls.left) checkWallCollision(x, y, x, y + cellSize, oldX, oldY);
-        }
-
-        function checkWallCollision(x1, y1, x2, y2, oldX, oldY) {
-            // Find closest point on line segment to circle
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            const len = Math.sqrt(dx * dx + dy * dy);
-            const nx = dx / len;
-            const ny = dy / len;
-
-            const px = player.x - x1;
-            const py = player.y - y1;
-            const dot = px * nx + py * ny;
-            const t = Math.max(0, Math.min(len, dot));
-
-            const closestX = x1 + nx * t;
-            const closestY = y1 + ny * t;
-
-            const dist = Math.sqrt(
-                Math.pow(player.x - closestX, 2) + Math.pow(player.y - closestY, 2)
-            );
-
-            if (dist < player.radius) {
-                // Collision detected - bounce back
-                const overlap = player.radius - dist;
-                const normalX = (player.x - closestX) / dist;
-                const normalY = (player.y - closestY) / dist;
-
-                player.x += normalX * overlap;
-                player.y += normalY * overlap;
-
-                // Reflect velocity (with damping)
-                const dotProduct = player.vx * normalX + player.vy * normalY;
-                player.vx -= 1.7 * dotProduct * normalX;
-                player.vy -= 1.7 * dotProduct * normalY;
-            }
-        }
-
-        // ========== RENDERING ==========
         function render() {
-            // Clear canvas
-            ctx.fillStyle = '#0a0a0a';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Apply fog of war effect
-            ctx.save();
-            
-            // Create circular clipping region around player
-            const gradient = ctx.createRadialGradient(
-                player.x, player.y, 0,
-                player.x, player.y, 200
-            );
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.3)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-            // Draw maze walls with fog of war
-            for (let y = 0; y < mazeSize; y++) {
-                for (let x = 0; x < mazeSize; x++) {
-                    const cell = maze[y][x];
-                    const cellX = x * cellSize;
-                    const cellY = y * cellSize;
-
-                    // Calculate distance from player for opacity
-                    const centerX = cellX + cellSize / 2;
-                    const centerY = cellY + cellSize / 2;
-                    const dist = Math.sqrt(
-                        Math.pow(centerX - player.x, 2) + Math.pow(centerY - player.y, 2)
-                    );
-                    const opacity = Math.max(0, 1 - dist / 200);
-
-                    if (opacity > 0) {
-                        ctx.strokeStyle = `rgba(0, 255, 255, ${opacity})`;
-                        ctx.lineWidth = 3;
-                        ctx.shadowBlur = 10;
-                        ctx.shadowColor = '#00ffff';
-
-                        ctx.beginPath();
-                        if (cell.walls.top) {
-                            ctx.moveTo(cellX, cellY);
-                            ctx.lineTo(cellX + cellSize, cellY);
-                        }
-                        if (cell.walls.right) {
-                            ctx.moveTo(cellX + cellSize, cellY);
-                            ctx.lineTo(cellX + cellSize, cellY + cellSize);
-                        }
-                        if (cell.walls.bottom) {
-                            ctx.moveTo(cellX, cellY + cellSize);
-                            ctx.lineTo(cellX + cellSize, cellY + cellSize);
-                        }
-                        if (cell.walls.left) {
-                            ctx.moveTo(cellX, cellY);
-                            ctx.lineTo(cellX, cellY + cellSize);
-                        }
-                        ctx.stroke();
-                    }
-                }
+            ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            maze.forEach(row => row.forEach(cell => {
+                const dist = Math.hypot(cell.x * cellSize + cellSize/2 - player.x, cell.y * cellSize + cellSize/2 - player.y);
+                const opacity = Math.max(0, 1 - dist / 250);
+                if (opacity <= 0) return;
+                ctx.strokeStyle = `rgba(0, 255, 255, ${opacity})`; ctx.lineWidth = 4;
+                ctx.beginPath(); const x = cell.x * cellSize, y = cell.y * cellSize;
+                if (cell.walls.top) { ctx.moveTo(x, y); ctx.lineTo(x+cellSize, y); }
+                if (cell.walls.right) { ctx.moveTo(x+cellSize, y); ctx.lineTo(x+cellSize, y+cellSize); }
+                if (cell.walls.bottom) { ctx.moveTo(x, y+cellSize); ctx.lineTo(x+cellSize, y+cellSize); }
+                if (cell.walls.left) { ctx.moveTo(x, y); ctx.lineTo(x, y+cellSize); }
+                ctx.stroke();
+            }));
+            const exitDist = Math.hypot(exit.x - player.x, exit.y - player.y);
+            const exitOp = Math.max(0, 1 - exitDist / 250);
+            if (exitOp > 0) {
+                ctx.fillStyle = `rgba(0, 255, 0, ${exitOp})`;
+                ctx.beginPath(); ctx.arc(exit.x, exit.y, 12 + Math.sin(Date.now()/200)*3, 0, Math.PI*2); ctx.fill();
             }
-
+            ctx.fillStyle = '#00ffff'; ctx.shadowBlur = 15; ctx.shadowColor = '#00ffff';
+            ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
             ctx.shadowBlur = 0;
-
-            // Draw exit with pulsating effect
-            const pulse = Math.sin(Date.now() / 300) * 0.3 + 0.7;
-            const exitDist = Math.sqrt(
-                Math.pow(exit.x - player.x, 2) + Math.pow(exit.y - player.y, 2)
-            );
-            const exitOpacity = Math.max(0, 1 - exitDist / 200);
-
-            if (exitOpacity > 0) {
-                const gradient = ctx.createRadialGradient(exit.x, exit.y, 0, exit.x, exit.y, 15 * pulse);
-                gradient.addColorStop(0, `rgba(0, 255, 0, ${exitOpacity})`);
-                gradient.addColorStop(1, `rgba(0, 255, 0, 0)`);
-                ctx.fillStyle = gradient;
-                ctx.fillRect(exit.x - 20, exit.y - 20, 40, 40);
-
-                ctx.fillStyle = `rgba(0, 255, 0, ${exitOpacity})`;
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = '#00ff00';
-                ctx.beginPath();
-                ctx.arc(exit.x, exit.y, 8 * pulse, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-
-            // Draw player with glow effect
-            const playerGradient = ctx.createRadialGradient(
-                player.x, player.y, 0,
-                player.x, player.y, player.radius * 2
-            );
-            playerGradient.addColorStop(0, '#ffffff');
-            playerGradient.addColorStop(0.5, '#00ffff');
-            playerGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
-
-            ctx.fillStyle = playerGradient;
-            ctx.beginPath();
-            ctx.arc(player.x, player.y, player.radius * 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#00ffff';
-            ctx.beginPath();
-            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            ctx.restore();
-
-            // Apply transition fade
-            if (gameState === 'transitioning') {
-                ctx.fillStyle = `rgba(10, 10, 10, ${transitionAlpha})`;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
+            if (gameState === 'transitioning') { ctx.fillStyle = `rgba(10, 10, 10, ${transitionAlpha})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
         }
 
-        // ========== INPUT HANDLING ==========
-        document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            if (e.key === 'r' || e.key === 'R') {
-                restartLevel();
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-        });
-
-        // ========== GAME LOOP ==========
-        function gameLoop() {
-            if (gameState === 'playing') {
-                updatePlayer();
-                updateTimer();
-            }
-            render();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // ========== LEVEL MANAGEMENT ==========
         function initLevel() {
-            mazeSize = 10 + (level - 1) * 5;
-            cellSize = Math.min(60, canvas.width / mazeSize);
-            maze = generateMaze(mazeSize);
-            
-            player.x = cellSize / 2;
-            player.y = cellSize / 2;
-            player.vx = 0;
-            player.vy = 0;
-            
-            exit.x = (mazeSize - 0.5) * cellSize;
-            exit.y = (mazeSize - 0.5) * cellSize;
-            
-            document.getElementById('levelDisplay').textContent = `Level ${level}`;
-            levelStartTime = Date.now();
+            mazeSize = 8 + (level * 2); cellSize = canvas.width / mazeSize;
+            maze = generateMaze(mazeSize); player.x = cellSize / 2; player.y = cellSize / 2;
+            player.vx = 0; player.vy = 0; exit = { x: (mazeSize - 0.5) * cellSize, y: (mazeSize - 0.5) * cellSize };
+            document.getElementById('levelDisplay').textContent = `Level ${level}`; levelStartTime = Date.now();
         }
 
         function levelComplete() {
+            AudioEngine.playWin();
             gameState = 'transitioning';
             document.getElementById('levelComplete').classList.add('show');
-            
-            // Fade out
-            let fadeOut = setInterval(() => {
-                transitionAlpha += 0.05;
+            let fade = setInterval(() => {
+                transitionAlpha += 0.1;
                 if (transitionAlpha >= 1) {
-                    clearInterval(fadeOut);
-                    level++;
-                    initLevel();
-                    
+                    clearInterval(fade); level++; initLevel();
                     setTimeout(() => {
                         document.getElementById('levelComplete').classList.remove('show');
-                        // Fade in
                         let fadeIn = setInterval(() => {
-                            transitionAlpha -= 0.05;
-                            if (transitionAlpha <= 0) {
-                                clearInterval(fadeIn);
-                                transitionAlpha = 0;
-                                gameState = 'playing';
-                            }
+                            transitionAlpha -= 0.1;
+                            if (transitionAlpha <= 0) { clearInterval(fadeIn); gameState = 'playing'; }
                         }, 30);
-                    }, 500);
+                    }, 1000);
                 }
-            }, 30);
+            }, 50);
         }
 
-        function restartLevel() {
-            maze = generateMaze(mazeSize);
-            player.x = cellSize / 2;
-            player.y = cellSize / 2;
-            player.vx = 0;
-            player.vy = 0;
-            levelStartTime = Date.now();
+        function loop() {
+            if (gameState === 'playing') {
+                update();
+                const elapsed = Math.floor((Date.now() - levelStartTime) / 1000);
+                document.getElementById('timer').textContent = `${Math.floor(elapsed/60)}:${(elapsed%60).toString().padStart(2,'0')}`;
+            }
+            render(); requestAnimationFrame(loop);
         }
 
-        function updateTimer() {
-            const elapsed = Math.floor((Date.now() - levelStartTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            document.getElementById('timer').textContent = 
-                `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
+        document.addEventListener('keydown', e => { 
+            AudioEngine.resume(); AudioEngine.startMusic();
+            keys[e.key] = true; 
+        });
+        document.addEventListener('keyup', e => keys[e.key] = false);
 
-        // ========== START GAME ==========
         initLevel();
-        gameLoop();
+        loop();
     </script>
 </body>
 </html>
