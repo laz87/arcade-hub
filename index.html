@@ -288,7 +288,7 @@
     <!-- Header -->
     <header>
         <div class="header-content">
-            <div class="logo">🎮 Arcade Hub</div>
+            <div class="logo">🎮 Gamelet</div>
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames()">
                 <span class="search-icon">🔍</span>
@@ -332,10 +332,10 @@
 
             <!-- Game 2: Snake -->
             <div class="game-card" data-category="arcade"
-            onclick="playGame('snake')">
+            onclick="playGame('snake garden')">
                 <div class="game-thumbnail">🐍</div>
                 <div class="game-info">
-                    <div class="game-title">Snake Game</div>
+                    <div class="game-title">Snake Garden</div>
                     <span class="game-category">Arcade</span>
                     <div class="game-stats">
                         <span class="play-count">1K plays</span>
@@ -361,7 +361,7 @@
             <!-- Game 4: Puzzle ball -->
             <div class="game-card" data-category="puzzle"
             onclick="playGame('neon ball')">
-                <div class="game-thumbnail">🧠</div>
+                <div class="game-thumbnail">☄🌠</div>
                 <div class="game-info">
                     <div class="game-title">Neon Ball</div>
                     <span class="game-category">puzzle</span>
@@ -402,10 +402,10 @@
 
             <!-- Game 7: seed shorter -->
             <div class="game-card" data-category="action"
-            onclick="playGame('seed shooter')">
+            onclick="playGame('emoji ops')">
                 <div class="game-thumbnail">🥜</div>
                 <div class="game-info">
-                    <div class="game-title">Seed Shooter</div>
+                    <div class="game-title">Emoji Ops</div>
                     <span class="game-category">action</span>
                     <div class="game-stats">
                         <span class="play-count">1K plays</span>
@@ -414,14 +414,28 @@
                 </div>
             </div>
 
-            <div class="game-card coming-soon" data-category="action">
-                <div class="game-thumbnail">🏓</div>
+            <div class="game-card" data-category="puzzle"
+            onclick="playGame('tide maze')">
+                <div class="game-thumbnail">🌊🌊</div>
                 <div class="game-info">
-                    <div class="game-title">Pong</div>
-                    <span class="game-category">Coming Soon</span>
+                    <div class="game-title">Tide Maze</div>
+                    <span class="game-category">puzzle</span>
+                    <div class="game-stats">
+                        <span class="play-count">1K plays</span>
+                        <span class="rating">4.8</span>
                 </div>
             </div>
         </div>
+
+          <div class="game-card coming-soon" data-category="puzzle">
+                <div class="game-thumbnail">?</div>
+                <div class="game-info">
+                    <div class="game-title">Coming soon</div>
+                    <span class="game-category">n/a</span>
+                </div>
+            </div>
+        </div>
+
     </section>
 
     <!-- Footer -->
@@ -475,12 +489,13 @@
         function playGame(gameName) {
             const gameUrls = {
                 'mahjong': 'games/mahjong/index.html',
-                'snake': 'games/snake/index.html',
+                'snake garden': 'games/snake garden/index.html',
                 '2048': 'games/2048/index.html',
                 'neon ball': 'games/neon ball/index.html',
                 'camper': 'games/camper/index.html',
                 'fly defeater': 'games/fly defeater/index.html',
-                'seed shooter': 'games/seed shooter/index.html'
+                'emoji ops': 'games/emoji ops/index.html',
+                'tide maze': 'games/tide maze/index.html'
             };
             
             if (gameUrls[gameName]) {
