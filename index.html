@@ -318,10 +318,10 @@
         <div class="games-grid" id="gamesGrid">
 
             <!-- Game 1: Mahjong -->
-            <div class="game-card" data-category="puzzle" onclick="playGame('mahjong')">
+            <div class="game-card" data-category="puzzle" onclick="playGame('spirit mahjong')">
                 <div class="game-thumbnail">🀄</div>
                 <div class="game-info">
-                    <div class="game-title">Mahjong Solitaire</div>
+                    <div class="game-title">Spirit Mahjong</div>
                     <span class="game-category">Puzzle</span>
                     <div class="game-stats">
                         <span class="play-count">1.2K plays</span>
@@ -388,10 +388,10 @@
 
             <!-- Game 6: fly defeater -->
             <div class="game-card" data-category="action"
-            onclick="playGame('fly defeater')">
+            onclick="playGame('pest patrol')">
                 <div class="game-thumbnail">👾</div>
                 <div class="game-info">
-                    <div class="game-title">Fly Defeater</div>
+                    <div class="game-title">Pest Patrol</div>
                     <span class="game-category">action</span>
                     <div class="game-stats">
                         <span class="play-count">1K plays</span>
@@ -427,7 +427,20 @@
             </div>
         </div>
 
-          <div class="game-card coming-soon" data-category="puzzle">
+          <div class="game-card" data-category="strategy"
+          onclick="playGame('spike dodge')">
+                <div class="game-thumbnail">⚡</div>
+                <div class="game-info">
+                    <div class="game-title">Spike Dodge</div>
+                    <span class="game-category">strategy</span>
+                    <div class="game-stats">
+                        <span class="play-count">1K plays</span>
+                        <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
+
+         <div class="game-card coming-soon" data-category="puzzle">
                 <div class="game-thumbnail">?</div>
                 <div class="game-info">
                     <div class="game-title">Coming soon</div>
@@ -447,7 +460,7 @@
     <script>
         // Game data structure
         const games = [
-            { name: 'Mahjong Solitaire', category: 'puzzle', plays: '1.2K', rating: '4.8', url: 'games/mahjong/index.html' },
+            { name: 'Spirit Mahjong', category: 'puzzle', plays: '1.2K', rating: '4.8', url: 'games/spirit mahjong/index.html' },
             // Add more games here as you create them
         ];
 
@@ -488,14 +501,15 @@
         // Play game
         function playGame(gameName) {
             const gameUrls = {
-                'mahjong': 'games/mahjong/index.html',
+                'spirit mahjong': 'games/spirit mahjong/index.html',
                 'snake garden': 'games/snake garden/index.html',
                 '2048': 'games/2048/index.html',
                 'neon ball': 'games/neon ball/index.html',
                 'camper': 'games/camper/index.html',
-                'fly defeater': 'games/fly defeater/index.html',
+                'pest patrol': 'games/pest patrol/index.html',
                 'emoji ops': 'games/emoji ops/index.html',
-                'tide maze': 'games/tide maze/index.html'
+                'tide maze': 'games/tide maze/index.html',
+                'spike dodge': 'games/spike dodge/index.html'
             };
             
             if (gameUrls[gameName]) {

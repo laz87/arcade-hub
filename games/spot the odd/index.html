@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spot the Odd</title>
+    <style>
+        :root { --neon: #00f2ff; --sakura: #ffb7c5; --bg: #0d0221; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .ui-top {
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            height: 60px;
+        }
+
+        /* TIMER BAR */
+        .timer-container {
+            flex: 1;
+            margin: 0 20px;
+            height: 12px;
+            background: #222;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            overflow: hidden;
+        }
+
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon), #00a2ff);
+            transition: width 0.1s linear;
+        }
+
+        /* DYNAMIC GRID SCALING */
+        #game-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+       #grid {
+    display: grid;
+    gap: 8px;
+    /* Correct CSS syntax using min() */
+    width: min(90vw, 500px);
+    height: min(90vw, 500px);
+    
+    /* These stay the same */
+    max-width: 90vw;
+    max-height: 70vh; 
+    aspect-ratio: 1 / 1;
+    
+    /* Optional: Ensure it stays centered if the parent is flex */
+    margin: 0 auto;
+}
+
+        .emoji-tile {
+            background: rgba(255,255,255,0.07);
+            border: 2px solid rgba(0, 242, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            /* Font size scales based on grid cell size */
+            font-size: clamp(20px, 8vmin, 60px); 
+            transition: all 0.1s ease;
+        }
+
+        .emoji-tile:active {
+            transform: scale(0.9);
+            background: var(--neon);
+            color: black;
+        }
+
+        .controls {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid var(--neon);
+            color: var(--neon);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .shake { animation: shake 0.3s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ui-top">
+        <div>LVL <span id="level-val">1</span></div>
+        <div class="timer-container"><div id="timer-bar"></div></div>
+        <div id="score-val">0</div>
+    </div>
+
+    <div id="game-area">
+        <div id="grid"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="audio-toggle">🔊 Sound</button>
+        <button class="btn" onclick="startGame()">Reset</button>
+    </div>
+
+<script>
+const AudioGame = {
+    ctx: null,
+    muted: false,
+    init() {
+        if (this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    },
+    beep(freq, type, dur) {
+        if (!this.ctx || this.muted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + dur);
+    }
+};
+
+const emojiSets = [
+    { a: '🐯', b: '🦁' }, { a: '🍏', b: '🍎' }, { a: '😀', b: '😁' },
+    { a: '😐', b: '😑' }, { a: '🍐', b: '🥑' }, { a: '🐱', b: '🐶' },
+    { a: '🏐', b: '⚽' }, { a: '🌕', b: '🌙' }, { a: '🍩', b: '🍪' },
+
+    //New emoji set
+    { a: '🌔', b: '🌖' }, { a: '🚒', b: '🚚' }, { a: '🚄', b: '🚅' },
+    { a: '🌠', b: '☄' }, { a: '🌎', b: '🌏' }, { a: '☀', b: '🌞' },
+    { a: '🏠', b: '🏡' }, { a: '🛫', b: '🛬' }, { a: '🏔', b: '⛰' },
+    { a: '🚥', b: '🚦' }, { a: '🏴', b: '🏴‍☠️' }, { a: '🌍', b: '🌎' },
+    { a: '🌏', b: '🌍' }, { a: '☁', b: '🌥' }, { a: '🌜', b: '🌛' },
+    { a: '⭐', b: '🌟' }, { a: '☃', b: '⛄' }, { a: '🗽', b: '🗾' },
+    { a: '🌑', b: '🌚' }, { a: '🌙', b: '🌜' }, { a: '☂', b: '☔' },
+    { a: '🌖', b: '🍪' }, { a: '🚜', b: '🚙' }, { a: '🚖', b: '🚍' },
+    { a: '🦽', b: '🦼' }, { a: '🌋', b: '🗻' }, { a: '🌆', b: '🌇' },
+    { a: '🌀', b: '💧' }, { a: '🚁', b: '🚡' }, { a: '🌑', b: '🌘' }
+];
+
+let level = 1;
+let score = 0;
+let timeLeft = 15;
+let timerId = null;
+
+const gridEl = document.getElementById('grid');
+
+function startGame() {
+    level = 1;
+    score = 0;
+    timeLeft = 15;
+    updateUI();
+    nextLevel();
+    if (timerId) clearInterval(timerId);
+    startTimer();
+}
+
+function startTimer() {
+    timerId = setInterval(() => {
+        timeLeft -= 0.05;
+        document.getElementById('timer-bar').style.width = (timeLeft / 15 * 100) + '%';
+        if (timeLeft <= 0) gameOver();
+    }, 50);
+}
+
+function nextLevel() {
+    gridEl.innerHTML = '';
+    
+    // LIMIT GRID SIZE: Max 5x5
+    const size = Math.min(level + 1, 5); 
+    gridEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    gridEl.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+
+    const set = emojiSets[Math.floor(Math.random() * emojiSets.length)];
+    const totalTiles = size * size;
+    const oddIndex = Math.floor(Math.random() * totalTiles);
+
+    for (let i = 0; i < totalTiles; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'emoji-tile';
+        tile.textContent = (i === oddIndex) ? set.b : set.a;
+        
+        tile.addEventListener('pointerdown', (e) => {
+            AudioGame.init();
+            if (i === oddIndex) {
+                handleCorrect();
+            } else {
+                handleWrong();
+            }
+        });
+        gridEl.appendChild(tile);
+    }
+}
+
+function handleCorrect() {
+    AudioGame.beep(600, 'sine', 0.1);
+    score += level * 50;
+    timeLeft = Math.min(timeLeft + 1.5, 15);
+    level++;
+    updateUI();
+    nextLevel();
+}
+
+function handleWrong() {
+    AudioGame.beep(120, 'square', 0.2);
+    timeLeft -= 2;
+    gridEl.classList.add('shake');
+    setTimeout(() => gridEl.classList.remove('shake'), 300);
+}
+
+function updateUI() {
+    document.getElementById('level-val').innerText = level;
+    document.getElementById('score-val').innerText = score;
+}
+
+function gameOver() {
+    clearInterval(timerId);
+    AudioGame.beep(80, 'sawtooth', 0.4);
+    alert(`GAME OVER\nLevel: ${level}\nScore: ${score}`);
+    startGame();
+}
+
+document.getElementById('audio-toggle').addEventListener('click', () => {
+    AudioGame.muted = !AudioGame.muted;
+    document.getElementById('audio-toggle').innerText = AudioGame.muted ? "🔇 Muted" : "🔊 Sound";
+});
+
+startGame();
+</script>
+</body>
+</html>
