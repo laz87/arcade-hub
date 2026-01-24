@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spirit Mahjong</title>
+    <style>
+        :root { --neon: #00f2ff; --sakura: #ffb7c5; }
+    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+    
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #0d0221;
+        color: white;
+        height: 100vh;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    #game-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .board-wrapper {
+        flex: 1;
+        position: relative;
+        background: rgba(0, 0, 0, 0.4);
+        border: 2px solid var(--neon);
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .ui-top {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .controls {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 15px 0;
+    }
+
+    .btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--neon);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="ui-top">
+        <span>Tiles: <span id="count">0</span></span>
+        <span style="color:var(--sakura)">Spirit Mahjong</span>
+        <span id="timer">0:00</span>
+    </div>
+
+    <div class="board-wrapper" id="canvasParent">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="initGame()">Restart</button>
+        <button class="btn" onclick="shuffle()">Shuffle</button>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// --- MODIFICATION START ---
+
+// REMOVED: The old emoji array
+// const symbols = ['🌸', '🦊', '🌀', '⚔️', '👒', '🏮', '🌩️', '🏯', '👁️', '👻'];
+
+// NEW: An array of your image file names.
+// Place these image files in the same folder as your HTML file.
+const imagePaths = [
+    '1.png', '2.png', '3.png', '4.png', 
+    '5.png', '6.png', '7.png', '8.png', 
+    '9.png', '10.png'
+];
+
+// NEW: An object to hold the preloaded image objects.
+const tileImages = {};
+
+// --- MODIFICATION END ---
+
+let tiles = [];
+let selected = null;
+let world = { w: 0, h: 0, scale: 1, offX: 0, offY: 0 };
+
+function resize() {
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth;
+    canvas.height = parent.clientHeight;
+
+    if (tiles.length === 0) return;
+
+    const maxX = Math.max(...tiles.map(t => t.x)) + 1;
+    const maxY = Math.max(...tiles.map(t => t.y)) + 1;
+
+    const tileW = 0.85; 
+    const availableW = canvas.width / (maxX * tileW + 0.5);
+    const availableH = canvas.height / (maxY + 0.5);
+    
+    world.scale = Math.min(availableW, availableH) * 0.95; 
+
+    world.offX = (canvas.width - (maxX * world.scale * tileW)) / 2;
+    world.offY = (canvas.height - (maxY * world.scale)) / 2;
+}
+
+function shuffle() {
+    const activeTiles = tiles.filter(t => !t.matched);
+    if (activeTiles.length === 0) return;
+
+    const remainingSymbols = activeTiles.map(t => t.symbol);
+
+    for (let i = remainingSymbols.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [remainingSymbols[i], remainingSymbols[j]] = [remainingSymbols[j], remainingSymbols[i]];
+    }
+
+    activeTiles.forEach((tile, index) => {
+        tile.symbol = remainingSymbols[index];
+    });
+
+    selected = null;
+}
+
+canvas.addEventListener('pointerdown', handleClick);
+
+function initGame() {
+    const layout = [];
+    for(let z=0; z<3; z++) {
+        const dim = 5 - z;
+        for(let x=0; x<dim; x++) {
+            for(let y=0; y<dim; y++) {
+                layout.push({ x: x + (z*0.5), y: y + (z*0.5), z: z });
+            }
+        }
+    }
+
+    if(layout.length % 2 !== 0) layout.pop();
+    
+    // MODIFIED: Create the deck using the image paths.
+    let deck = [];
+    for(let i=0; i<layout.length/2; i++) {
+        const s = imagePaths[i % imagePaths.length]; // Use imagePaths array
+        deck.push(s, s);
+    }
+    deck.sort(() => Math.random() - 0.5);
+
+    tiles = layout.map((pos, i) => ({
+        ...pos, symbol: deck[i], matched: false, id: i
+    }));
+
+    document.getElementById('count').innerText = tiles.length;
+    resize();
+}
+
+function getTileRect(t) {
+    const sz = world.scale;
+    const depth = t.z * (sz * 0.1);
+    return {
+        x: world.offX + (t.x * sz * 0.85) - depth,
+        y: world.offY + (t.y * sz) - depth,
+        w: sz * 0.8,
+        h: sz
+    };
+}
+
+function handleClick(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+    const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+    const mouseX = (clientX - rect.left) * (canvas.width / rect.width);
+    const mouseY = (clientY - rect.top) * (canvas.height / rect.height);
+    let clickedTile = null;
+    const active = tiles.filter(t => !t.matched).sort((a,b) => b.z - a.z);
+
+    for (let t of active) {
+        const r = getTileRect(t);
+        if (mouseX >= r.x && mouseX <= r.x + r.w && mouseY >= r.y && mouseY <= r.y + r.h) {
+            clickedTile = t;
+            break; 
+        }
+    }
+
+    if (clickedTile && isFree(clickedTile)) {
+        // This logic works perfectly without changes, as it compares the image path strings.
+        if (selected && selected !== clickedTile && selected.symbol === clickedTile.symbol) {
+            clickedTile.matched = selected.matched = true;
+            selected = null;
+        } else {
+            selected = clickedTile;
+        }
+        document.getElementById('count').innerText = tiles.filter(t => !t.matched).length;
+    } else {
+        selected = null;
+    }
+}
+
+function isFree(t) {
+    if (t.matched) return false;
+    const onTop = tiles.some(o => !o.matched && o.z === t.z + 1 && Math.abs(o.x - t.x) < 0.6 && Math.abs(o.y - t.y) < 0.6);
+    if (onTop) return false;
+    const left = tiles.some(o => !o.matched && o.z === t.z && o.x === t.x - 1 && Math.abs(o.y - t.y) < 0.2);
+    const right = tiles.some(o => !o.matched && o.z === t.z && o.x === t.x + 1 && Math.abs(o.y - t.y) < 0.2);
+    return !left || !right;
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const renderList = tiles.filter(t => !t.matched).sort((a,b) => a.z - b.z || a.x - b.x);
+    
+    renderList.forEach(t => {
+        const r = getTileRect(t);
+        const free = isFree(t);
+
+        // 3D Side Shadow
+        ctx.fillStyle = '#99a';
+        ctx.fillRect(r.x + (world.scale*0.06), r.y + (world.scale*0.06), r.w, r.h);
+
+        // Tile Face - Always draw as if selectable first
+        ctx.fillStyle = (selected === t) ? '#ffb7c5' : '#ffffff';
+        ctx.strokeStyle = '#00f2ff';
+        ctx.lineWidth = Math.max(1, world.scale * 0.03);
+        
+        ctx.beginPath();
+        ctx.roundRect(r.x, r.y, r.w, r.h, world.scale * 0.1);
+        ctx.fill();
+        ctx.stroke();
+
+        // --- MODIFICATION START: Draw Image instead of Emoji ---
+        
+        // Get the preloaded image for this tile's symbol (which is an image path)
+        const img = tileImages[t.symbol];
+        if (img) {
+            // Add some padding so the image doesn't touch the tile edges
+            const padding = r.w * 0.15;
+            ctx.drawImage(img, r.x + padding, r.y + padding, r.w - padding * 2, r.h - padding * 2);
+        }
+
+        // --- MODIFICATION END ---
+        
+        // NEW: If tile is not free, draw a semi-transparent overlay on top
+        if (!free) {
+            ctx.fillStyle = 'rgba(50, 50, 50, 0.7)'; // Dark gray overlay
+            ctx.beginPath();
+            ctx.roundRect(r.x, r.y, r.w, r.h, world.scale * 0.1);
+            ctx.fill();
+        }
+    });
+
+    requestAnimationFrame(draw);
+}
+
+// NEW: Function to preload all images before starting the game
+function preloadImages(paths, callback) {
+    let loadedCount = 0;
+    paths.forEach(path => {
+        const img = new Image();
+        img.src = path;
+        img.onload = () => {
+            loadedCount++;
+            tileImages[path] = img; // Store the loaded image object
+            if (loadedCount === paths.length) {
+                callback(); // All images are loaded, start the game
+            }
+        };
+        img.onerror = () => {
+            console.error(`Failed to load image: ${path}`);
+            // You might want to handle this error, e.g., by stopping the game
+        }
+    });
+}
+
+// MODIFIED: Game startup sequence
+window.addEventListener('load', () => {
+    // Show a loading message while images are preloading
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.font = '24px "Segoe UI"';
+    ctx.fillText('Loading Assets...', canvas.width / 2, canvas.height / 2);
+
+    preloadImages(imagePaths, () => {
+        // This function is called only after all images are successfully loaded
+        initGame();
+        draw();
+    });
+});
+window.addEventListener('resize', resize);
+</script>
+</body>
+</html>
