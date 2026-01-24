@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Spin: Working Version</title>
+    <style>
+        :root { --neon-blue: #00d2ff; --neon-pink: #ff0055; --dark-bg: #0f0c29; }
+        body {
+            background: var(--dark-bg);
+            background: linear-gradient(to bottom, #24243e, #0f0c29);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0;
+        }
+        #game-container {
+            position: relative; width: 350px; height: 350px;
+            border: 4px solid var(--neon-blue); border-radius: 10px;
+            background-color: #222; overflow: hidden;
+        }
+        #mystery-image {
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; z-index: 1; display: block;
+        }
+        #grid-overlay {
+            display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
+            width: 100%; height: 100%; position: absolute; z-index: 2;
+        }
+        .tile { background-color: #111; border: 1px solid #222; transition: opacity 0.5s; }
+        .revealed { opacity: 0; pointer-events: none; }
+        .controls { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        input { padding: 10px; border-radius: 5px; border: 2px solid var(--neon-blue); background: #1a1a1a; color: white; width: 200px; text-align: center; }
+        button { padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; text-transform: uppercase; }
+        .btn-spin { background: var(--neon-pink); color: white; }
+        .btn-guess { background: var(--neon-blue); color: #0f0c29; }
+    </style>
+</head>
+<body>
+
+    <h1>ANIME SPIN</h1>
+    <div id="level-text" style="color: var(--neon-pink); font-weight: bold;">Level: 1 / 4</div>
+    <div id="score-board">SCORE: <span id="score">100</span></div>
+
+    <div id="game-container">
+        <img id="mystery-image" src="" alt="Anime Character">
+        <div id="grid-overlay"></div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="guess-input" placeholder="Enter Name...">
+        <div class="btn-group">
+            <button class="btn-spin" onclick="revealBigChunks()">SPIN</button>
+            <button class="btn-guess" onclick="checkGuess()">GUESS</button>
+        </div>
+    </div>
+
+    <script>
+        // Use direct, high-availability URLs
+        const levels = [
+            { name: "luffy", img: "https://static.wikia.nocookie.net/onepiece/images/a/a9/Monkey_D._Luffy_Portrait.png " },
+            { name: "zoro", img: "https://static.wikia.nocookie.net/onepiece/images/5/5d/Roronoa_Zoro_Portrait.png" },
+            { name: "nami", img: "https://static.wikia.nocookie.net/onepiece/images/2/26/Nami_Portrait.png" },
+            { name: "ussop", img: "https://static.wikia.nocookie.net/onepiece/images/9/97/Usopp_Portrait.png" }
+        ];
+
+        let currentLevel = 0;
+        let score = 100;
+        let tiles = [];
+
+        function initLevel() {
+            const grid = document.getElementById('grid-overlay');
+            const imgElement = document.getElementById('mystery-image');
+            const levelText = document.getElementById('level-text');
+            
+            // Reset grid and image
+            grid.innerHTML = '';
+            tiles = [];
+            imgElement.src = levels[currentLevel].img;
+            levelText.innerText = `Level: ${currentLevel + 1} / 4`;
+            
+            // Re-create the 25 tiles
+            for (let i = 0; i < 25; i++) {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                grid.appendChild(tile);
+                tiles.push(tile);
+            }
+        }
+
+        function revealBigChunks() {
+            let hiddenTiles = tiles.filter(t => !t.classList.contains('revealed'));
+            if (hiddenTiles.length === 0) return;
+
+            // Reveal 3 tiles at a time
+            for (let i = 0; i < 3; i++) {
+                if (hiddenTiles.length > 0) {
+                    let randomIndex = Math.floor(Math.random() * hiddenTiles.length);
+                    hiddenTiles[randomIndex].classList.add('revealed');
+                    hiddenTiles.splice(randomIndex, 1);
+                }
+            }
+            score -= 5;
+            document.getElementById('score').innerText = score;
+        }
+
+        function checkGuess() {
+            const userGuess = document.getElementById('guess-input').value.toLowerCase().trim();
+            const correctAnswer = levels[currentLevel].name;
+
+            if (userGuess.includes(correctAnswer)) {
+                alert("CORRECT! That is " + correctAnswer.toUpperCase());
+                currentLevel++;
+                if (currentLevel < levels.length) {
+                    document.getElementById('guess-input').value = "";
+                    initLevel();
+                } else {
+                    alert("CONGRATULATIONS! You cleared all levels! Final Score: " + score);
+                    currentLevel = 0; score = 100; initLevel();
+                }
+            } else {
+                alert("Try again! Maybe spin once more?");
+            }
+        }
+
+        // Start the game
+        window.onload = initLevel;
+    </script>
+</body>
+</html>
