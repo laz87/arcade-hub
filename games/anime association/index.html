@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Association</title>
+    <style>
+        :root { --neon-orange: #ff9d00; --neon-purple: #9d00ff; --dark: #121212; }
+        body {
+            background: var(--dark);
+            color: white;
+            font-family: 'Arial Black', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0;
+        }
+        .container { text-align: center; max-width: 500px; }
+        .pic-row { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        .pic-box {
+            width: 180px; height: 180px;
+            border: 4px solid var(--neon-orange);
+            border-radius: 15px;
+            overflow: hidden;
+            background: #222;
+            box-shadow: 0 0 15px var(--neon-orange);
+        }
+        .pic-box img { width: 100%; height: 100%; object-fit: cover; }
+        .plus-sign { font-size: 3rem; align-self: center; color: var(--neon-purple); }
+        
+        input {
+            padding: 15px; font-size: 1.2rem; width: 80%;
+            border-radius: 10px; border: 3px solid var(--neon-purple);
+            background: #1a1a1a; color: white; text-align: center;
+            margin-bottom: 20px; outline: none;
+        }
+        button {
+            padding: 15px 40px; font-size: 1.2rem; font-weight: bold;
+            background: var(--neon-orange); color: black;
+            border: none; border-radius: 50px; cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--neon-orange); }
+        #msg { margin-top: 15px; font-size: 1.1rem; color: #00ff00; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 style="color: var(--neon-purple);">ANIME ASSOCIATION</h1>
+        <p>Combine the 2 pictures to guess the answer!</p>
+        
+        <div class="pic-row">
+            <div class="pic-box"><img id="pic1" src="" alt="Clue 1"></div>
+            <div class="plus-sign">+</div>
+            <div class="pic-box"><img id="pic2" src="" alt="Clue 2"></div>
+        </div>
+
+        <input type="text" id="user-guess" placeholder="Type answer here...">
+        <br>
+        <button onclick="checkAnswer()">SUBMIT GUESS</button>
+        <div id="msg"></div>
+    </div>
+
+    <script>
+        const levels = [
+            { 
+                ans: "thousand sunny", 
+                img1: "./download.png", // Rubber
+                img2: "./sunny.png" // Straw Hat
+            },
+            { 
+                ans: "green bull", 
+                img1: "./green.png", // Whirlpool/Spiral
+                img2: "./bull.png" // Ramen Bowl
+            },
+            { 
+                ans: "black leg", 
+                img1: "./black.png", // Dragon
+                img2: "./leg.png" // Orange Sphere
+            },
+            { 
+                ans: "strawhat", 
+                img1: "./straw.png", // 3 Swords
+                img2: "./hat.png" // Bandana
+            }
+        ];
+
+        let currentLevel = 0;
+
+        function loadLevel() {
+            document.getElementById('pic1').src = levels[currentLevel].img1;
+            document.getElementById('pic2').src = levels[currentLevel].img2;
+            document.getElementById('user-guess').value = "";
+            document.getElementById('msg').innerText = "";
+        }
+
+        function checkAnswer() {
+            let guess = document.getElementById('user-guess').value.toLowerCase().trim();
+            if (guess.includes(levels[currentLevel].ans)) {
+                document.getElementById('msg').innerText = "CORRECT! 🎉";
+                setTimeout(() => {
+                    currentLevel++;
+                    if (currentLevel < levels.length) {
+                        loadLevel();
+                    } else {
+                        alert("You beat the Anime Association Challenge!");
+                        currentLevel = 0;
+                        loadLevel();
+                    }
+                }, 1500);
+            } else {
+                document.getElementById('msg').innerText = "Wrong! Look closer... 🔍";
+                document.getElementById('msg').style.color = "red";
+            }
+        }
+
+        window.onload = loadLevel;
+    </script>
+</body>
+</html>
