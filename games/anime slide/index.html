@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeSlide - Puzzle Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F0F8FF;
+            --primary: #E6E6FA;
+            --accent: #EEE8AA;
+            --text: #444;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --grid-size: 360px; /* Scaled down for mobile below */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 { margin: 10px 0; color: #5a5a8a; }
+
+        /* Stats Section */
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: var(--grid-size);
+            margin-bottom: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow);
+            font-size: 0.9rem;
+        }
+
+        .stat-item span { font-weight: 600; color: #7a7ab9; }
+
+        /* Controls */
+        .controls {
+            width: 100%;
+            max-width: var(--grid-size);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select { background: white; }
+        button { background: var(--primary); border: none; font-weight: 600; }
+        button:hover { filter: brightness(0.95); }
+        .btn-reset { background: var(--accent); }
+
+        /* Game Board */
+        #game-board {
+            position: relative;
+            width: var(--grid-size);
+            height: var(--grid-size);
+            background: #ddd;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px var(--shadow);
+            overflow: hidden;
+        }
+
+        .tile {
+            position: absolute;
+            width: calc(var(--grid-size) / 3);
+            height: calc(var(--grid-size) / 3);
+            border: 1px solid white;
+            box-sizing: border-box;
+            background-repeat: no-repeat;
+            background-size: var(--grid-size) var(--grid-size);
+            transition: transform 0.2s ease-out;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tile.empty {
+            background: transparent !important;
+            border: none;
+            cursor: default;
+            z-index: 0;
+        }
+
+        /* Hint Overlay */
+        #hint-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            z-index: 10;
+            display: none;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        /* Victory Modal */
+        #victory-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .best-score-msg { color: #ff9d00; font-weight: bold; margin-top: 10px; }
+
+        @media (max-width: 400px) {
+            :root { --grid-size: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>AnimeSlide</h1>
+
+    <div class="stats-container">
+        <div class="stat-item">Moves: <span id="move-count">0</span></div>
+        <div class="stat-item">Time: <span id="timer">00:00</span></div>
+        <div class="stat-item">Best Moves: <span id="best-moves">--</span></div>
+        <div class="stat-item">Best Time: <span id="best-time">--:--</span></div>
+    </div>
+
+    <div class="controls">
+        <select id="image-selector">
+            <option value="https://static.wikia.nocookie.net/onepiece/images/1/1c/Luffy_Draws_Straw_Hat_Jolly_Roger.png">Luffy and strawhat jolly roger</option>
+            <option value="https://static.wikia.nocookie.net/onepiece/images/3/39/Nefertari_Vivi_Portrait.png">Nefertari Vivi</option>
+            <option value="https://static.wikia.nocookie.net/onepiece/images/d/d8/Franky_Family_Portrait.png">Franky Family</option>
+            <option value="https://static.wikia.nocookie.net/onepiece/images/9/90/Nico_Robin_Post_Timeskip_Portrait.png">Nico Robin</option>
+        </select>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-reset" onclick="resetGame()" style="flex:1">Reset</button>
+            <button onclick="toggleHint()" style="flex:1">Toggle Hint</button>
+        </div>
+    </div>
+
+    <div id="game-board">
+        <div id="hint-overlay"></div>
+    </div>
+
+    <div id="victory-modal">
+        <div class="modal-content">
+            <h2>Victory!</h2>
+            <p id="final-stats"></p>
+            <div id="new-best" class="best-score-msg"></div>
+            <button onclick="closeModal()" style="width:100%; margin-top:15px">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const board = document.getElementById('game-board');
+        const moveDisplay = document.getElementById('move-count');
+        const timeDisplay = document.getElementById('timer');
+        const imgSelector = document.getElementById('image-selector');
+        const hintOverlay = document.getElementById('hint-overlay');
+        
+        let tiles = []; // Data structure for tile positions
+        let moves = 0;
+        let seconds = 0;
+        let timerActive = false;
+        let timerInterval;
+        let currentImg = imgSelector.value;
+
+        // Initialize LocalStorage
+        function updateBestDisplay() {
+            document.getElementById('best-moves').innerText = localStorage.getItem('animeSlide_bestMoves') || '--';
+            document.getElementById('best-time').innerText = formatTime(localStorage.getItem('animeSlide_bestTime')) || '--:--';
+        }
+
+        function formatTime(s) {
+            if (!s) return null;
+            let m = Math.floor(s / 60);
+            let rs = s % 60;
+            return `${m.toString().padStart(2, '0')}:${rs.toString().padStart(2, '0')}`;
+        }
+
+        // 1. Tile Management & Grid Creation
+        function initGame() {
+            clearInterval(timerInterval);
+            moves = 0;
+            seconds = 0;
+            timerActive = false;
+            moveDisplay.innerText = "0";
+            timeDisplay.innerText = "00:00";
+            currentImg = imgSelector.value;
+            hintOverlay.style.backgroundImage = `url(${currentImg})`;
+            
+            tiles = Array.from({length: 9}, (_, i) => i); // [0,1,2,3,4,5,6,7,8] 8 is empty
+            renderBoard();
+            shuffleBoard();
+            updateBestDisplay();
+        }
+
+        function renderBoard() {
+            board.innerHTML = '<div id="hint-overlay"></div>';
+            board.appendChild(hintOverlay);
+            
+            tiles.forEach((tileValue, index) => {
+                const tileDiv = document.createElement('div');
+                tileDiv.classList.add('tile');
+                
+                // Calculate correct position in grid
+                const row = Math.floor(index / 3);
+                const col = index % 3;
+                
+                tileDiv.style.transform = `translate(${col * 100}%, ${row * 100}%)`;
+
+                if (tileValue === 8) {
+                    tileDiv.classList.add('empty');
+                } else {
+                    tileDiv.style.backgroundImage = `url(${currentImg})`;
+                    // Calculate background slice
+                    const origRow = Math.floor(tileValue / 3);
+                    const origCol = tileValue % 3;
+                    tileDiv.style.backgroundPosition = `${origCol * 50}% ${origRow * 50}%`;
+                    tileDiv.onclick = () => handleTileClick(index);
+                }
+                board.appendChild(tileDiv);
+            });
+        }
+
+        // 2. Solvable Shuffle
+        function shuffleBoard() {
+            let emptyIdx = tiles.indexOf(8);
+            for (let i = 0; i < 200; i++) {
+                const adj = getAdjacent(emptyIdx);
+                const moveIdx = adj[Math.floor(Math.random() * adj.length)];
+                // Swap
+                [tiles[emptyIdx], tiles[moveIdx]] = [tiles[moveIdx], tiles[emptyIdx]];
+                emptyIdx = moveIdx;
+            }
+            renderBoard();
+        }
+
+        function getAdjacent(idx) {
+            const adj = [];
+            const r = Math.floor(idx / 3);
+            const c = idx % 3;
+            if (r > 0) adj.push(idx - 3); // top
+            if (r < 2) adj.push(idx + 3); // bottom
+            if (c > 0) adj.push(idx - 1); // left
+            if (c < 2) adj.push(idx + 1); // right
+            return adj;
+        }
+
+        // 3. Move Logic
+        function handleTileClick(idx) {
+            const emptyIdx = tiles.indexOf(8);
+            const adj = getAdjacent(emptyIdx);
+
+            if (adj.includes(idx)) {
+                if (!timerActive) startTimer();
+                
+                // Swap data
+                [tiles[emptyIdx], tiles[idx]] = [tiles[idx], tiles[emptyIdx]];
+                moves++;
+                moveDisplay.innerText = moves;
+                renderBoard();
+                checkWin();
+            }
+        }
+
+        function startTimer() {
+            timerActive = true;
+            timerInterval = setInterval(() => {
+                seconds++;
+                timeDisplay.innerText = formatTime(seconds);
+            }, 1000);
+        }
+
+        // 4. Win Condition & LocalStorage
+        function checkWin() {
+            const isWin = tiles.every((val, i) => val === i);
+            if (isWin) {
+                clearInterval(timerInterval);
+                handleBestScores();
+            }
+        }
+
+        function handleBestScores() {
+            const lastBestMoves = localStorage.getItem('animeSlide_bestMoves');
+            const lastBestTime = localStorage.getItem('animeSlide_bestTime');
+            let isNewBest = false;
+
+            if (!lastBestMoves || moves < lastBestMoves) {
+                localStorage.setItem('animeSlide_bestMoves', moves);
+                isNewBest = true;
+            }
+            if (!lastBestTime || seconds < lastBestTime) {
+                localStorage.setItem('animeSlide_bestTime', seconds);
+                isNewBest = true;
+            }
+
+            document.getElementById('final-stats').innerText = `Moves: ${moves} | Time: ${formatTime(seconds)}`;
+            document.getElementById('new-best').innerText = isNewBest ? "🎉 New Best Score!" : "";
+            document.getElementById('victory-modal').style.display = 'flex';
+        }
+
+        function toggleHint() {
+            hintOverlay.style.display = (hintOverlay.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        function closeModal() {
+            document.getElementById('victory-modal').style.display = 'none';
+            initGame();
+        }
+
+        imgSelector.onchange = initGame;
+        window.onload = initGame;
+    </script>
+</body>
+</html>
