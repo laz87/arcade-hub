@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece: Grand Line Word Search</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Bangers&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #0d0221;
+            --surface: #1a1a2e;
+            --accent: #f2d349;
+            --primary: #e91e63;
+            --secondary: #2196f3;
+            --text: #ffffff;
+            --success: #4caf50;
+            --highlight: rgba(242, 211, 73, 0.4);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+        }
+
+        h1 {
+            font-family: 'Bangers', cursive;
+            color: var(--accent);
+            font-size: 3rem;
+            margin: 0;
+            letter-spacing: 2px;
+            text-shadow: 3px 3px 0px #000;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: -5px;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 10px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        #level-select {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .level-btn {
+            background: var(--surface);
+            border: 2px solid var(--accent);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Bangers', cursive;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .level-btn.active {
+            background: var(--accent);
+            color: var(--background);
+        }
+
+        #main-layout {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #grid-container {
+            position: relative;
+            background: var(--surface);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            user-select: none;
+            touch-action: none;
+        }
+
+        #grid {
+            display: grid;
+            gap: 2px;
+            background: #2d2d44;
+            border: 2px solid #2d2d44;
+        }
+
+        .cell {
+            width: 35px;
+            height: 35px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        @media (max-width: 500px) {
+            .cell {
+                width: 28px;
+                height: 28px;
+                font-size: 1rem;
+            }
+        }
+
+        .cell.selected {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .cell.found {
+            background: var(--success);
+            color: white;
+        }
+
+        #word-list-container {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        h2 {
+            font-family: 'Bangers', cursive;
+            margin-top: 0;
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 5px;
+        }
+
+        #word-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .word-item {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+
+        .word-item.found {
+            text-decoration: line-through;
+            color: var(--success);
+            opacity: 1;
+            font-weight: 700;
+        }
+
+        #status-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .modal.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 3px solid var(--accent);
+            max-width: 400px;
+        }
+
+        .btn-large {
+            background: var(--accent);
+            color: var(--background);
+            border: none;
+            padding: 15px 40px;
+            font-family: 'Bangers', cursive;
+            font-size: 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        .btn-large:hover {
+            transform: scale(1.05);
+        }
+
+        #selection-canvas {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Grand Line Word Search</h1>
+    <div id="game-modes" style="display: flex; gap: 10px; justify-content: center; margin: 15px 0;">
+        <a href="index.html" class="level-btn" style="text-decoration: none; font-family: 'Poppins', sans-serif; font-size: 0.9rem;">Connections</a>
+        <a href="match3.html" class="level-btn" style="text-decoration: none; font-family: 'Poppins', sans-serif; font-size: 0.9rem;">Match-3</a>
+        <a href="wordsearch.html" class="level-btn active" style="text-decoration: none; font-family: 'Poppins', sans-serif; font-size: 0.9rem;">Word Search</a>
+    </div>
+    <p class="subtitle">Find the hidden items from each One Piece Arc!</p>
+</header>
+
+<div id="game-container">
+    <div id="level-select">
+        <!-- Levels will be injected here -->
+    </div>
+
+    <div id="status-bar">
+        <div id="current-arc">Arc: Skypiea</div>
+        <div id="found-count">Found: 0/10</div>
+    </div>
+
+    <div id="main-layout">
+        <div id="grid-container">
+            <div id="grid"></div>
+            <canvas id="selection-canvas"></canvas>
+        </div>
+
+        <div id="word-list-container">
+            <h2 id="list-title">Words to Find</h2>
+            <ul id="word-list"></ul>
+        </div>
+    </div>
+</div>
+
+<div id="win-modal" class="modal">
+    <div class="modal-content">
+        <h2 style="font-size: 3rem;">ARC CLEARED!</h2>
+        <p id="win-stats">You found all the words!</p>
+        <button class="btn-large" id="next-arc-btn">NEXT ARC</button>
+    </div>
+</div>
+
+<script>
+    const ARCS = [
+        {
+            name: "Skypiea",
+            words: ["DIAL", "ENEL", "SHANDORA", "BELL", "SHURA", "SATORI", "OHM", "GEDATSU", "MAXIM", "VREELAND"],
+            gridSize: 12
+        },
+        {
+            name: "Alabasta",
+            words: ["VIVI", "CROCODILE", "CHOPPER", "DESSERT", "PEW", "KAROO", "BONEZ", "MERRY", "COBRA", "PLUTON"],
+            gridSize: 12
+        },
+        {
+            name: "Water 7",
+            words: ["FRANKY", "CP9", "GALLEYLA", "TRAIN", "LUCCI", "KALIFA", "KAKU", "BLUENO", "ICEBURG", "SOGEKING"],
+            gridSize: 12
+        },
+        {
+            name: "Wano",
+            words: ["KAIDO", "ODEN", "MOMO", "YAMATO", "OROCHI", "SAMURAI", "ONIGASHIMA", "LUFFY", "ZORO", "SANJI"],
+            gridSize: 13
+        },
+        {
+            name: "Marineford",
+            words: ["ACE", "WHITEBEARD", "AKAINU", "SENGOKU", "GARP", "BUGGY", "HANCOCK", "JINBE", "MARCO", "SQUARD"],
+            gridSize: 12
+        }
+    ];
+
+    let currentArcIndex = 0;
+    let grid = [];
+    let wordsToFind = [];
+    let foundWords = [];
+    let isDragging = false;
+    let selectionStart = null;
+    let selectionEnd = null;
+    let gridSize = 12;
+
+    const gridEl = document.getElementById('grid');
+    const wordListEl = document.getElementById('word-list');
+    const levelSelectEl = document.getElementById('level-select');
+    const foundCountEl = document.getElementById('found-count');
+    const currentArcEl = document.getElementById('current-arc');
+    const winModal = document.getElementById('win-modal');
+    const nextArcBtn = document.getElementById('next-arc-btn');
+    const canvas = document.getElementById('selection-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function initLevelSelect() {
+        levelSelectEl.innerHTML = '';
+        ARCS.forEach((arc, index) => {
+            const btn = document.createElement('button');
+            btn.className = `level-btn ${index === currentArcIndex ? 'active' : ''}`;
+            btn.textContent = arc.name;
+            btn.onclick = () => loadArc(index);
+            levelSelectEl.appendChild(btn);
+        });
+    }
+
+    function loadArc(index) {
+        currentArcIndex = index;
+        const arc = ARCS[index];
+        wordsToFind = arc.words.map(w => w.toUpperCase());
+        foundWords = [];
+        gridSize = arc.gridSize;
+        
+        initLevelSelect();
+        currentArcEl.textContent = `Arc: ${arc.name}`;
+        updateFoundCount();
+        generateGrid();
+        renderGrid();
+        renderWordList();
+        
+        // Setup canvas size
+        setTimeout(() => {
+            canvas.width = gridEl.offsetWidth;
+            canvas.height = gridEl.offsetHeight;
+        }, 50);
+    }
+
+    function generateGrid() {
+        // Initialize empty grid
+        grid = Array(gridSize).fill().map(() => Array(gridSize).fill(''));
+
+        // Sort words by length (longest first) for better fitting
+        const sortedWords = [...wordsToFind].sort((a, b) => b.length - a.length);
+
+        sortedWords.forEach(word => {
+            let placed = false;
+            let attempts = 0;
+            while (!placed && attempts < 100) {
+                const direction = Math.floor(Math.random() * 8); // 8 directions
+                // 0: H, 1: V, 2: D-down-right, 3: D-up-right, 4: H-rev, 5: V-rev, 6: D-down-left, 7: D-up-left
+                const directions = [
+                    [1, 0], [0, 1], [1, 1], [1, -1],
+                    [-1, 0], [0, -1], [-1, -1], [-1, 1]
+                ];
+                const [dx, dy] = directions[direction];
+                
+                const startX = Math.floor(Math.random() * gridSize);
+                const startY = Math.floor(Math.random() * gridSize);
+
+                if (canPlaceWord(word, startX, startY, dx, dy)) {
+                    for (let i = 0; i < word.length; i++) {
+                        grid[startY + i * dy][startX + i * dx] = word[i];
+                    }
+                    placed = true;
+                }
+                attempts++;
+            }
+        });
+
+        // Fill remaining spaces
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                if (grid[y][x] === '') {
+                    grid[y][x] = letters[Math.floor(Math.random() * letters.length)];
+                }
+            }
+        }
+    }
+
+    function canPlaceWord(word, x, y, dx, dy) {
+        for (let i = 0; i < word.length; i++) {
+            const nx = x + i * dx;
+            const ny = y + i * dy;
+            if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) return false;
+            if (grid[ny][nx] !== '' && grid[ny][nx] !== word[i]) return false;
+        }
+        return true;
+    }
+
+    function renderGrid() {
+        gridEl.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+        gridEl.innerHTML = '';
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = grid[y][x];
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                
+                cell.onmousedown = (e) => startSelection(x, y);
+                cell.onmouseenter = (e) => updateSelection(x, y);
+                cell.ontouchstart = (e) => {
+                    const touch = e.touches[0];
+                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (target && target.dataset.x) {
+                        startSelection(parseInt(target.dataset.x), parseInt(target.dataset.y));
+                    }
+                };
+                cell.ontouchmove = (e) => {
+                    const touch = e.touches[0];
+                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (target && target.dataset.x) {
+                        updateSelection(parseInt(target.dataset.x), parseInt(target.dataset.y));
+                    }
+                };
+                
+                gridEl.appendChild(cell);
+            }
+        }
+    }
+
+    function renderWordList() {
+        wordListEl.innerHTML = '';
+        wordsToFind.forEach(word => {
+            const li = document.createElement('li');
+            li.className = 'word-item';
+            li.textContent = word;
+            li.id = `word-${word}`;
+            if (foundWords.includes(word)) li.classList.add('found');
+            wordListEl.appendChild(li);
+        });
+    }
+
+    function startSelection(x, y) {
+        isDragging = true;
+        selectionStart = {x, y};
+        selectionEnd = {x, y};
+        drawSelection();
+    }
+
+    function updateSelection(x, y) {
+        if (!isDragging) return;
+        selectionEnd = {x, y};
+        drawSelection();
+    }
+
+    function endSelection() {
+        if (!isDragging) return;
+        isDragging = false;
+        checkSelection();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    document.onmouseup = endSelection;
+    document.ontouchend = endSelection;
+
+    function drawSelection() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (!selectionStart || !selectionEnd) return;
+
+        const cells = document.querySelectorAll('.cell');
+        const startCell = Array.from(cells).find(c => c.dataset.x == selectionStart.x && c.dataset.y == selectionStart.y);
+        const endCell = Array.from(cells).find(c => c.dataset.x == selectionEnd.x && c.dataset.y == selectionEnd.y);
+
+        if (!startCell || !endCell) return;
+
+        const rect1 = startCell.getBoundingClientRect();
+        const rect2 = endCell.getBoundingClientRect();
+        const gridRect = gridEl.getBoundingClientRect();
+
+        const x1 = rect1.left - gridRect.left + rect1.width / 2;
+        const y1 = rect1.top - gridRect.top + rect1.height / 2;
+        const x2 = rect2.left - gridRect.left + rect2.width / 2;
+        const y2 = rect2.top - gridRect.top + rect2.height / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = rect1.width * 0.8;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(33, 150, 243, 0.4)';
+        ctx.stroke();
+    }
+
+    function checkSelection() {
+        const dx = Math.sign(selectionEnd.x - selectionStart.x);
+        const dy = Math.sign(selectionEnd.y - selectionStart.y);
+        
+        const dist = Math.max(Math.abs(selectionEnd.x - selectionStart.x), Math.abs(selectionEnd.y - selectionStart.y));
+        
+        // Ensure it's a straight line (H, V, or 45deg D)
+        const isHorizontal = selectionStart.y === selectionEnd.y;
+        const isVertical = selectionStart.x === selectionEnd.x;
+        const isDiagonal = Math.abs(selectionStart.x - selectionEnd.x) === Math.abs(selectionStart.y - selectionEnd.y);
+
+        if (!isHorizontal && !isVertical && !isDiagonal) return;
+
+        let selectedWord = "";
+        const coords = [];
+        for (let i = 0; i <= dist; i++) {
+            const x = selectionStart.x + i * dx;
+            const y = selectionStart.y + i * dy;
+            selectedWord += grid[y][x];
+            coords.push({x, y});
+        }
+
+        const reversedWord = selectedWord.split('').reverse().join('');
+
+        if (wordsToFind.includes(selectedWord) && !foundWords.includes(selectedWord)) {
+            markFound(selectedWord, coords);
+        } else if (wordsToFind.includes(reversedWord) && !foundWords.includes(reversedWord)) {
+            markFound(reversedWord, coords);
+        }
+    }
+
+    function markFound(word, coords) {
+        foundWords.push(word);
+        const wordItem = document.getElementById(`word-${word}`);
+        if (wordItem) wordItem.classList.add('found');
+
+        coords.forEach(coord => {
+            const cell = Array.from(document.querySelectorAll('.cell')).find(c => c.dataset.x == coord.x && c.dataset.y == coord.y);
+            if (cell) cell.classList.add('found');
+        });
+
+        updateFoundCount();
+
+        if (foundWords.length === wordsToFind.length) {
+            showWin();
+        }
+    }
+
+    function updateFoundCount() {
+        foundCountEl.textContent = `Found: ${foundWords.length}/${wordsToFind.length}`;
+    }
+
+    function showWin() {
+        document.getElementById('win-stats').textContent = `You cleared the ${ARCS[currentArcIndex].name} Arc!`;
+        winModal.classList.add('active');
+        
+        if (currentArcIndex === ARCS.length - 1) {
+            nextArcBtn.textContent = "REPLAY ALL";
+        } else {
+            nextArcBtn.textContent = "NEXT ARC";
+        }
+    }
+
+    nextArcBtn.onclick = () => {
+        winModal.classList.remove('active');
+        if (currentArcIndex === ARCS.length - 1) {
+            loadArc(0);
+        } else {
+            loadArc(currentArcIndex + 1);
+        }
+    };
+
+    // Initialize the first level
+    loadArc(0);
+
+    // Re-adjust canvas on window resize
+    window.onresize = () => {
+        canvas.width = gridEl.offsetWidth;
+        canvas.height = gridEl.offsetHeight;
+    };
+</script>
+
+</body>
+</html>
