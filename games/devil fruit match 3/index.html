@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece: Devil Fruit Match-3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Bangers&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #0d0221;
+            --surface: #1a1a2e;
+            --accent: #f2d349;
+            --primary: #e91e63;
+            --secondary: #2196f3;
+            --text: #ffffff;
+            --haki-color: #5d2a8a;
+            --logia-color: #666;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+        }
+
+        h1 {
+            font-family: 'Bangers', cursive;
+            color: var(--accent);
+            font-size: 3rem;
+            margin: 0;
+            letter-spacing: 2px;
+            text-shadow: 3px 3px 0px #000;
+        }
+
+        #game-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 10px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        #stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            background: var(--surface);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid var(--accent);
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        #haki-container {
+            width: 100%;
+            height: 30px;
+            background: #333;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #555;
+        }
+
+        #haki-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #5d2a8a, #a855f7);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 15px var(--haki-color);
+        }
+
+        #haki-label {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px #000;
+            pointer-events: none;
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 8px;
+            width: 100%;
+            aspect-ratio: 1;
+            touch-action: none;
+        }
+
+        .cell {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .fruit {
+            width: 85%;
+            height: 85%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            user-select: none;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: absolute;
+        }
+
+        .fruit.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px white;
+            z-index: 10;
+        }
+
+        .fruit.moving {
+            transition: all 0.3s ease;
+        }
+
+        .fruit.awakened::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            bottom: -5px;
+            left: -5px;
+            right: -5px;
+            border: 2px dashed var(--accent);
+            border-radius: 50%;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .fruit.logia {
+            filter: grayscale(1) brightness(0.5);
+            border: 2px solid #666;
+            background: #222 !important;
+        }
+
+        .fruit.logia::before {
+            content: '💨';
+            position: absolute;
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+
+        #character-selection {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .char-btn {
+            background: var(--surface);
+            border: 2px solid #444;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            font-weight: bold;
+        }
+
+        .char-btn.active {
+            border-color: var(--accent);
+            background: #2a2a4a;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--accent);
+            text-align: center;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #message.show {
+            opacity: 1;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: none;
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 500px) {
+            h1 { font-size: 2rem; }
+            .fruit { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Devil Fruit Match-3</h1>
+</header>
+
+<div id="game-container">
+    <div id="stats">
+        <div class="stat-box">
+            <div class="stat-label">Score</div>
+            <div id="score" class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Moves</div>
+            <div id="moves" class="stat-value">30</div>
+        </div>
+        <div class="stat-box" style="width: 50%;">
+            <div class="stat-label">Haki Meter</div>
+            <div id="haki-container">
+                <div id="haki-bar"></div>
+                <div id="haki-label">UNLEASH HAKI (Space)</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="grid"></div>
+
+    <div id="character-selection">
+        <button class="char-btn active" onclick="selectChar('Luffy', this)">LUFFY</button>
+        <button class="char-btn" onclick="selectChar('Zoro', this)">ZORO</button>
+        <button class="char-btn" onclick="selectChar('Shanks', this)">SHANKS</button>
+    </div>
+
+    <div id="message">
+        <h2 id="msg-title">Game Over</h2>
+        <p id="msg-text">Final Score: 0</p>
+        <button class="btn" onclick="resetGame()">Try Again</button>
+    </div>
+</div>
+
+<script>
+    const GRID_SIZE = 8;
+    const FRUIT_TYPES = [
+        { name: 'Gomu Gomu', icon: '🟣', color: '#8e44ad' },
+        { name: 'Mera Mera', icon: '🔥', color: '#e67e22' },
+        { name: 'Hana Hana', icon: '🌸', color: '#fd79a8' },
+        { name: 'Goro Goro', icon: '⚡', color: '#f1c40f' },
+        { name: 'Ope Ope', icon: '❤️', color: '#e74c3c' },
+        { name: 'Yami Yami', icon: '🌑', color: '#2c3e50' }
+    ];
+
+    let grid = [];
+    let score = 0;
+    let moves = 30;
+    let haki = 0;
+    const MAX_HAKI = 100;
+    let selectedCell = null;
+    let isProcessing = false;
+    let currentCharacter = 'Luffy';
+
+    const gridEl = document.getElementById('grid');
+    const scoreEl = document.getElementById('score');
+    const movesEl = document.getElementById('moves');
+    const hakiBar = document.getElementById('haki-bar');
+    const messageEl = document.getElementById('message');
+    const msgTitle = document.getElementById('msg-title');
+    const msgText = document.getElementById('msg-text');
+
+    function initGame() {
+        createGrid();
+        renderGrid();
+        updateUI();
+    }
+
+    function createGrid() {
+        grid = [];
+        for (let r = 0; r < GRID_SIZE; r++) {
+            grid[r] = [];
+            for (let c = 0; c < GRID_SIZE; c++) {
+                grid[r][c] = generateRandomFruit(r, c);
+            }
+        }
+        
+        // Ensure no initial matches
+        while (hasInitialMatches()) {
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (isMatch(r, c)) {
+                        grid[r][c] = generateRandomFruit(r, c);
+                    }
+                }
+            }
+        }
+    }
+
+    function generateRandomFruit(r, c) {
+        const typeIndex = Math.floor(Math.random() * FRUIT_TYPES.length);
+        const isLogia = Math.random() < 0.05; // 5% chance for Logia block
+        return {
+            ...FRUIT_TYPES[typeIndex],
+            typeIndex,
+            r, c,
+            isLogia,
+            isAwakened: false,
+            id: Math.random().toString(36).substr(2, 9)
+        };
+    }
+
+    function hasInitialMatches() {
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                if (isMatch(r, c)) return true;
+            }
+        }
+        return false;
+    }
+
+    function isMatch(r, c) {
+        const fruit = grid[r][c];
+        if (fruit.isLogia) return false;
+
+        // Check horizontal
+        if (c > 1 && grid[r][c-1]?.typeIndex === fruit.typeIndex && grid[r][c-2]?.typeIndex === fruit.typeIndex && !grid[r][c-1].isLogia && !grid[r][c-2].isLogia) return true;
+        // Check vertical
+        if (r > 1 && grid[r-1][c]?.typeIndex === fruit.typeIndex && grid[r-2][c]?.typeIndex === fruit.typeIndex && !grid[r-1][c].isLogia && !grid[r-2][c].isLogia) return true;
+        
+        return false;
+    }
+
+    function renderGrid() {
+        gridEl.innerHTML = '';
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+                cell.onclick = () => onCellClick(r, c);
+                
+                const fruit = grid[r][c];
+                if (fruit) {
+                    const fruitEl = document.createElement('div');
+                    fruitEl.className = `fruit ${fruit.isLogia ? 'logia' : ''} ${fruit.isAwakened ? 'awakened' : ''}`;
+                    fruitEl.style.backgroundColor = fruit.color;
+                    fruitEl.textContent = fruit.icon;
+                    fruitEl.id = fruit.id;
+                    cell.appendChild(fruitEl);
+                }
+                
+                gridEl.appendChild(cell);
+            }
+        }
+    }
+
+    async function onCellClick(r, c) {
+        if (isProcessing || moves <= 0) return;
+
+        const fruit = grid[r][c];
+        if (fruit.isLogia) {
+            showFeedback("Haki needed for Logia!");
+            return;
+        }
+
+        if (!selectedCell) {
+            selectedCell = { r, c };
+            document.querySelector(`.cell[data-r="${r}"][data-c="${c}"] .fruit`).classList.add('selected');
+        } else {
+            const r2 = r, c2 = c;
+            const r1 = selectedCell.r, c1 = selectedCell.c;
+            
+            // Check if adjacent
+            if ((Math.abs(r1 - r2) === 1 && c1 === c2) || (Math.abs(c1 - c2) === 1 && r1 === r2)) {
+                await swap(r1, c1, r2, c2);
+                moves--;
+                updateUI();
+                await processMatches();
+                if (moves <= 0) endGame();
+            } else {
+                // Deselect or select new
+                document.querySelectorAll('.fruit').forEach(f => f.classList.remove('selected'));
+                selectedCell = { r, c };
+                document.querySelector(`.cell[data-r="${r}"][data-c="${c}"] .fruit`).classList.add('selected');
+            }
+        }
+    }
+
+    async function swap(r1, c1, r2, c2, revertIfNoMatch = true) {
+        isProcessing = true;
+        const fruit1 = grid[r1][c1];
+        const fruit2 = grid[r2][c2];
+
+        // Animate
+        const el1 = document.getElementById(fruit1.id);
+        const el2 = document.getElementById(fruit2.id);
+        
+        // Swap in grid
+        grid[r1][c1] = fruit2;
+        grid[r2][c2] = fruit1;
+        fruit1.r = r2; fruit1.c = c2;
+        fruit2.r = r1; fruit2.c = c1;
+
+        renderGrid(); // Visual swap
+        
+        await new Promise(r => setTimeout(r, 300));
+
+        if (revertIfNoMatch) {
+            const matches = findMatches();
+            if (matches.length === 0) {
+                // Swap back
+                grid[r1][c1] = fruit1;
+                grid[r2][c2] = fruit2;
+                fruit1.r = r1; fruit1.c = c1;
+                fruit2.r = r2; fruit2.c = c2;
+                renderGrid();
+                await new Promise(r => setTimeout(r, 300));
+            }
+        }
+        
+        selectedCell = null;
+        isProcessing = false;
+    }
+
+    function findMatches() {
+        let matches = [];
+        
+        // Horizontal
+        for (let r = 0; r < GRID_SIZE; r++) {
+            let matchCount = 1;
+            for (let c = 1; c < GRID_SIZE; c++) {
+                if (grid[r][c] && grid[r][c-1] && 
+                    grid[r][c].typeIndex === grid[r][c-1].typeIndex && 
+                    !grid[r][c].isLogia && !grid[r][c-1].isLogia) {
+                    matchCount++;
+                } else {
+                    if (matchCount >= 3) {
+                        for (let i = 0; i < matchCount; i++) matches.push({ r, c: c - 1 - i });
+                    }
+                    matchCount = 1;
+                }
+            }
+            if (matchCount >= 3) {
+                for (let i = 0; i < matchCount; i++) matches.push({ r, c: GRID_SIZE - 1 - i });
+            }
+        }
+
+        // Vertical
+        for (let c = 0; c < GRID_SIZE; c++) {
+            let matchCount = 1;
+            for (let r = 1; r < GRID_SIZE; r++) {
+                if (grid[r][c] && grid[r-1][c] && 
+                    grid[r][c].typeIndex === grid[r-1][c].typeIndex && 
+                    !grid[r][c].isLogia && !grid[r-1][c].isLogia) {
+                    matchCount++;
+                } else {
+                    if (matchCount >= 3) {
+                        for (let i = 0; i < matchCount; i++) matches.push({ r: r - 1 - i, c });
+                    }
+                    matchCount = 1;
+                }
+            }
+            if (matchCount >= 3) {
+                for (let i = 0; i < matchCount; i++) matches.push({ r: GRID_SIZE - 1 - i, c });
+            }
+        }
+
+        // Deduplicate
+        return Array.from(new Set(matches.map(m => `${m.r},${m.c}`))).map(s => {
+            const [r, c] = s.split(',').map(Number);
+            return { r, c };
+        });
+    }
+
+    async function processMatches() {
+        isProcessing = true;
+        let combo = 0;
+        
+        while (true) {
+            const matches = findMatches();
+            if (matches.length === 0) break;
+
+            combo++;
+            await clearMatches(matches);
+            await applyGravity();
+            await refillGrid();
+            renderGrid();
+            await new Promise(r => setTimeout(r, 300));
+        }
+        
+        isProcessing = false;
+    }
+
+    async function clearMatches(matches) {
+        // Check for 4 or 5 matches for Awakened
+        // This is a simplified check
+        const matchGroups = groupMatches(matches);
+        matchGroups.forEach(group => {
+            if (group.length >= 4) {
+                // Mark one as Awakened instead of clearing
+                const head = group[0];
+                grid[head.r][head.c].isAwakened = true;
+                score += 100;
+            }
+        });
+
+        matches.forEach(m => {
+            const fruit = grid[m.r][m.c];
+            if (fruit && fruit.isAwakened) {
+                // Trigger awakened effect: Clear row and column
+                triggerAwakened(m.r, m.c);
+            }
+            grid[m.r][m.c] = null;
+            score += 10;
+            haki = Math.min(MAX_HAKI, haki + 2);
+        });
+        
+        updateUI();
+    }
+
+    function groupMatches(matches) {
+        // Very basic grouping
+        return [matches]; 
+    }
+
+    function triggerAwakened(row, col) {
+        for (let i = 0; i < GRID_SIZE; i++) {
+            if (grid[row][i]) { score += 5; grid[row][i] = null; }
+            if (grid[i][col]) { score += 5; grid[i][col] = null; }
+        }
+        showFeedback("AWAKENED!");
+    }
+
+    async function applyGravity() {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            let emptySpot = GRID_SIZE - 1;
+            for (let r = GRID_SIZE - 1; r >= 0; r--) {
+                if (grid[r][c] !== null) {
+                    const fruit = grid[r][c];
+                    grid[r][c] = null;
+                    grid[emptySpot][c] = fruit;
+                    fruit.r = emptySpot;
+                    emptySpot--;
+                }
+            }
+        }
+    }
+
+    async function refillGrid() {
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                if (grid[r][c] === null) {
+                    grid[r][c] = generateRandomFruit(r, c);
+                }
+            }
+        }
+    }
+
+    function unleashHaki() {
+        if (haki < MAX_HAKI || isProcessing) return;
+        
+        isProcessing = true;
+        haki = 0;
+        updateUI();
+        
+        showFeedback(`${currentCharacter.toUpperCase()}: CONQUEROR'S HAKI!`);
+        
+        // Clear all Logia blocks
+        let cleared = 0;
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                if (grid[r][c] && grid[r][c].isLogia) {
+                    grid[r][c] = null;
+                    cleared++;
+                    score += 50;
+                }
+            }
+        }
+        
+        setTimeout(async () => {
+            await applyGravity();
+            await refillGrid();
+            renderGrid();
+            await processMatches();
+            isProcessing = false;
+        }, 800);
+    }
+
+    function selectChar(char, btn) {
+        currentCharacter = char;
+        document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        showFeedback(`Selected ${char}`);
+    }
+
+    function updateUI() {
+        scoreEl.textContent = score;
+        movesEl.textContent = moves;
+        hakiBar.style.width = `${haki}%`;
+        if (haki >= MAX_HAKI) {
+            hakiBar.style.background = 'linear-gradient(90deg, #f2d349, #ffffff)';
+            hakiBar.style.boxShadow = '0 0 20px #f2d349';
+        } else {
+            hakiBar.style.background = 'linear-gradient(90deg, #5d2a8a, #a855f7)';
+            hakiBar.style.boxShadow = '0 0 15px var(--haki-color)';
+        }
+    }
+
+    function showFeedback(text) {
+        const fb = document.createElement('div');
+        fb.style.position = 'absolute';
+        fb.style.top = '50%';
+        fb.style.left = '50%';
+        fb.style.transform = 'translate(-50%, -50%)';
+        fb.style.background = 'rgba(0,0,0,0.8)';
+        fb.style.padding = '10px 20px';
+        fb.style.borderRadius = '20px';
+        fb.style.color = 'var(--accent)';
+        fb.style.fontWeight = 'bold';
+        fb.style.zIndex = '1000';
+        fb.style.pointerEvents = 'none';
+        fb.textContent = text;
+        document.body.appendChild(fb);
+        
+        setTimeout(() => {
+            fb.style.transition = 'all 0.5s ease';
+            fb.style.top = '40%';
+            fb.style.opacity = '0';
+            setTimeout(() => fb.remove(), 500);
+        }, 1000);
+    }
+
+    function endGame() {
+        msgTitle.textContent = moves <= 0 ? "Out of Moves!" : "Victory!";
+        msgText.textContent = `Final Score: ${score}`;
+        messageEl.classList.add('show');
+    }
+
+    function resetGame() {
+        score = 0;
+        moves = 30;
+        haki = 0;
+        messageEl.classList.remove('show');
+        initGame();
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            unleashHaki();
+        }
+    });
+
+    initGame();
+</script>
+</body>
+</html>
