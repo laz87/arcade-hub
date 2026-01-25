@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bounty Hunter Clicker - One Piece Idle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ffcc00;
+            --secondary: #ff4400;
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --text: #c9d1d9;
+            --gold: #f1c40f;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            color: var(--primary);
+            letter-spacing: 2px;
+            text-shadow: 2px 2px #000;
+        }
+
+        .stats {
+            text-align: right;
+        }
+
+        .berry-count {
+            font-family: 'Bangers', cursive;
+            font-size: 1.8rem;
+            color: var(--gold);
+        }
+
+        .bps {
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Left Section: Click Area */
+        .click-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(circle, #1c2128 0%, #0d1117 100%);
+        }
+
+        .poster-container {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .poster-container:active {
+            transform: scale(0.95);
+        }
+
+        .poster {
+            width: 300px;
+            height: 420px;
+            background: #e6ccb2;
+            border: 15px solid #5e503f;
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            position: relative;
+        }
+
+        .poster::before {
+            content: "WANTED";
+            font-family: 'Bangers', cursive;
+            font-size: 3rem;
+            color: #2b231a;
+            margin-top: 10px;
+        }
+
+        .poster-img {
+            width: 220px;
+            height: 180px;
+            background: #3d3429;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            border: 4px solid #2b231a;
+        }
+
+        .poster-name {
+            font-family: 'Bangers', cursive;
+            font-size: 2.2rem;
+            color: #2b231a;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .poster-reward {
+            font-family: 'Bangers', cursive;
+            font-size: 1.5rem;
+            color: #2b231a;
+            margin-top: auto;
+            border-top: 2px solid #2b231a;
+            width: 100%;
+            text-align: center;
+            padding-top: 5px;
+        }
+
+        .click-particle {
+            position: absolute;
+            pointer-events: none;
+            color: var(--gold);
+            font-family: 'Bangers', cursive;
+            font-size: 1.5rem;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 20;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) opacity(1); }
+            100% { transform: translateY(-100px) opacity(0); }
+        }
+
+        /* Right Section: Upgrades */
+        .shop-section {
+            flex: 1.2;
+            background-color: var(--card-bg);
+            border-left: 1px solid #30363d;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .shop-header {
+            font-family: 'Bangers', cursive;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 0.5rem;
+        }
+
+        .upgrade-card {
+            background: #21262d;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            border: 1px solid transparent;
+        }
+
+        .upgrade-card:hover {
+            background: #30363d;
+        }
+
+        .upgrade-card:active {
+            transform: scale(0.98);
+        }
+
+        .upgrade-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-card.disabled:hover {
+            background: #21262d;
+        }
+
+        .upgrade-icon {
+            width: 50px;
+            height: 50px;
+            background: #161b22;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .upgrade-info {
+            flex: 1;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #f0f6fc;
+        }
+
+        .upgrade-desc {
+            font-size: 0.75rem;
+            color: #8b949e;
+        }
+
+        .upgrade-cost {
+            font-family: 'Bangers', cursive;
+            color: var(--gold);
+        }
+
+        .upgrade-owned {
+            font-family: 'Bangers', cursive;
+            font-size: 1.2rem;
+            color: #8b949e;
+            margin-left: 10px;
+        }
+
+        /* Raid Event */
+        .raid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(231, 76, 60, 0.2);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            pointer-events: none;
+            border: 5px solid var(--danger);
+            animation: flash 1s infinite alternate;
+        }
+
+        @keyframes flash {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
+        .raid-warning {
+            font-family: 'Bangers', cursive;
+            font-size: 4rem;
+            color: var(--danger);
+            text-shadow: 4px 4px #000;
+            margin-bottom: 20px;
+            pointer-events: none;
+        }
+
+        .raid-boss {
+            pointer-events: auto;
+            transform: scale(1.2);
+            animation: shake 0.2s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg) scale(1.2); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg) scale(1.2); }
+            20% { transform: translate(-3px, 0px) rotate(1deg) scale(1.2); }
+            30% { transform: translate(3px, 2px) rotate(0deg) scale(1.2); }
+            40% { transform: translate(1px, -1px) rotate(1deg) scale(1.2); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg) scale(1.2); }
+            60% { transform: translate(-3px, 1px) rotate(0deg) scale(1.2); }
+            70% { transform: translate(3px, 1px) rotate(-1deg) scale(1.2); }
+            80% { transform: translate(-1px, -1px) rotate(1deg) scale(1.2); }
+            90% { transform: translate(1px, 2px) rotate(0deg) scale(1.2); }
+            100% { transform: translate(1px, -2px) rotate(-1deg) scale(1.2); }
+        }
+
+        .raid-timer {
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            color: white;
+            background: var(--danger);
+            padding: 5px 20px;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+
+        /* Nav Toggle */
+        .game-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: var(--primary);
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            font-family: 'Bangers', cursive;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 0 #b38f00;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .nav-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #b38f00;
+        }
+
+        /* Mobile specific */
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+            }
+            .shop-section {
+                flex: 1;
+                border-left: none;
+                border-top: 1px solid #30363d;
+            }
+            .poster {
+                width: 200px;
+                height: 280px;
+            }
+            .poster-img {
+                width: 140px;
+                height: 100px;
+                font-size: 3rem;
+            }
+            .poster-name {
+                font-size: 1.5rem;
+            }
+            .poster-reward {
+                font-size: 1rem;
+            }
+            .poster::before {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">BOUNTY HUNTER CLICKER</div>
+    <div class="stats">
+        <div class="berry-count">฿ <span id="berries">0</span></div>
+        <div class="bps">Per Second: ฿ <span id="bps">0</span></div>
+    </div>
+</header>
+
+<main>
+    <section class="click-section" id="clickArea">
+        <div class="poster-container" id="posterContainer">
+            <div class="poster" id="mainPoster">
+                <div class="poster-img" id="posterIcon">🏴‍☠️</div>
+                <div class="poster-name" id="posterName">Small Fry</div>
+                <div class="poster-reward" id="posterReward">฿ 100</div>
+            </div>
+        </div>
+
+        <!-- Raid Overlay -->
+        <div class="raid-overlay" id="raidOverlay">
+            <div class="raid-warning">RAID IN PROGRESS!</div>
+            <div class="poster-container raid-boss" id="raidBossContainer">
+                <div class="poster" id="raidPoster">
+                    <div class="poster-img" id="raidIcon">👹</div>
+                    <div class="poster-name" id="raidName">EMPEROR</div>
+                    <div class="poster-reward" id="raidReward">฿ 50,000,000</div>
+                </div>
+            </div>
+            <div class="raid-timer">TIME LEFT: <span id="raidTimer">30</span>s</div>
+        </div>
+    </section>
+
+    <section class="shop-section">
+        <div class="shop-header">HIRE CREW (AUTO-CLICKERS)</div>
+        <div id="crew-list">
+            <!-- Dynamically populated -->
+        </div>
+
+        <div class="shop-header" style="margin-top: 2rem;">DEVIL FRUITS (MULTIPLIERS)</div>
+        <div id="fruit-list">
+            <!-- Dynamically populated -->
+        </div>
+    </section>
+</main>
+
+<div class="game-nav">
+    <a href="index.html" class="nav-btn">Spirit Mahjong</a>
+    <!-- Other games could be added here -->
+</div>
+
+<script>
+    // Game State
+    let state = {
+        berries: 0,
+        totalBerries: 0,
+        clickValue: 1,
+        berriesPerSecond: 0,
+        lastUpdate: Date.now(),
+        crew: {
+            'cabin-boy': { name: 'Cabin Boy', cost: 15, bps: 0.1, owned: 0, icon: '🧹', desc: 'Cleans the deck and finds loose change.' },
+            'navigator': { name: 'Navigator', cost: 100, bps: 1, owned: 0, icon: '🗺️', desc: 'Finds better routes to wealthier targets.' },
+            'sniper': { name: 'Sniper', cost: 1100, bps: 8, owned: 0, icon: '🎯', desc: 'Takes down targets from afar.' },
+            'cook': { name: 'Cook', cost: 12000, bps: 47, owned: 0, icon: '🍱', desc: 'Keeps the crew energized for more hunting.' },
+            'swordsman': { name: 'Swordsman', cost: 130000, bps: 260, owned: 0, icon: '⚔️', desc: 'A master of the blade who cuts through bounties.' },
+            'captain': { name: 'Ally Captain', cost: 1400000, bps: 1400, owned: 0, icon: '🏴‍☠️', desc: 'Leads an entire fleet in your name.' }
+        },
+        fruits: {
+            'gomu': { name: 'Gomu Gomu', cost: 500, mult: 2, owned: 0, icon: '🍖', desc: 'Stretch your reach. Double click power.' },
+            'mera': { name: 'Mera Mera', cost: 5000, mult: 2, owned: 0, icon: '🔥', desc: 'Burn through targets. Double click power.' },
+            'gura': { name: 'Gura Gura', cost: 50000, mult: 3, owned: 0, icon: '🌊', desc: 'Shake the world. Triple click power.' },
+            'ope': { name: 'Ope Ope', cost: 500000, mult: 5, owned: 0, icon: '🏥', desc: 'Room! Multiplies click power by 5.' }
+        },
+        raid: {
+            active: false,
+            timeLeft: 0,
+            clicksNeeded: 0,
+            reward: 0,
+            bosses: [
+                { name: 'Buggy the Clown', icon: '🤡', reward: 1000, clicks: 20 },
+                { name: 'Arlong', icon: '🦈', reward: 5000, clicks: 40 },
+                { name: 'Crocodile', icon: '🐊', reward: 25000, clicks: 80 },
+                { name: 'Doflamingo', icon: '🦩', reward: 150000, clicks: 150 },
+                { name: 'Kaido', icon: '🐉', reward: 1000000, clicks: 300 }
+            ]
+        }
+    };
+
+    // DOM Elements
+    const berriesEl = document.getElementById('berries');
+    const bpsEl = document.getElementById('bps');
+    const posterContainer = document.getElementById('posterContainer');
+    const clickArea = document.getElementById('clickArea');
+    const crewListEl = document.getElementById('crew-list');
+    const fruitListEl = document.getElementById('fruit-list');
+    const raidOverlay = document.getElementById('raidOverlay');
+    const raidBossContainer = document.getElementById('raidBossContainer');
+    const raidTimerEl = document.getElementById('raidTimer');
+    const raidNameEl = document.getElementById('raidName');
+    const raidIconEl = document.getElementById('raidIcon');
+    const raidRewardEl = document.getElementById('raidReward');
+
+    // Initialization
+    function init() {
+        renderShop();
+        updateDisplay();
+        
+        // Start Loops
+        setInterval(gameLoop, 100);
+        setInterval(checkRaidTrigger, 60000); // Check for raid every minute
+        
+        // Listeners
+        posterContainer.addEventListener('mousedown', (e) => handleMainClick(e));
+        raidBossContainer.addEventListener('mousedown', (e) => handleRaidClick(e));
+        
+        // Load local storage if exists
+        const saved = localStorage.getItem('bountyHunterSave');
+        if (saved) {
+            try {
+                const loaded = JSON.parse(saved);
+                // Simple merge
+                state.berries = loaded.berries || 0;
+                state.totalBerries = loaded.totalBerries || 0;
+                if (loaded.crew) {
+                    for (let key in loaded.crew) {
+                        if (state.crew[key]) {
+                            state.crew[key].owned = loaded.crew[key].owned;
+                            state.crew[key].cost = loaded.crew[key].cost;
+                        }
+                    }
+                }
+                if (loaded.fruits) {
+                    for (let key in loaded.fruits) {
+                        if (state.fruits[key]) {
+                            state.fruits[key].owned = loaded.fruits[key].owned;
+                            state.fruits[key].cost = loaded.fruits[key].cost;
+                        }
+                    }
+                }
+                recalculateStats();
+                renderShop();
+            } catch (e) { console.error("Load failed", e); }
+        }
+        
+        // Auto-save
+        setInterval(() => {
+            localStorage.setItem('bountyHunterSave', JSON.stringify({
+                berries: state.berries,
+                totalBerries: state.totalBerries,
+                crew: state.crew,
+                fruits: state.fruits
+            }));
+        }, 30000);
+    }
+
+    function gameLoop() {
+        const now = Date.now();
+        const delta = (now - state.lastUpdate) / 1000;
+        state.lastUpdate = now;
+
+        if (state.berriesPerSecond > 0) {
+            addBerries(state.berriesPerSecond * delta);
+        }
+        
+        if (state.raid.active) {
+            state.raid.timeLeft -= delta;
+            raidTimerEl.textContent = Math.ceil(state.raid.timeLeft);
+            if (state.raid.timeLeft <= 0) {
+                endRaid(false);
+            }
+        }
+        
+        updateDisplay();
+        updateShopAffordability();
+    }
+
+    function addBerries(amount) {
+        state.berries += amount;
+        state.totalBerries += amount;
+    }
+
+    function updateDisplay() {
+        berriesEl.textContent = Math.floor(state.berries).toLocaleString();
+        bpsEl.textContent = state.berriesPerSecond.toFixed(1).toLocaleString();
+    }
+
+    function handleMainClick(e) {
+        if (state.raid.active) return;
+        
+        addBerries(state.clickValue);
+        spawnParticle(e.clientX, e.clientY, `+฿${state.clickValue}`);
+        
+        // Animate poster
+        posterContainer.style.transform = 'scale(0.95)';
+        setTimeout(() => posterContainer.style.transform = 'scale(1)', 50);
+    }
+
+    function handleRaidClick(e) {
+        if (!state.raid.active) return;
+        
+        state.raid.clicksNeeded--;
+        spawnParticle(e.clientX, e.clientY, `HIT!`);
+        
+        if (state.raid.clicksNeeded <= 0) {
+            endRaid(true);
+        }
+    }
+
+    function spawnParticle(x, y, text) {
+        const p = document.createElement('div');
+        p.className = 'click-particle';
+        p.textContent = text;
+        p.style.left = `${x}px`;
+        p.style.top = `${y}px`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+    }
+
+    function renderShop() {
+        // Crew
+        crewListEl.innerHTML = '';
+        for (let id in state.crew) {
+            const item = state.crew[id];
+            const card = document.createElement('div');
+            card.className = `upgrade-card ${state.berries < item.cost ? 'disabled' : ''}`;
+            card.id = `crew-${id}`;
+            card.innerHTML = `
+                <div class="upgrade-icon">${item.icon}</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${item.name}</div>
+                    <div class="upgrade-desc">${item.desc}</div>
+                    <div class="upgrade-cost">฿ ${item.cost.toLocaleString()}</div>
+                </div>
+                <div class="upgrade-owned">${item.owned}</div>
+            `;
+            card.onclick = () => buyCrew(id);
+            crewListEl.appendChild(card);
+        }
+
+        // Fruits
+        fruitListEl.innerHTML = '';
+        for (let id in state.fruits) {
+            const item = state.fruits[id];
+            const card = document.createElement('div');
+            card.className = `upgrade-card ${state.berries < item.cost ? 'disabled' : ''}`;
+            card.id = `fruit-${id}`;
+            card.innerHTML = `
+                <div class="upgrade-icon">${item.icon}</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${item.name}</div>
+                    <div class="upgrade-desc">${item.desc}</div>
+                    <div class="upgrade-cost">฿ ${item.cost.toLocaleString()}</div>
+                </div>
+                <div class="upgrade-owned">${item.owned}</div>
+            `;
+            card.onclick = () => buyFruit(id);
+            fruitListEl.appendChild(card);
+        }
+    }
+
+    function updateShopAffordability() {
+        for (let id in state.crew) {
+            const card = document.getElementById(`crew-${id}`);
+            if (card) {
+                if (state.berries < state.crew[id].cost) card.classList.add('disabled');
+                else card.classList.remove('disabled');
+            }
+        }
+        for (let id in state.fruits) {
+            const card = document.getElementById(`fruit-${id}`);
+            if (card) {
+                if (state.berries < state.fruits[id].cost) card.classList.add('disabled');
+                else card.classList.remove('disabled');
+            }
+        }
+    }
+
+    function buyCrew(id) {
+        const item = state.crew[id];
+        if (state.berries >= item.cost) {
+            state.berries -= item.cost;
+            item.owned++;
+            item.cost = Math.floor(item.cost * 1.15);
+            recalculateStats();
+            renderShop();
+        }
+    }
+
+    function buyFruit(id) {
+        const item = state.fruits[id];
+        if (state.berries >= item.cost) {
+            state.berries -= item.cost;
+            item.owned++;
+            item.cost = Math.floor(item.cost * 3);
+            recalculateStats();
+            renderShop();
+        }
+    }
+
+    function recalculateStats() {
+        // BPS
+        let bps = 0;
+        for (let id in state.crew) {
+            bps += state.crew[id].owned * state.crew[id].bps;
+        }
+        state.berriesPerSecond = bps;
+
+        // Click Value
+        let cv = 1;
+        for (let id in state.fruits) {
+            if (state.fruits[id].owned > 0) {
+                cv *= Math.pow(state.fruits[id].mult, state.fruits[id].owned);
+            }
+        }
+        state.clickValue = cv;
+    }
+
+    function checkRaidTrigger() {
+        if (state.raid.active) return;
+        // 20% chance of raid every minute
+        if (Math.random() < 0.2) {
+            startRaid();
+        }
+    }
+
+    function startRaid() {
+        // Choose boss based on progress
+        let bossIdx = 0;
+        if (state.totalBerries > 1000000) bossIdx = 4;
+        else if (state.totalBerries > 100000) bossIdx = 3;
+        else if (state.totalBerries > 10000) bossIdx = 2;
+        else if (state.totalBerries > 1000) bossIdx = 1;
+        
+        const boss = state.raid.bosses[bossIdx];
+        state.raid.active = true;
+        state.raid.timeLeft = 30;
+        state.raid.clicksNeeded = boss.clicks;
+        state.raid.reward = boss.reward;
+        
+        raidNameEl.textContent = boss.name;
+        raidIconEl.textContent = boss.icon;
+        raidRewardEl.textContent = `฿ ${boss.reward.toLocaleString()}`;
+        raidOverlay.style.display = 'flex';
+    }
+
+    function endRaid(success) {
+        state.raid.active = false;
+        raidOverlay.style.display = 'none';
+        
+        if (success) {
+            addBerries(state.raid.reward);
+            alert(`SUCCESS! You captured the pirate and claimed ฿${state.raid.reward.toLocaleString()}!`);
+        } else {
+            alert("The pirate escaped!");
+        }
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
