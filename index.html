@@ -467,6 +467,19 @@
     <h2 class="section-title">Featured Games</h2>
     <div class="games-grid" id="gamesGrid">
 
+        <!-- Game 0: Op Conections -->
+        <div class="game-card" data-category="puzzle" onclick="playGame('op links')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/spirit-mahjong/spirit-mahjong_thumb.jpg" alt="Op Links"></div>
+            <div class="game-info">
+                <div class="game-title">Op Links</div>
+                <span class="game-category">Puzzle</span>
+                <div class="game-stats">
+                    <span class="play-count">1.2K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Game 1: Mahjong -->
         <div class="game-card" data-category="puzzle" onclick="playGame('spirit mahjong')">
             <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/spirit-mahjong/spirit-mahjong_thumb.jpg" alt="Spirit Mahjong"></div>
@@ -668,6 +681,7 @@
     // Play game
     function playGame(gameName) {
         const gameUrls = {
+            'op links': 'games/op links/index.html',
             'spirit mahjong': 'games/spirit mahjong/index.html',
             'snake garden': 'games/snake garden/index.html',
             '2048': 'games/2048/index.html',
