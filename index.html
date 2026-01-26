@@ -109,6 +109,43 @@
             color: #000;
         }
 
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffda00;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #splash-screen img {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+            animation: spin 2s linear infinite;
+        }
+
+        #splash-screen h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         .hero h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
@@ -196,7 +233,7 @@
         }
 
         .game-card:hover {
-            transform: scale(1.03);
+            transform: translateY(-5px);
         }
 
         .game-thumbnail {
@@ -210,6 +247,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            background-color: #ffda00; /* Yellow background for fallback */
         }
 
         .game-thumbnail img {
@@ -217,7 +255,11 @@
             height: 100%;
             object-fit: cover;
             border-radius: 12px;
-            background-color: #ffda00; /* Yellow background for fallback */
+            transition: transform 0.3s ease;
+        }
+
+        .game-card:hover .game-thumbnail img {
+            transform: scale(1.1);
         }
 
         .game-info {
@@ -253,19 +295,136 @@
         }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            .header-content {
+                max-width: 100%;
+            }
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+        }
+
         @media (max-width: 768px) {
+            .header-content {
+                gap: 10px;
+                padding: 0 15px;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .logo img {
+                height: 32px;
+                width: 32px;
+            }
+
+            .search-bar {
+                max-width: none;
+            }
+
+            .search-bar input {
+                padding: 10px 40px 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .search-icon {
+                right: 15px;
+            }
+
+            .user-profile {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+
+            .hero {
+                padding: 30px 15px;
+            }
+
             .hero h1 {
                 font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
             }
 
             .games-grid {
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
                 gap: 15px;
             }
+
+            #splash-screen img {
+                width: 120px;
+                height: 120px;
+            }
+
+            #splash-screen h1 {
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-content {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .logo {
+                order: 1;
+            }
+
+            .user-profile {
+                order: 2;
+            }
+
+            .search-bar {
+                order: 3;
+                width: 100%;
+                margin-top: 5px;
+            }
+
+            .categories {
+                padding: 0 10px;
+            }
+
+            .category-btn {
+                padding: 8px 18px;
+                font-size: 0.85rem;
+            }
+
+            .games-container {
+                margin: 25px auto;
+                padding: 0 15px;
+            }
+
+            .section-title {
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+            }
+
+            .games-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            #splash-screen img {
+                width: 100px;
+                height: 100px;
+            }
+
+            #splash-screen h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
+    <div id="splash-screen">
+        <img src="1.png" alt="Logo">
+        <h1>gamelet</h1>
+    </div>
 <!-- Header -->
 <header>
     <div class="header-content">
@@ -475,7 +634,7 @@
 
         // Update active button
         buttons.forEach(btn => btn.classList.remove('active'));
-        
+
         // Find the button that was clicked and add active class
         if (event && event.target) {
             event.target.classList.add('active');
@@ -522,7 +681,12 @@
         };
 
         if (gameUrls[gameName]) {
-            window.location.href = gameUrls[gameName];
+            const splash = document.getElementById('splash-screen');
+            splash.style.display = 'flex';
+            
+            setTimeout(() => {
+                window.location.href = gameUrls[gameName];
+            }, 2000); // 2 seconds delay for splash screen
         } else {
             alert('Coming soon! 🎮');
         }
@@ -552,6 +716,14 @@
                 card.style.transform = 'translateY(0)';
             }, index * 100);
         });
+    });
+
+    // Hide splash screen when user navigates back to this page
+    window.addEventListener('pageshow', (event) => {
+        // persisted is true when the page is loaded from the bfcache
+        if (event.persisted || performance.getEntriesByType("navigation")[0].type === 'back_forward') {
+            document.getElementById('splash-screen').style.display = 'none';
+        }
     });
 </script>
 </body>
