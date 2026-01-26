@@ -13,17 +13,15 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f8f9fa;
             min-height: 100vh;
             color: #333;
         }
 
         /* Header */
         header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px 0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: #ffda00;
+            padding: 10px 0;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -36,17 +34,24 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
             gap: 20px;
         }
 
         .logo {
-            font-size: 2rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .logo img {
+            height: 40px;
+            width: 40px;
+            object-fit: contain;
         }
 
         .search-bar {
@@ -57,77 +62,106 @@
 
         .search-bar input {
             width: 100%;
-            padding: 12px 45px 12px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
+            padding: 12px 25px 12px 25px;
+            border: none;
+            border-radius: 30px;
+            background: #ffffff;
             font-size: 1rem;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .search-bar input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .search-icon {
             position: absolute;
-            right: 15px;
+            right: 20px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 1.2rem;
-            color: #999;
+            font-size: 1.1rem;
+            color: #5f6368;
+            pointer-events: none;
         }
 
-        /* Hero Section */
+        .user-profile {
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+            color: #4285f4;
+            font-size: 1.2rem;
+        }
+
+        /* Hero Section - Integrated with Header Color */
         .hero {
-            max-width: 1400px;
-            margin: 40px auto;
-            padding: 0 20px;
+            background-color: #ffda00;
+            padding: 40px 20px;
+            margin: 0;
             text-align: center;
-            color: white;
+            color: #000;
         }
 
         .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 800;
         }
 
         .hero p {
-            font-size: 1.3rem;
-            opacity: 0.95;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            font-weight: 500;
         }
 
         /* Categories */
+        .categories-wrapper {
+            background: #ffda00;
+            padding-bottom: 20px;
+        }
+
         .categories {
             max-width: 1400px;
-            margin: 30px auto;
+            margin: 0 auto;
             padding: 0 20px;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 12px;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+            padding-bottom: 5px;
+        }
+
+        .categories::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
         }
 
         .category-btn {
-            padding: 12px 30px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 24px;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
             border-radius: 25px;
-            color: white;
+            color: #000;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1rem;
-            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            font-weight: 700;
+            white-space: nowrap;
         }
 
-        .category-btn:hover, .category-btn.active {
-            background: white;
-            color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        .category-btn:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .category-btn.active {
+            background: #ffffff;
+            color: #000;
         }
 
         /* Games Grid */
@@ -138,426 +172,387 @@
         }
 
         .section-title {
-            color: white;
-            font-size: 2rem;
+            color: #202124;
+            font-size: 1.5rem;
             margin-bottom: 25px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
         }
 
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
             margin-bottom: 50px;
         }
 
         .game-card {
-            background: white;
-            border-radius: 15px;
+            background: transparent;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s;
+            transition: transform 0.2s;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
         }
 
         .game-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transform: scale(1.03);
         }
 
         .game-thumbnail {
             width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            aspect-ratio: 16 / 9;
+            height: auto;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4rem;
             position: relative;
-            overflow: hidden;
         }
 
-        .game-thumbnail::after {
-            content: '▶';
-            position: absolute;
-            font-size: 3rem;
-            color: white;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .game-card:hover .game-thumbnail::after {
-            opacity: 0.8;
+        .game-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+            background-color: #ffda00; /* Yellow background for fallback */
         }
 
         .game-info {
-            padding: 20px;
+            padding: 10px 0;
         }
 
         .game-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #333;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #202124;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .game-category {
-            display: inline-block;
-            padding: 5px 12px;
-            background: #f0f0f0;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 10px;
+            display: none;
         }
 
         .game-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #999;
-            font-size: 0.9rem;
-        }
-
-        .play-count::before {
-            content: '▶ ';
-        }
-
-        .rating::before {
-            content: '⭐ ';
-        }
-
-        /* Coming Soon Card */
-        .coming-soon {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-        }
-
-        .coming-soon .game-thumbnail {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 2rem;
-        }
-
-        .coming-soon .game-info {
-            color: white;
-        }
-
-        .coming-soon .game-title {
-            color: white;
+            display: none;
         }
 
         /* Footer */
         footer {
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            color: white;
+            background: #ffffff;
+            color: #5f6368;
             text-align: center;
-            padding: 30px 20px;
+            padding: 40px 20px;
             margin-top: 60px;
+            border-top: 1px solid #e0e0e0;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
-                font-size: 2rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
+                font-size: 1.8rem;
             }
 
             .games-grid {
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
                 gap: 15px;
             }
-
-            .game-thumbnail {
-                height: 150px;
-                font-size: 3rem;
-            }
-
-            .game-title {
-                font-size: 1.1rem;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-content">
-            <div class="logo">🎮 Gamelet</div>
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames()">
-                <span class="search-icon">🔍</span>
-            </div>
+<!-- Header -->
+<header>
+    <div class="header-content">
+        <a href="#" class="logo">
+            <img src="1.png" alt="Gamelet Icon">
+            Gamelet
+        </a>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search games and genres" onkeyup="searchGames()">
+            <span class="search-icon">🔍</span>
         </div>
-    </header>
+        <div class="user-profile">
+            👤
+        </div>
+    </div>
+</header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <h1>Play Free Online Games</h1>
-        <p>Hundreds of games to play instantly - No downloads required!</p>
-    </section>
+<!-- Hero Section -->
+<section class="hero">
+    <h1>Play Free Online Games</h1>
+    <p>Hundreds of games to play instantly - No downloads required!</p>
+</section>
 
-    <!-- Categories -->
+<!-- Categories -->
+<div class="categories-wrapper">
     <section class="categories">
-        <button class="category-btn active" onclick="filterGames('all')">All Games</button>
+        <button class="category-btn active" onclick="filterGames('all')">All</button>
+        <button class="category-btn" onclick="filterGames('new')">New</button>
         <button class="category-btn" onclick="filterGames('puzzle')">Puzzle</button>
         <button class="category-btn" onclick="filterGames('action')">Action</button>
         <button class="category-btn" onclick="filterGames('arcade')">Arcade</button>
         <button class="category-btn" onclick="filterGames('strategy')">Strategy</button>
-        <button class="category-btn" onclick="filterGames('casual')">Casual</button>
+        <button class="category-btn" onclick="filterGames('sports')">Sports</button>
+        <button class="category-btn" onclick="filterGames('card')">Card</button>
     </section>
+</div>
 
-    <!-- Games Grid -->
-    <section class="games-container">
-        <h2 class="section-title">Featured Games</h2>
-        <div class="games-grid" id="gamesGrid">
+<!-- Games Grid -->
+<section class="games-container">
+    <h2 class="section-title">Featured Games</h2>
+    <div class="games-grid" id="gamesGrid">
 
-            <!-- Game 1: Mahjong -->
-            <div class="game-card" data-category="puzzle" onclick="playGame('spirit mahjong')">
-                <div class="game-thumbnail">🀄</div>
-                <div class="game-info">
-                    <div class="game-title">Spirit Mahjong</div>
-                    <span class="game-category">Puzzle</span>
-                    <div class="game-stats">
-                        <span class="play-count">1.2K plays</span>
-                        <span class="rating">4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game 2: Snake -->
-            <div class="game-card" data-category="arcade"
-            onclick="playGame('snake garden')">
-                <div class="game-thumbnail">🐍</div>
-                <div class="game-info">
-                    <div class="game-title">Snake Garden</div>
-                    <span class="game-category">Arcade</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game 3: 2048 -->
-            <div class="game-card" data-category="puzzle"
-            onclick="playGame('2048')">
-                <div class="game-thumbnail">📈</div>
-                <div class="game-info">
-                    <div class="game-title">2048</div>
-                    <span class="game-category">puzzle</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game 4: Puzzle ball -->
-            <div class="game-card" data-category="puzzle"
-            onclick="playGame('neon ball')">
-                <div class="game-thumbnail">☄🌠</div>
-                <div class="game-info">
-                    <div class="game-title">Neon Ball</div>
-                    <span class="game-category">puzzle</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game 5: Camper -->
-            <div class="game-card" data-category="puzzle"
-            onclick="playGame('camper')">
-                <div class="game-thumbnail">🔴</div>
-                <div class="game-info">
-                    <div class="game-title">Camper</div>
-                    <span class="game-category">puzzle</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game 6: fly defeater -->
-            <div class="game-card" data-category="action"
-            onclick="playGame('pest patrol')">
-                <div class="game-thumbnail">👾</div>
-                <div class="game-info">
-                    <div class="game-title">Pest Patrol</div>
-                    <span class="game-category">action</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game 7: seed shorter -->
-            <div class="game-card" data-category="action"
-            onclick="playGame('emoji ops')">
-                <div class="game-thumbnail">🥜</div>
-                <div class="game-info">
-                    <div class="game-title">Emoji Ops</div>
-                    <span class="game-category">action</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="game-card" data-category="puzzle"
-            onclick="playGame('tide maze')">
-                <div class="game-thumbnail">🌊🌊</div>
-                <div class="game-info">
-                    <div class="game-title">Tide Maze</div>
-                    <span class="game-category">puzzle</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
+        <!-- Game 1: Mahjong -->
+        <div class="game-card" data-category="puzzle" onclick="playGame('spirit mahjong')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/spirit-mahjong/spirit-mahjong_thumb.jpg" alt="Spirit Mahjong"></div>
+            <div class="game-info">
+                <div class="game-title">Spirit Mahjong</div>
+                <span class="game-category">Puzzle</span>
+                <div class="game-stats">
+                    <span class="play-count">1.2K plays</span>
+                    <span class="rating">4.8</span>
                 </div>
             </div>
         </div>
 
-          <div class="game-card" data-category="strategy"
-          onclick="playGame('spike dodge')">
-                <div class="game-thumbnail">⚡</div>
-                <div class="game-info">
-                    <div class="game-title">Spike Dodge</div>
-                    <span class="game-category">strategy</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
+        <!-- Game 2: Snake -->
+        <div class="game-card" data-category="arcade"
+             onclick="playGame('snake garden')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/snake-garden/snake-garden_thumb.jpg" alt="Snake Garden"></div>
+            <div class="game-info">
+                <div class="game-title">Snake Garden</div>
+                <span class="game-category">Arcade</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
                 </div>
             </div>
         </div>
 
-         <div class="game-card" data-category="casual"
-         onclick="playGame('spot the odd')">
-                <div class="game-thumbnail">💥</div>
-                <div class="game-info">
-                    <div class="game-title">Spot The Odd</div>
-                    <span class="game-category">casual</span>
-                    <div class="game-stats">
-                        <span class="play-count">1K plays</span>
-                        <span class="rating">4.8</span>
+        <!-- Game 3: 2048 -->
+        <div class="game-card" data-category="puzzle"
+             onclick="playGame('2048')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/2048/2048_thumb.jpg" alt="2048"></div>
+            <div class="game-info">
+                <div class="game-title">2048</div>
+                <span class="game-category">puzzle</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
                 </div>
             </div>
         </div>
 
-         <div class="game-card coming-soon" data-category="puzzle">
-                <div class="game-thumbnail">?</div>
-                <div class="game-info">
-                    <div class="game-title">Coming soon</div>
-                    <span class="game-category">n/a</span>
+        <!-- Game 4: Puzzle ball -->
+        <div class="game-card" data-category="puzzle"
+             onclick="playGame('neon ball')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/neon-ball/neon-ball_thumb.jpg" alt="Neon Ball"></div>
+            <div class="game-info">
+                <div class="game-title">Neon Ball</div>
+                <span class="game-category">puzzle</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
                 </div>
             </div>
         </div>
 
-    </section>
+        <!-- Game 5: Camper -->
+        <div class="game-card" data-category="puzzle"
+             onclick="playGame('camper')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/camper/camper_thumb.jpg" alt="Camper"></div>
+            <div class="game-info">
+                <div class="game-title">Camper</div>
+                <span class="game-category">puzzle</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2026 GameLet. All games are free to play!</p>
-        <p>Built with ❤️ for gamers</p>
-    </footer>
+        <!-- Game 6: fly defeater -->
+        <div class="game-card" data-category="action"
+             onclick="playGame('pest patrol')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/pest-patrol/pest-patrol_thumb.jpg" alt="Pest Patrol"></div>
+            <div class="game-info">
+                <div class="game-title">Pest Patrol</div>
+                <span class="game-category">action</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
 
-    <script>
-        // Game data structure
-        const games = [
-            { name: 'Spirit Mahjong', category: 'puzzle', plays: '1.2K', rating: '4.8', url: 'games/spirit mahjong/index.html' },
-            // Add more games here as you create them
-        ];
+        <!-- Game 7: seed shorter -->
+        <div class="game-card" data-category="action"
+             onclick="playGame('emoji ops')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/emoji-ops/emoji-ops_thumb.jpg" alt="Emoji Ops"></div>
+            <div class="game-info">
+                <div class="game-title">Emoji Ops</div>
+                <span class="game-category">action</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
 
-        // Filter games by category
-        function filterGames(category) {
-            const cards = document.querySelectorAll('.game-card');
-            const buttons = document.querySelectorAll('.category-btn');
-            
-            // Update active button
-            buttons.forEach(btn => btn.classList.remove('active'));
+        <div class="game-card" data-category="puzzle"
+             onclick="playGame('tide maze')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/tide-maze/tide-maze_thumb.jpg" alt="Tide Maze"></div>
+            <div class="game-info">
+                <div class="game-title">Tide Maze</div>
+                <span class="game-category">puzzle</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-card" data-category="strategy"
+             onclick="playGame('spike dodge')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/spike-dodge/spike-dodge_thumb.jpg" alt="Spike Dodge"></div>
+            <div class="game-info">
+                <div class="game-title">Spike Dodge</div>
+                <span class="game-category">strategy</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-card" data-category="casual"
+             onclick="playGame('spot the odd')">
+            <div class="game-thumbnail"><img src="https://gamesnacks.com/assets/images/games/spot-the-odd/spot-the-odd_thumb.jpg" alt="Spot The Odd"></div>
+            <div class="game-info">
+                <div class="game-title">Spot The Odd</div>
+                <span class="game-category">casual</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-card coming-soon" data-category="puzzle">
+            <div class="game-thumbnail"><div style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; font-size: 3rem; background: #eee; color: #999;">?</div></div>
+            <div class="game-info">
+                <div class="game-title">Coming soon</div>
+                <span class="game-category">n/a</span>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2026 GameLet. All games are free to play!</p>
+    <p>Built with ❤️ for gamers</p>
+</footer>
+
+<script>
+    // Game data structure
+    const games = [
+        { name: 'Spirit Mahjong', category: 'puzzle', plays: '1.2K', rating: '4.8', url: 'games/spirit mahjong/index.html' },
+        // Add more games here as you create them
+    ];
+
+    // Filter games by category
+    function filterGames(category) {
+        const cards = document.querySelectorAll('.game-card');
+        const buttons = document.querySelectorAll('.category-btn');
+
+        // Update active button
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        // Find the button that was clicked and add active class
+        if (event && event.target) {
             event.target.classList.add('active');
-            
-            // Filter cards
-            cards.forEach(card => {
-                if (category === 'all' || card.dataset.category === category) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
         }
 
-        // Search games
-        function searchGames() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.game-card');
-            
-            cards.forEach(card => {
-                const title = card.querySelector('.game-title').textContent.toLowerCase();
-                if (title.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-
-        // Play game
-        function playGame(gameName) {
-            const gameUrls = {
-                'spirit mahjong': 'games/spirit mahjong/index.html',
-                'snake garden': 'games/snake garden/index.html',
-                '2048': 'games/2048/index.html',
-                'neon ball': 'games/neon ball/index.html',
-                'camper': 'games/camper/index.html',
-                'pest patrol': 'games/pest patrol/index.html',
-                'emoji ops': 'games/emoji ops/index.html',
-                'tide maze': 'games/tide maze/index.html',
-                'spike dodge': 'games/spike dodge/index.html',
-                'spot the odd': 'games/spot the odd/index.html'
-            };
-            
-            if (gameUrls[gameName]) {
-                window.location.href = gameUrls[gameName];
+        // Filter cards
+        cards.forEach(card => {
+            if (category === 'all' || card.dataset.category === category) {
+                card.style.display = 'block';
             } else {
-                alert('Coming soon! 🎮');
+                card.style.display = 'none';
             }
+        });
+    }
+
+    // Search games
+    function searchGames() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.game-card');
+
+        cards.forEach(card => {
+            const title = card.querySelector('.game-title').textContent.toLowerCase();
+            if (title.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Play game
+    function playGame(gameName) {
+        const gameUrls = {
+            'spirit mahjong': 'games/spirit mahjong/index.html',
+            'snake garden': 'games/snake garden/index.html',
+            '2048': 'games/2048/index.html',
+            'neon ball': 'games/neon ball/index.html',
+            'camper': 'games/camper/index.html',
+            'pest patrol': 'games/pest patrol/index.html',
+            'emoji ops': 'games/emoji ops/index.html',
+            'tide maze': 'games/tide maze/index.html',
+            'spike dodge': 'games/spike dodge/index.html',
+            'spot the odd': 'games/spot the odd/index.html'
+        };
+
+        if (gameUrls[gameName]) {
+            window.location.href = gameUrls[gameName];
+        } else {
+            alert('Coming soon! 🎮');
         }
+    }
 
-        // Add animation on scroll
-        window.addEventListener('scroll', () => {
-            const cards = document.querySelectorAll('.game-card');
-            cards.forEach(card => {
-                const cardTop = card.getBoundingClientRect().top;
-                if (cardTop < window.innerHeight - 100) {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }
-            });
+    // Add animation on scroll
+    window.addEventListener('scroll', () => {
+        const cards = document.querySelectorAll('.game-card');
+        cards.forEach(card => {
+            const cardTop = card.getBoundingClientRect().top;
+            if (cardTop < window.innerHeight - 100) {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }
         });
+    });
 
-        // Initialize cards with animation
-        document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.game-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'all 0.5s ease';
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
+    // Initialize cards with animation
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.game-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
         });
-    </script>
+    });
+</script>
 </body>
 </html>
