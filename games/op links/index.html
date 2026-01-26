@@ -89,6 +89,38 @@
             animation: shake 0.5s;
         }
 
+        .category-row {
+            grid-column: span 4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            animation: fadeInDown 0.5s ease-out;
+        }
+        .category-name {
+            font-weight: 700;
+            font-size: 1.1em;
+            text-transform: uppercase;
+        }
+        .category-words {
+            font-weight: 400;
+            font-size: 0.9em;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Responsiveness */
         @media (min-width: 768px) {
             #game-container {
@@ -172,8 +204,9 @@
         }
 
         #feedback { text-align: center; height: 28px; font-weight: 700; font-size: 1.1em; color: var(--text-dark); }
-        #victory-message { text-align: center; display: none; background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        #victory-category { color: var(--accent); margin-bottom: 0.5rem; }
+        #victory-message { text-align: center; display: none; background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); position: fixed; top: 15%; left: 50%; transform: translateX(-50%); z-index: 100; width: 90%; max-width: 400px; border: 2px solid var(--accent); }
+    #victory-message p { margin: 0; }
+    #victory-category { color: var(--accent); margin-bottom: 0.5rem; font-size: 1.5rem; }
     </style>
 </head>
 <body>
@@ -181,7 +214,7 @@
 <div id="game-container">
     <header>
         <h1>Find the Connection</h1>
-        <p>Find the one group of four related items!</p>
+        <p>Create four groups of four!</p>
     </header>
 
     <div id="feedback"></div>
@@ -197,10 +230,12 @@
         <div class="mistake-dot"></div>
         <div class="mistake-dot"></div>
         <div class="mistake-dot"></div>
+        <div class="mistake-dot"></div>
     </div>
 
     <div id="controls">
         <button class="btn" id="shuffle-btn">Shuffle</button>
+        <button class="btn" id="deselect-all-btn">Deselect All</button>
         <button class="btn" id="submit-btn" disabled>Submit</button>
     </div>
 </div>
@@ -208,68 +243,130 @@
 <script>
     const puzzles = [
         {
-            category: "Characters Who Lost a Limb",
-            solution: ["SHANKS", "KID", "AOKIJI", "SHIKI"],
-            decoys: ["LUFFY", "ZORO", "CROCODILE", "SABO", "BUGGY", "INUARASHI", "NEKOMAMUSHI", "PERO", "DOFLAMINGO", "MIHAWK", "BIG MUM", "ACE"]
+            categories: [
+                {
+                    name: "Straw Hat Members",
+                    words: ["LUFFY", "ZORO", "NAMI", "SANJI"],
+                    difficulty: "yellow"
+                },
+                {
+                    name: "Devil Fruit Types",
+                    words: ["PARAMECIA", "ZOAN", "LOGIA", "SMILE"],
+                    difficulty: "green"
+                },
+                {
+                    name: "Marine Ranks",
+                    words: ["ADMIRAL", "CAPTAIN", "VICE ADMIRAL", "ENSIGN"],
+                    difficulty: "blue"
+                },
+                {
+                    name: "One Piece Settings",
+                    words: ["WANO", "ALABASTA", "SKYPIEA", "DRESSROSA"],
+                    difficulty: "purple"
+                }
+            ]
         },
         {
-            category: "Mythical Zoan Fruit Users",
-            solution: ["LUFFY", "KAIDO", "MARCO", "YAMATO"],
-            decoys: ["CHOPPER", "ROB LUCCI", "X DRAKE", "SASAKI", "BLACK MARIA", "PAGE ONE", "ULTI", "WHO'S-WHO", "ROGER", "PELL", "KING", "QUEEN"]
-        },
-        {
-            category: "Vinsmoke Siblings",
-            solution: ["REIJU", "ICHIJI", "NIJI", "YONJI"],
-            decoys: ["CHOPPER", "JUDGE", "X DRAKE", "VEGA PUNK", "BLACK MARIA", "PAGE ONE", "ULTI", "WHO'S-WHO", "KOBY", "PELL", "TEACH", "QUEEN"]
-        },
-        {
-            category: "Revolutionary Army Officers",
-            solution: ["SABO", "IVANKOV", "DRAGON", "KARASU"],
-            decoys: ["KOALA", "ZEFF", "FISHER TIGER", "VEGA PUNK", "BLACK MARIA", "LAW", "ULTI", "MOMONOSUKE", "KOBY", "APOO", "TEACH", "QUEEN"]
-        },
-
+            categories: [
+                {
+                    name: "Characters with 'D' in Name",
+                    words: ["LUFFY", "ACE", "LAW", "GARP"],
+                    difficulty: "yellow"
+                },
+                {
+                    name: "The Three Great Powers",
+                    words: ["YONKO", "MARINES", "SHICHIBUKAI", "REVOLUTIONARIES"],
+                    difficulty: "green"
+                },
+                {
+                    name: "Swordsmen",
+                    words: ["MIHAWK", "SHANKS", "RAYLEIGH", "BROOK"],
+                    difficulty: "blue"
+                },
+                {
+                    name: "Yonko Commanders",
+                    words: ["KATAKURI", "MARCO", "KING", "BENN BECKMAN"],
+                    difficulty: "purple"
+                }
+            ]
+        }
     ];
 
     const gridEl = document.getElementById('grid');
     const mistakesEl = document.getElementById('mistakes');
     const shuffleBtn = document.getElementById('shuffle-btn');
+    const deselectBtn = document.getElementById('deselect-all-btn');
     const submitBtn = document.getElementById('submit-btn');
     const feedbackEl = document.getElementById('feedback');
     const victoryMessageEl = document.getElementById('victory-message');
     const victoryCategoryEl = document.getElementById('victory-category');
 
+    const DIFFICULTY_COLORS = {
+        yellow: "#f9df6d",
+        green: "#a0c35a",
+        blue: "#b0c4ef",
+        purple: "#ba81c5"
+    };
+
     let currentPuzzle;
-    let gridWords;
+    let gridWords = [];
     let selectedItems = [];
     let mistakes = 0;
     let gameOver = false;
+    let foundCategories = [];
 
     function initGame() {
-        // Setup a new game
         gameOver = false;
         mistakes = 0;
         selectedItems = [];
+        foundCategories = [];
         victoryMessageEl.style.display = 'none';
+        mistakesEl.style.display = 'flex';
+        feedbackEl.textContent = '';
 
         // Select a random puzzle
         currentPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
-        gridWords = shuffle([...currentPuzzle.solution, ...currentPuzzle.decoys]);
+        
+        // Flatten all words from all 4 categories
+        gridWords = currentPuzzle.categories.flatMap(cat => cat.words);
+        gridWords = shuffle([...gridWords]);
 
         renderGrid();
         updateMistakesUI();
         submitBtn.disabled = true;
         shuffleBtn.disabled = false;
+        deselectBtn.disabled = true;
     }
 
     function renderGrid() {
         gridEl.innerHTML = '';
+
+        // First, render the solved categories at the top
+        foundCategories.forEach(cat => {
+            const catRow = document.createElement('div');
+            catRow.className = 'category-row';
+            catRow.style.backgroundColor = DIFFICULTY_COLORS[cat.difficulty];
+            
+            const nameEl = document.createElement('div');
+            nameEl.className = 'category-name';
+            nameEl.textContent = cat.name;
+            
+            const wordsEl = document.createElement('div');
+            wordsEl.className = 'category-words';
+            wordsEl.textContent = cat.words.join(', ');
+            
+            catRow.appendChild(nameEl);
+            catRow.appendChild(wordsEl);
+            gridEl.appendChild(catRow);
+        });
+
+        // Then render the remaining grid items
         gridWords.forEach(word => {
             const itemEl = document.createElement('div');
             itemEl.classList.add('grid-item');
             itemEl.textContent = word;
             itemEl.dataset.word = word;
 
-            // Re-apply selection style if it's still selected
             if (selectedItems.includes(word)) {
                 itemEl.classList.add('selected');
             }
@@ -293,86 +390,101 @@
             }
         }
         submitBtn.disabled = selectedItems.length !== 4;
+        deselectBtn.disabled = selectedItems.length === 0;
+    }
+
+    function handleDeselectAll() {
+        selectedItems = [];
+        document.querySelectorAll('.grid-item.selected').forEach(el => el.classList.remove('selected'));
+        submitBtn.disabled = true;
+        deselectBtn.disabled = true;
     }
 
     function handleSubmit() {
         const guess = selectedItems.slice().sort();
-        const solution = currentPuzzle.solution.slice().sort();
+        let matchedCategory = null;
 
-        if (JSON.stringify(guess) === JSON.stringify(solution)) {
-            handleCorrectGuess();
+        for (const cat of currentPuzzle.categories) {
+            const catWords = cat.words.slice().sort();
+            if (JSON.stringify(guess) === JSON.stringify(catWords)) {
+                matchedCategory = cat;
+                break;
+            }
+        }
+
+        if (matchedCategory) {
+            handleCorrectGuess(matchedCategory);
         } else {
             handleIncorrectGuess();
         }
     }
 
-    function handleCorrectGuess() {
-        gameOver = true;
-        showFeedback("You found it!");
-        victoryCategoryEl.textContent = currentPuzzle.category;
-        victoryMessageEl.style.display = 'block';
-
-        // Highlight correct words
-        document.querySelectorAll('.grid-item').forEach(el => {
-            if (selectedItems.includes(el.dataset.word)) {
-                el.classList.add('correct');
-            }
-        });
-
+    function handleCorrectGuess(category) {
+        showFeedback("Correct!");
+        foundCategories.push(category);
+        
+        // Remove found words from gridWords
+        gridWords = gridWords.filter(word => !category.words.includes(word));
+        selectedItems = [];
+        
+        renderGrid();
         submitBtn.disabled = true;
-        shuffleBtn.disabled = true;
-        mistakesEl.style.display = 'none';
+        deselectBtn.disabled = true;
 
-        // Add a "Play Again" button if it doesn't exist
-        if (!document.getElementById('play-again-btn')) {
-            const playAgainBtn = document.createElement('button');
-            playAgainBtn.id = 'play-again-btn';
-            playAgainBtn.textContent = 'Play Again';
-            playAgainBtn.classList.add('btn');
-            playAgainBtn.onclick = () => location.reload(); // Simple reload for new game
-            document.getElementById('controls').appendChild(playAgainBtn);
+        if (foundCategories.length === 4) {
+            gameOver = true;
+            showVictory();
         }
     }
 
     function handleIncorrectGuess() {
         mistakes++;
         updateMistakesUI();
-        showFeedback("Not a connection.");
-
+        
         // Shake the incorrect tiles
         const selectedElements = document.querySelectorAll('.grid-item.selected');
         selectedElements.forEach(el => {
             el.classList.add('shake');
             setTimeout(() => {
                 el.classList.remove('shake');
-                el.classList.remove('selected');
             }, 500);
         });
 
-        selectedItems = [];
-        submitBtn.disabled = true;
+        // NYT Connections doesn't immediately clear selection on incorrect guess if not game over
+        // But it vibrates and waits. Usually user deselects. 
+        // Let's check for "one away" logic which is common in Connections
+        checkOneAway();
 
         if (mistakes >= 4) {
             gameOver = true;
-            showFeedback("Busted! The answer was...");
-            revealAnswer();
+            showFeedback("Better luck next time!");
+            revealRemainingAnswers();
         }
     }
 
-    function revealAnswer() {
-        selectedItems = []; // Clear selection
-        document.querySelectorAll('.grid-item').forEach(el => {
-            if (currentPuzzle.solution.includes(el.dataset.word)) {
-                el.classList.add('correct');
-            }
-        });
+    function checkOneAway() {
+        const guess = selectedItems.slice().sort();
+        let maxMatches = 0;
+        for (const cat of currentPuzzle.categories) {
+            if (foundCategories.includes(cat)) continue;
+            const matches = guess.filter(word => cat.words.includes(word)).length;
+            if (matches > maxMatches) maxMatches = matches;
+        }
+        
+        if (maxMatches === 3) {
+            showFeedback("One away...");
+        } else {
+            showFeedback("Not a connection.");
+        }
+    }
 
-        victoryCategoryEl.textContent = currentPuzzle.category;
+    function showVictory() {
+        victoryCategoryEl.textContent = "Great Job!";
+        victoryMessageEl.querySelector('p').textContent = "You found all connections!";
         victoryMessageEl.style.display = 'block';
-        submitBtn.disabled = true;
         shuffleBtn.disabled = true;
+        mistakesEl.style.display = 'none';
 
-        // Add a "Play Again" button if it doesn't exist
         if (!document.getElementById('play-again-btn')) {
             const playAgainBtn = document.createElement('button');
             playAgainBtn.id = 'play-again-btn';
@@ -383,16 +495,57 @@
         }
     }
 
+    function revealRemainingAnswers() {
+        const remainingCats = currentPuzzle.categories.filter(cat => !foundCategories.includes(cat));
+        
+        // Show a message to the user
+        victoryCategoryEl.textContent = "Game Over";
+        victoryMessageEl.querySelector('p').textContent = "Revealing the remaining answers...";
+        victoryMessageEl.style.display = 'block';
+
+        // Use a timeout to reveal each category one by one
+        let delay = 1000;
+        remainingCats.forEach((cat, index) => {
+            setTimeout(() => {
+                foundCategories.push(cat);
+                gridWords = gridWords.filter(word => !cat.words.includes(word));
+                renderGrid();
+                
+                if (index === remainingCats.length - 1) {
+                    victoryCategoryEl.textContent = "Better luck next time!";
+                    victoryMessageEl.querySelector('p').textContent = "Click Play Again to try a new puzzle.";
+                    
+                    if (!document.getElementById('play-again-btn')) {
+                        const playAgainBtn = document.createElement('button');
+                        playAgainBtn.id = 'play-again-btn';
+                        playAgainBtn.textContent = 'Play Again';
+                        playAgainBtn.classList.add('btn');
+                        playAgainBtn.onclick = () => location.reload();
+                        document.getElementById('controls').appendChild(playAgainBtn);
+                    }
+                }
+            }, delay * (index + 1));
+        });
+
+        submitBtn.disabled = true;
+        shuffleBtn.disabled = true;
+        deselectBtn.disabled = true;
+    }
+
     function updateMistakesUI() {
         const dots = mistakesEl.querySelectorAll('.mistake-dot');
         for (let i = 0; i < dots.length; i++) {
+            // Fill dots from left to right as mistakes increase
             dots[i].style.backgroundColor = i < mistakes ? 'var(--destructive)' : '#d1d5db';
         }
     }
 
     function showFeedback(message) {
         feedbackEl.textContent = message;
-        setTimeout(() => { if (!gameOver) feedbackEl.textContent = ''; }, 1500);
+        // Keep "One away" or "Not a connection" for a while
+        setTimeout(() => { 
+            if (feedbackEl.textContent === message && !gameOver) feedbackEl.textContent = ''; 
+        }, 2000);
     }
 
     function shuffle(array) {
@@ -408,9 +561,10 @@
         renderGrid();
     });
 
+    deselectBtn.addEventListener('click', handleDeselectAll);
+
     submitBtn.addEventListener('click', handleSubmit);
 
-    // Let's set sail!
     initGame();
 </script>
 
