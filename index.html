@@ -664,7 +664,7 @@
             const title = card.querySelector('.game-title').textContent.toLowerCase();
             if (title.includes(searchTerm)) {
                 card.style.display = 'block';
-            } else {
+            } else {    
                 card.style.display = 'none';
             }
         });
@@ -672,6 +672,14 @@
 
     // Play game
     function playGame(gameName) {
+          
+        //1. Send the data to Google Analytics. will provide 
+        // only analytics for users pressing a game button not activities
+       gtag('event', 'select_content', {
+        'content_type': 'game',
+        'item_id': gameName
+     });
+
         const gameUrls = {
             'op links': 'games/op links/index.html',
             'spirit mahjong': 'games/spirit mahjong/index.html',
