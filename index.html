@@ -454,7 +454,22 @@
             </div>
         </div>
 
-        <!-- Game 1: Mahjong -->
+        <!-- Game 1: grandline word search -->
+        <div class="game-card" data-category="puzzle"
+             onclick="playGame('grandline word search')">
+            <div class="game-thumbnail"><img src="./images/2048.png" alt="grandline word search"></div>
+            <div class="game-info">
+                <div class="game-title">Grandline WordSearch</div>
+                <span class="game-category">Anime</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Game 2: Mahjong -->
         <div class="game-card" data-category="puzzle" onclick="playGame('spirit mahjong')">
             <div class="game-thumbnail"><img src="./images/spmahjong.png" alt="Spirit Mahjong"></div>
             <div class="game-info">
@@ -682,6 +697,7 @@
 
         const gameUrls = {
             'op links': 'games/op links/index.html',
+            'grandline word search': 'games/grandline word search/index.html',
             'spirit mahjong': 'games/spirit mahjong/index.html',
             'snake garden': 'games/snake garden/index.html',
             '2048': 'games/2048/index.html',
