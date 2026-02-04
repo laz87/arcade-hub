@@ -181,6 +181,34 @@
         #mistakes { display: flex; gap: 10px; justify-content: center; align-items: center; font-weight: 600; }
         .mistake-dot { width: 16px; height: 16px; border-radius: 50%; background-color: #d1d5db; }
 
+        #level-select {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .level-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            background-color: white;
+            color: var(--accent);
+            font-family: var(--font-family);
+            font-weight: 700;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .level-btn.active {
+            background-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 8px rgba(234, 179, 8, 0.4);
+        }
+        .level-btn:hover:not(.active) {
+            background-color: var(--card-bg);
+        }
+
         #controls { display: flex; justify-content: center; gap: 1rem; margin-top: 10px; flex-wrap: wrap; }
         .btn {
             padding: 10px 20px;
@@ -229,6 +257,7 @@
     </header>
 
     <div id="feedback"></div>
+    <div id="level-select"></div>
     <div id="victory-message">
         <h2 id="victory-category"></h2>
         <p>You found the needle in the haystack!</p>
@@ -253,8 +282,8 @@
 
 <script>
     const puzzles = [
-        //change puzzle daily
         {
+            name: "Wano Arc",
             categories: [
                 {
                     name: "Akazaya Kozuki Retainers",
@@ -277,6 +306,106 @@
                     difficulty: "purple"
                 }
             ]
+        },
+        {
+            name: "Devil Fruits",
+            categories: [
+                {
+                    name: "Paramecia Users",
+                    words: ["BUGGY", "ROBIN", "LAW", "BROOK"],
+                    difficulty: "yellow"
+                },
+                {
+                    name: "Logia Users",
+                    words: ["ACE", "SMOKER", "CROCODILE", "ENEL"],
+                    difficulty: "green"
+                },
+                {
+                    name: "Zoan Users",
+                    words: ["CHOPPER", "MARCO", "KAIDO", "LUCCI"],
+                    difficulty: "blue"
+                },
+                {
+                    name: "Fruit Types",
+                    words: ["PARAMECIA", "LOGIA", "ZOAN", "SMILE"],
+                    difficulty: "purple"
+                }
+            ]
+        },
+        {
+            name: "Onepiece Marines",
+            categories: [
+                {
+                    name: "Admirals",
+                    words: ["AKAINU", "AOKIJI", "KIZARU", "FUJITORA"],
+                    difficulty: "yellow"
+                },
+                {
+                    name: "Vice Admirals",
+                    words: ["GARP", "TSURU", "SMOKER", "MOMONGA"],
+                    difficulty: "green"
+                },
+                {
+                    name: "Corrupt Navy Officers",
+                    words: ["AXE-HAND MORGAN", "SPANDAM", "VERGO", "NEZUMI"],
+                    difficulty: "blue"
+                },
+                {
+                    name: "Sword Members",
+                    words: ["KOBY", "HELMEPPO", "X-DRAKE", "HIBARI"],
+                    difficulty: "purple"
+                }
+            ]
+        },
+        {
+            name: "Straw Hat Crew",
+            categories: [
+                {
+                    name: "Non-DevilFruit Users",
+                    words: ["ZORO", "NAMI", "USOPP", "SANJI"],
+                    difficulty: "yellow"
+                },
+                {
+                    name: "Devil Fruit Users",
+                    words: ["CHOPPER", "ROBIN", "LUFFY", "BROOK"],
+                    difficulty: "green"
+                },
+                {
+                    name: "GrandFleet Leaders",
+                    words: ["BARTOLOMEO", "HAJRUDIN", "LEO", "CAVENDISH"],
+                    difficulty: "blue"
+                },
+                {
+                    name: "Ship Names",
+                    words: ["GOING MERRY", "THOUSAND SUNNY", "MINI MERRY", "SHARK SUBMERGE"],
+                    difficulty: "purple"
+                }
+            ]
+        },
+        {
+            name: "The Yonko",
+            categories: [
+                {
+                    name: "Original Yonko",
+                    words: ["WHITEBEARD", "SHANKS", "KAIDO", "BIG MOM"],
+                    difficulty: "yellow"
+                },
+                {
+                    name: "New Generation Yonko",
+                    words: ["BLACKBEARD", "LUFFY", "BUGGY", "SHANKS"],
+                    difficulty: "green"
+                },
+                {
+                    name: "Yonko Commanders",
+                    words: ["ZORO", "JESUS BURGESS", "CROCODILE", "BECKMAN"],
+                    difficulty: "blue"
+                },
+                {
+                    name: "Yonko Territory",
+                    words: ["HACHINOSU", "ELBAF", "FISH-MAN ISLAND", "EMPTEE BLUFFS"],
+                    difficulty: "purple"
+                }
+            ]
         }
     ];
 
@@ -288,6 +417,7 @@
     const feedbackEl = document.getElementById('feedback');
     const victoryMessageEl = document.getElementById('victory-message');
     const victoryCategoryEl = document.getElementById('victory-category');
+    const levelSelectEl = document.getElementById('level-select');
 
     const DIFFICULTY_COLORS = {
         yellow: "#f9df6d",
@@ -297,13 +427,14 @@
     };
 
     let currentPuzzle;
+    let currentPuzzleIndex = 0;
     let gridWords = [];
     let selectedItems = [];
     let mistakes = 0;
     let gameOver = false;
     let foundCategories = [];
 
-    function initGame() {
+    function initGame(puzzleIndex = -1) {
         gameOver = false;
         mistakes = 0;
         selectedItems = [];
@@ -312,8 +443,22 @@
         mistakesEl.style.display = 'flex';
         feedbackEl.textContent = '';
 
-        // Select a random puzzle
-        currentPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+        // Remove any play-again or next-puzzle buttons from previous games
+        const existingNextBtn = document.getElementById('next-puzzle-btn');
+        if (existingNextBtn) existingNextBtn.remove();
+        const existingPlayAgainBtn = document.getElementById('play-again-btn');
+        if (existingPlayAgainBtn) existingPlayAgainBtn.remove();
+
+        // Select puzzle
+        if (puzzleIndex === -1) {
+            currentPuzzleIndex = Math.floor(Math.random() * puzzles.length);
+        } else {
+            currentPuzzleIndex = puzzleIndex;
+        }
+        currentPuzzle = puzzles[currentPuzzleIndex];
+        
+        // Update level selector UI
+        updateLevelSelectUI();
         
         // Flatten all words from all 4 categories
         gridWords = currentPuzzle.categories.flatMap(cat => cat.words);
@@ -324,6 +469,32 @@
         submitBtn.disabled = true;
         shuffleBtn.disabled = false;
         deselectBtn.disabled = true;
+    }
+
+    function initLevelSelect() {
+        levelSelectEl.innerHTML = '';
+        puzzles.forEach((puzzle, index) => {
+            const btn = document.createElement('button');
+            btn.className = `level-btn ${index === currentPuzzleIndex ? 'active' : ''}`;
+            btn.textContent = puzzle.name;
+            btn.onclick = () => {
+                if (index !== currentPuzzleIndex) {
+                    initGame(index);
+                }
+            };
+            levelSelectEl.appendChild(btn);
+        });
+    }
+
+    function updateLevelSelectUI() {
+        const buttons = levelSelectEl.querySelectorAll('.level-btn');
+        buttons.forEach((btn, index) => {
+            if (index === currentPuzzleIndex) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 
     function renderGrid() {
@@ -473,13 +644,24 @@
         shuffleBtn.disabled = true;
         mistakesEl.style.display = 'none';
 
+        if (!document.getElementById('next-puzzle-btn') && currentPuzzleIndex < puzzles.length - 1) {
+            const nextBtn = document.createElement('button');
+            nextBtn.id = 'next-puzzle-btn';
+            nextBtn.textContent = 'Next Puzzle';
+            nextBtn.classList.add('btn');
+            nextBtn.style.marginTop = '10px';
+            nextBtn.onclick = () => initGame(currentPuzzleIndex + 1);
+            victoryMessageEl.appendChild(nextBtn);
+        }
+
         if (!document.getElementById('play-again-btn')) {
             const playAgainBtn = document.createElement('button');
             playAgainBtn.id = 'play-again-btn';
             playAgainBtn.textContent = 'Play Again';
             playAgainBtn.classList.add('btn');
-            playAgainBtn.onclick = () => location.reload();
-            document.getElementById('controls').appendChild(playAgainBtn);
+            playAgainBtn.style.marginTop = '10px';
+            playAgainBtn.onclick = () => initGame(currentPuzzleIndex);
+            victoryMessageEl.appendChild(playAgainBtn);
         }
     }
 
@@ -501,15 +683,26 @@
                 
                 if (index === remainingCats.length - 1) {
                     victoryCategoryEl.textContent = "Better luck next time!";
-                    victoryMessageEl.querySelector('p').textContent = "Click Play Again to try a new puzzle.";
+                    victoryMessageEl.querySelector('p').textContent = "Click to try again or move to next.";
                     
+                    if (!document.getElementById('next-puzzle-btn') && currentPuzzleIndex < puzzles.length - 1) {
+                        const nextBtn = document.createElement('button');
+                        nextBtn.id = 'next-puzzle-btn';
+                        nextBtn.textContent = 'Next Puzzle';
+                        nextBtn.classList.add('btn');
+                        nextBtn.style.marginTop = '10px';
+                        nextBtn.onclick = () => initGame(currentPuzzleIndex + 1);
+                        victoryMessageEl.appendChild(nextBtn);
+                    }
+
                     if (!document.getElementById('play-again-btn')) {
                         const playAgainBtn = document.createElement('button');
                         playAgainBtn.id = 'play-again-btn';
-                        playAgainBtn.textContent = 'Play Again';
+                        playAgainBtn.textContent = 'Try Again';
                         playAgainBtn.classList.add('btn');
-                        playAgainBtn.onclick = () => location.reload();
-                        document.getElementById('controls').appendChild(playAgainBtn);
+                        playAgainBtn.style.marginTop = '10px';
+                        playAgainBtn.onclick = () => initGame(currentPuzzleIndex);
+                        victoryMessageEl.appendChild(playAgainBtn);
                     }
                 }
             }, delay * (index + 1));
@@ -553,6 +746,7 @@
 
     submitBtn.addEventListener('click', handleSubmit);
 
+    initLevelSelect();
     initGame();
 </script>
 
