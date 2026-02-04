@@ -58,25 +58,28 @@
 
     .layout-selector {
         display: flex;
-        gap: 10px;
-        overflow-x: auto;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
         padding: 10px 0;
         margin-bottom: 10px;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
     }
-    .layout-selector::-webkit-scrollbar { display: none; }
 
     .level-btn {
-        flex: 0 0 auto;
+        flex: 1 1 calc(25% - 8px);
+        min-width: 80px;
         background: rgba(255,255,255,0.05);
         border: 1px solid var(--neon);
         color: white;
-        padding: 8px 16px;
+        padding: 10px 8px;
         border-radius: 4px;
         cursor: pointer;
         transition: all 0.3s;
-        font-size: 0.9em;
+        font-size: 0.85em;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .level-btn.active {
