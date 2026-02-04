@@ -454,6 +454,19 @@
     <h2 class="section-title">Featured Games</h2>
     <div class="games-grid" id="gamesGrid">
 
+        <!-- Game new: Anime Mahjong -->
+        <div class="game-card" data-category="new" onclick="playGame('anime mahjong')">
+            <div class="game-thumbnail"><img src="./images/ani mahjong.webp" alt="anime mahjong"></div>
+            <div class="game-info">
+                <div class="game-title">Anime Mahjong</div>
+                <span class="game-category">New</span>
+                <div class="game-stats">
+                    <span class="play-count">1.2K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Game 0: Op Conections -->
         <div class="game-card" data-category="anime" onclick="playGame('op links')">
             <div class="game-thumbnail"><img src="./images/oplink.webp" alt="Op Links"></div>
@@ -709,6 +722,7 @@
      });
 
         const gameUrls = {
+            'anime mahjong': 'games/anime mahjong/index.html',
             'op links': 'games/op links/index.html',
             'grandline word search': 'games/grandline word search/index.html',
             'spirit mahjong': 'games/spirit mahjong/index.html',
