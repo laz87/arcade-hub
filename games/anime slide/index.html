@@ -3,98 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AnimeSlide - Puzzle Game</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <title>Anime Slide - Master Puzzle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #F0F8FF;
-            --primary: #E6E6FA;
-            --accent: #EEE8AA;
-            --text: #444;
-            --shadow: rgba(0, 0, 0, 0.1);
-            --grid-size: 360px; /* Scaled down for mobile below */
+            --neon-yellow: #f8ef02;
+            --neon-gold: #ffcc00;
+            --neon-blue: #00d2ff;
+            --dark-bg: #0b0e14;
+            --card-bg: #1a1d24;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --grid-size: 360px;
         }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            background-color: var(--bg-color);
-            color: var(--text);
-            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 15% 25%, rgba(248, 239, 2, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(255, 204, 0, 0.08) 0%, transparent 40%);
+            color: white;
+            font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0;
-            padding: 20px;
             min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
         }
 
-        h1 { margin: 10px 0; color: #5a5a8a; }
-
-        /* Stats Section */
-        .stats-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            width: 100%;
-            max-width: var(--grid-size);
-            margin-bottom: 15px;
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px var(--shadow);
-            font-size: 0.9rem;
+        h1 {
+            font-family: 'Bungee', cursive;
+            font-size: 2.2rem;
+            margin: 10px 0 5px;
+            background: linear-gradient(to right, var(--neon-yellow), var(--neon-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(248, 239, 2, 0.4);
+            letter-spacing: 1px;
+            text-align: center;
         }
 
-        .stat-item span { font-weight: 600; color: #7a7ab9; }
+        .subtitle {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
 
-        /* Controls */
+        #game-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: 1px solid rgba(248, 239, 2, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 65px;
+        }
+
+        .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+        .stat-value { font-family: 'Bungee', cursive; font-size: 1.1rem; color: var(--neon-yellow); }
+        .stat-value.moves { color: var(--neon-blue); }
+        .stat-value.best { color: var(--neon-gold); }
+
         .controls {
             width: 100%;
             max-width: var(--grid-size);
             display: flex;
             flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .control-row {
+            display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            width: 100%;
         }
 
         select, button {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            background: #1a1d24;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            outline: none;
         }
 
-        select { background: white; }
-        button { background: var(--primary); border: none; font-weight: 600; }
-        button:hover { filter: brightness(0.95); }
-        .btn-reset { background: var(--accent); }
+        select { flex: 1; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 10px center; background-size: 1em; }
+        select:focus { border-color: var(--neon-yellow); box-shadow: 0 0 10px rgba(248, 239, 2, 0.2); }
 
-        /* Game Board */
+        button {
+            flex: 1;
+            background: #222;
+            border-color: #444;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        button:hover { background: #333; border-color: var(--neon-yellow); transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+
+        button.primary {
+            background: var(--neon-yellow);
+            color: black;
+            border: none;
+        }
+        button.primary:hover {
+            box-shadow: 0 0 15px rgba(248, 239, 2, 0.4);
+            filter: brightness(1.1);
+        }
+
         #game-board {
             position: relative;
             width: var(--grid-size);
             height: var(--grid-size);
-            background: #ddd;
-            border-radius: 8px;
-            box-shadow: 0 8px 16px var(--shadow);
+            background: #050505;
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.8), 0 0 20px rgba(248, 239, 2, 0.1);
             overflow: hidden;
+            border: 3px solid #1a1d24;
+            transition: border-color 0.3s ease;
+        }
+
+        #game-board.win {
+            border-color: var(--success);
+            box-shadow: 0 0 30px rgba(46, 213, 115, 0.3);
         }
 
         .tile {
             position: absolute;
-            width: calc(var(--grid-size) / 3);
-            height: calc(var(--grid-size) / 3);
-            border: 1px solid white;
             box-sizing: border-box;
             background-repeat: no-repeat;
             background-size: var(--grid-size) var(--grid-size);
-            transition: transform 0.2s ease-out;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+
+        .tile:hover:not(.empty) {
+            filter: brightness(1.2);
+            z-index: 5;
         }
 
         .tile.empty {
@@ -104,64 +175,119 @@
             z-index: 0;
         }
 
-        /* Hint Overlay */
         #hint-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background-size: cover;
             z-index: 10;
             display: none;
-            opacity: 0.8;
+            opacity: 0.9;
             pointer-events: none;
+            filter: grayscale(0.5);
         }
 
-        /* Victory Modal */
-        #victory-modal {
+        /* Modals */
+        .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.9);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
             text-align: center;
-            max-width: 300px;
+            max-width: 400px;
+            width: 90%;
+            border: 2px solid var(--neon-yellow);
+            box-shadow: 0 0 40px rgba(248, 239, 2, 0.2);
         }
 
-        .best-score-msg { color: #ff9d00; font-weight: bold; margin-top: 10px; }
+        .modal-content h2 {
+            font-family: 'Bungee', cursive;
+            color: var(--neon-yellow);
+            margin-bottom: 15px;
+            font-size: 2rem;
+        }
+
+        .modal-content p {
+            color: #ccc;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .best-score-msg {
+            color: var(--neon-gold);
+            font-weight: bold;
+            margin: 15px 0;
+            font-family: 'Bungee', cursive;
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
 
         @media (max-width: 400px) {
-            :root { --grid-size: 300px; }
+            :root { --grid-size: 320px; }
+            h1 { font-size: 1.8rem; }
+            #game-stats { padding: 10px 15px; gap: 10px; }
+            .stat-item { min-width: 55px; }
+            .stat-value { font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
 
-    <h1>AnimeSlide</h1>
+    <h1>Anime Slide</h1>
+    <div class="subtitle">Ultimate Puzzle Challenge</div>
 
-    <div class="stats-container">
-        <div class="stat-item">Moves: <span id="move-count">0</span></div>
-        <div class="stat-item">Time: <span id="timer">00:00</span></div>
-        <div class="stat-item">Best Moves: <span id="best-moves">--</span></div>
-        <div class="stat-item">Best Time: <span id="best-time">--:--</span></div>
+    <div id="game-stats">
+        <div class="stat-item">
+            <span class="stat-label">Moves</span>
+            <span id="move-count" class="stat-value moves">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Time</span>
+            <span id="timer" class="stat-value">00:00</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Best Moves</span>
+            <span id="best-moves" class="stat-value best">--</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Best Time</span>
+            <span id="best-time" class="stat-value best">--:--</span>
+        </div>
     </div>
 
     <div class="controls">
-        <select id="image-selector">
-            <option value="https://static.wikia.nocookie.net/onepiece/images/1/1c/Luffy_Draws_Straw_Hat_Jolly_Roger.png">Luffy and strawhat jolly roger</option>
-            <option value="https://static.wikia.nocookie.net/onepiece/images/3/39/Nefertari_Vivi_Portrait.png">Nefertari Vivi</option>
-            <option value="https://static.wikia.nocookie.net/onepiece/images/d/d8/Franky_Family_Portrait.png">Franky Family</option>
-            <option value="https://static.wikia.nocookie.net/onepiece/images/9/90/Nico_Robin_Post_Timeskip_Portrait.png">Nico Robin</option>
-        </select>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-reset" onclick="resetGame()" style="flex:1">Reset</button>
-            <button onclick="toggleHint()" style="flex:1">Toggle Hint</button>
+        <div class="control-row">
+            <select id="image-selector">
+                <option value="ace.webp">Ace</option>
+                <option value="bug.webp">Buggy</option>
+                <option value="kidd.webp">Kid</option>
+                <option value="law.webp">Law</option>
+                <option value="loki.webp">Prince Loki</option>
+                <option value="sabo.webp">Sabo Revolutionary Army</option>
+                <option value="shanks.webp">Red haired Shanks</option>
+            </select>
+            <select id="difficulty-selector" style="flex: 0.6;">
+                <option value="3">3 x 3</option>
+                <option value="4">4 x 4</option>
+                <option value="5">5 x 5</option>
+            </select>
+        </div>
+        <div class="control-row">
+            <button class="primary" onclick="resetGame()">New Game</button>
+            <button onclick="toggleHint()">Hint</button>
         </div>
     </div>
 
@@ -169,12 +295,12 @@
         <div id="hint-overlay"></div>
     </div>
 
-    <div id="victory-modal">
+    <div id="victory-modal" class="modal">
         <div class="modal-content">
             <h2>Victory!</h2>
             <p id="final-stats"></p>
             <div id="new-best" class="best-score-msg"></div>
-            <button onclick="closeModal()" style="width:100%; margin-top:15px">Play Again</button>
+            <button class="primary" onclick="closeModal()" style="width:100%">Play Again</button>
         </div>
     </div>
 
@@ -183,29 +309,32 @@
         const moveDisplay = document.getElementById('move-count');
         const timeDisplay = document.getElementById('timer');
         const imgSelector = document.getElementById('image-selector');
+        const diffSelector = document.getElementById('difficulty-selector');
         const hintOverlay = document.getElementById('hint-overlay');
         
-        let tiles = []; // Data structure for tile positions
+        let tiles = []; 
         let moves = 0;
         let seconds = 0;
         let timerActive = false;
         let timerInterval;
         let currentImg = imgSelector.value;
+        let gridSize = parseInt(diffSelector.value);
 
         // Initialize LocalStorage
         function updateBestDisplay() {
-            document.getElementById('best-moves').innerText = localStorage.getItem('animeSlide_bestMoves') || '--';
-            document.getElementById('best-time').innerText = formatTime(localStorage.getItem('animeSlide_bestTime')) || '--:--';
+            const diffKey = `animeSlide_bestMoves_${gridSize}`;
+            const timeKey = `animeSlide_bestTime_${gridSize}`;
+            document.getElementById('best-moves').innerText = localStorage.getItem(diffKey) || '--';
+            document.getElementById('best-time').innerText = formatTime(localStorage.getItem(timeKey)) || '--:--';
         }
 
         function formatTime(s) {
-            if (!s) return null;
+            if (!s || s === '--:--') return s;
             let m = Math.floor(s / 60);
             let rs = s % 60;
             return `${m.toString().padStart(2, '0')}:${rs.toString().padStart(2, '0')}`;
         }
 
-        // 1. Tile Management & Grid Creation
         function initGame() {
             clearInterval(timerInterval);
             moves = 0;
@@ -214,49 +343,63 @@
             moveDisplay.innerText = "0";
             timeDisplay.innerText = "00:00";
             currentImg = imgSelector.value;
-            hintOverlay.style.backgroundImage = `url(${currentImg})`;
+            gridSize = parseInt(diffSelector.value);
             
-            tiles = Array.from({length: 9}, (_, i) => i); // [0,1,2,3,4,5,6,7,8] 8 is empty
+            hintOverlay.style.backgroundImage = `url(${currentImg})`;
+            hintOverlay.style.display = 'none';
+            board.classList.remove('win');
+            
+            const totalTiles = gridSize * gridSize;
+            tiles = Array.from({length: totalTiles}, (_, i) => i); 
+            
             renderBoard();
             shuffleBoard();
             updateBestDisplay();
         }
 
         function renderBoard() {
-            board.innerHTML = '<div id="hint-overlay"></div>';
+            // Keep the hint overlay
+            board.innerHTML = '';
             board.appendChild(hintOverlay);
+            
+            const tileSize = 100 / gridSize;
             
             tiles.forEach((tileValue, index) => {
                 const tileDiv = document.createElement('div');
                 tileDiv.classList.add('tile');
+                tileDiv.style.width = `${tileSize}%`;
+                tileDiv.style.height = `${tileSize}%`;
                 
-                // Calculate correct position in grid
-                const row = Math.floor(index / 3);
-                const col = index % 3;
+                const row = Math.floor(index / gridSize);
+                const col = index % gridSize;
                 
                 tileDiv.style.transform = `translate(${col * 100}%, ${row * 100}%)`;
 
-                if (tileValue === 8) {
+                if (tileValue === (gridSize * gridSize - 1)) {
                     tileDiv.classList.add('empty');
                 } else {
                     tileDiv.style.backgroundImage = `url(${currentImg})`;
-                    // Calculate background slice
-                    const origRow = Math.floor(tileValue / 3);
-                    const origCol = tileValue % 3;
-                    tileDiv.style.backgroundPosition = `${origCol * 50}% ${origRow * 50}%`;
+                    
+                    const origRow = Math.floor(tileValue / gridSize);
+                    const origCol = tileValue % gridSize;
+                    
+                    // Background size is already 100% of grid, so we just shift position
+                    const perc = 100 / (gridSize - 1);
+                    tileDiv.style.backgroundPosition = `${origCol * perc}% ${origRow * perc}%`;
                     tileDiv.onclick = () => handleTileClick(index);
                 }
                 board.appendChild(tileDiv);
             });
         }
 
-        // 2. Solvable Shuffle
         function shuffleBoard() {
-            let emptyIdx = tiles.indexOf(8);
-            for (let i = 0; i < 200; i++) {
+            let emptyIdx = tiles.indexOf(gridSize * gridSize - 1);
+            // Increased shuffle complexity based on grid size
+            const shuffleSteps = gridSize * gridSize * 30;
+            
+            for (let i = 0; i < shuffleSteps; i++) {
                 const adj = getAdjacent(emptyIdx);
                 const moveIdx = adj[Math.floor(Math.random() * adj.length)];
-                // Swap
                 [tiles[emptyIdx], tiles[moveIdx]] = [tiles[moveIdx], tiles[emptyIdx]];
                 emptyIdx = moveIdx;
             }
@@ -265,27 +408,27 @@
 
         function getAdjacent(idx) {
             const adj = [];
-            const r = Math.floor(idx / 3);
-            const c = idx % 3;
-            if (r > 0) adj.push(idx - 3); // top
-            if (r < 2) adj.push(idx + 3); // bottom
-            if (c > 0) adj.push(idx - 1); // left
-            if (c < 2) adj.push(idx + 1); // right
+            const r = Math.floor(idx / gridSize);
+            const c = idx % gridSize;
+            if (r > 0) adj.push(idx - gridSize); 
+            if (r < gridSize - 1) adj.push(idx + gridSize);
+            if (c > 0) adj.push(idx - 1); 
+            if (c < gridSize - 1) adj.push(idx + 1);
             return adj;
         }
 
-        // 3. Move Logic
         function handleTileClick(idx) {
-            const emptyIdx = tiles.indexOf(8);
+            const emptyIdx = tiles.indexOf(gridSize * gridSize - 1);
             const adj = getAdjacent(emptyIdx);
 
             if (adj.includes(idx)) {
                 if (!timerActive) startTimer();
                 
-                // Swap data
                 [tiles[emptyIdx], tiles[idx]] = [tiles[idx], tiles[emptyIdx]];
                 moves++;
                 moveDisplay.innerText = moves;
+                
+                // Optimized re-render: only move the clicked tile
                 renderBoard();
                 checkWin();
             }
@@ -299,32 +442,36 @@
             }, 1000);
         }
 
-        // 4. Win Condition & LocalStorage
         function checkWin() {
             const isWin = tiles.every((val, i) => val === i);
             if (isWin) {
                 clearInterval(timerInterval);
-                handleBestScores();
+                board.classList.add('win');
+                setTimeout(handleBestScores, 500);
             }
         }
 
         function handleBestScores() {
-            const lastBestMoves = localStorage.getItem('animeSlide_bestMoves');
-            const lastBestTime = localStorage.getItem('animeSlide_bestTime');
+            const diffKey = `animeSlide_bestMoves_${gridSize}`;
+            const timeKey = `animeSlide_bestTime_${gridSize}`;
+            
+            const lastBestMoves = localStorage.getItem(diffKey);
+            const lastBestTime = localStorage.getItem(timeKey);
             let isNewBest = false;
 
-            if (!lastBestMoves || moves < lastBestMoves) {
-                localStorage.setItem('animeSlide_bestMoves', moves);
+            if (!lastBestMoves || moves < parseInt(lastBestMoves)) {
+                localStorage.setItem(diffKey, moves);
                 isNewBest = true;
             }
-            if (!lastBestTime || seconds < lastBestTime) {
-                localStorage.setItem('animeSlide_bestTime', seconds);
+            if (!lastBestTime || seconds < parseInt(lastBestTime)) {
+                localStorage.setItem(timeKey, seconds);
                 isNewBest = true;
             }
 
-            document.getElementById('final-stats').innerText = `Moves: ${moves} | Time: ${formatTime(seconds)}`;
-            document.getElementById('new-best').innerText = isNewBest ? "🎉 New Best Score!" : "";
+            document.getElementById('final-stats').innerText = `Grid: ${gridSize}x${gridSize} | Moves: ${moves} | Time: ${formatTime(seconds)}`;
+            document.getElementById('new-best').innerText = isNewBest ? "🎉 NEW PERSONAL BEST!" : "";
             document.getElementById('victory-modal').style.display = 'flex';
+            updateBestDisplay();
         }
 
         function toggleHint() {
@@ -341,6 +488,9 @@
         }
 
         imgSelector.onchange = initGame;
+        diffSelector.onchange = initGame;
+        
+        // Initial load
         window.onload = initGame;
     </script>
 </body>
