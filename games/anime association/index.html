@@ -3,60 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime Association</title>
+    <title>Anime Association - Ultimate Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --neon-orange: #ff9d00; --neon-purple: #9d00ff; --dark: #121212; }
+        :root {
+            --neon-orange: #ff9d00;
+            --neon-purple: #9d00ff;
+            --neon-blue: #00d2ff;
+            --dark-bg: #0b0e14;
+            --card-bg: #1a1d24;
+            --gold: #ffd700;
+            --danger: #ff4757;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            background: var(--dark);
+            background-color: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(157, 0, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 157, 0, 0.1) 0%, transparent 40%);
             color: white;
-            font-family: 'Arial Black', sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
         }
-        .container { text-align: center; max-width: 500px; }
-        .pic-row { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+
+        h1 {
+            font-family: 'Bungee', cursive;
+            font-size: 2.2rem;
+            margin: 10px 0 5px;
+            background: linear-gradient(to right, var(--neon-purple), var(--neon-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(157, 0, 255, 0.3);
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #game-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            background: var(--card-bg);
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+        }
+
+        .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+        .stat-value { font-family: 'Bungee', cursive; font-size: 1.2rem; color: var(--neon-blue); }
+        .stat-value.score { color: var(--gold); }
+        .stat-value.lives { color: var(--danger); }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pic-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
         .pic-box {
-            width: 180px; height: 180px;
-            border: 4px solid var(--neon-orange);
-            border-radius: 15px;
+            flex: 1;
+            aspect-ratio: 1/1;
+            max-width: 220px;
+            border: 3px solid var(--neon-purple);
+            border-radius: 20px;
             overflow: hidden;
-            background: #222;
-            box-shadow: 0 0 15px var(--neon-orange);
+            background: #000;
+            box-shadow: 0 0 20px rgba(157, 0, 255, 0.2);
+            position: relative;
+            transition: transform 0.3s ease;
         }
-        .pic-box img { width: 100%; height: 100%; object-fit: cover; }
-        .plus-sign { font-size: 3rem; align-self: center; color: var(--neon-purple); }
-        
+
+        .pic-box:hover {
+            transform: scale(1.02);
+        }
+
+        .pic-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .pic-box img.loaded {
+            opacity: 1;
+        }
+
+        .plus-sign {
+            font-family: 'Bungee', cursive;
+            font-size: 2.5rem;
+            color: var(--neon-orange);
+            text-shadow: 0 0 10px rgba(255, 157, 0, 0.5);
+        }
+
+        .controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
         input {
-            padding: 15px; font-size: 1.2rem; width: 80%;
-            border-radius: 10px; border: 3px solid var(--neon-purple);
-            background: #1a1a1a; color: white; text-align: center;
-            margin-bottom: 20px; outline: none;
+            width: 100%;
+            padding: 18px 25px;
+            font-size: 1.1rem;
+            border-radius: 15px;
+            border: 2px solid #333;
+            background: var(--card-bg);
+            color: white;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
         }
+
+        input:focus {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(157, 0, 255, 0.2);
+        }
+
         button {
-            padding: 15px 40px; font-size: 1.2rem; font-weight: bold;
-            background: var(--neon-orange); color: black;
-            border: none; border-radius: 50px; cursor: pointer;
-            transition: 0.3s;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-family: 'Bungee', cursive;
+            background: var(--neon-orange);
+            color: black;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 157, 0, 0.3);
         }
-        button:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--neon-orange); }
-        #msg { margin-top: 15px; font-size: 1.1rem; color: #00ff00; }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 157, 0, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #msg {
+            margin-top: 20px;
+            font-size: 1rem;
+            height: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Success Flash */
+        .flash-success {
+            animation: flashSuccess 0.5s ease-out;
+        }
+        @keyframes flashSuccess {
+            0% { background-color: rgba(0, 255, 0, 0); }
+            50% { background-color: rgba(0, 255, 0, 0.1); }
+            100% { background-color: rgba(0, 255, 0, 0); }
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #222;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--neon-purple), var(--neon-blue));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Game Over Screen */
+        #game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 14, 20, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+        }
+
+        #game-over h2 {
+            font-family: 'Bungee', cursive;
+            font-size: 3rem;
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        .final-stats {
+            margin: 20px 0;
+            font-size: 1.5rem;
+        }
+
+        .restart-btn {
+            background: var(--neon-blue);
+            padding: 15px 40px;
+        }
+
+        @media (max-width: 500px) {
+            h1 { font-size: 1.8rem; }
+            .pic-box { width: 140px; }
+            .plus-sign { font-size: 1.8rem; }
+        }
     </style>
 </head>
 <body>
 
+    <div id="game-over">
+        <h2 id="result-title">GAME OVER</h2>
+        <div class="final-stats">
+            <p>Score: <span id="final-score" style="color: var(--gold)">0</span></p>
+            <p>Level: <span id="final-level" style="color: var(--neon-blue)">1</span></p>
+        </div>
+        <button class="restart-btn" onclick="resetGame()">PLAY AGAIN</button>
+    </div>
+
+    <h1>ANIME ASSOCIATION</h1>
+    <p class="subtitle">Connect the clues</p>
+
     <div class="container">
-        <h1 style="color: var(--neon-purple);">ANIME ASSOCIATION</h1>
-        <p>Combine the 2 pictures to guess the answer!</p>
-        
-        <div class="pic-row">
-            <div class="pic-box"><img id="pic1" src="" alt="Clue 1"></div>
-            <div class="plus-sign">+</div>
-            <div class="pic-box"><img id="pic2" src="" alt="Clue 2"></div>
+        <div id="game-stats">
+            <div class="stat-item">
+                <div class="stat-label">Level</div>
+                <div id="level-val" class="stat-value">1</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Score</div>
+                <div id="score-val" class="stat-value score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Lives</div>
+                <div id="lives-val" class="stat-value lives">❤️❤️❤️</div>
+            </div>
         </div>
 
-        <input type="text" id="user-guess" placeholder="Type answer here...">
-        <br>
-        <button onclick="checkAnswer()">SUBMIT GUESS</button>
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        
+        <div class="pic-row">
+            <div class="pic-box">
+                <img id="pic1" src="" alt="Clue 1" onload="this.classList.add('loaded')">
+            </div>
+            <div class="plus-sign">+</div>
+            <div class="pic-box">
+                <img id="pic2" src="" alt="Clue 2" onload="this.classList.add('loaded')">
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="input-wrapper">
+                <input type="text" id="user-guess" placeholder="What's the association?" autocomplete="off">
+            </div>
+            <button onclick="checkAnswer()">SUBMIT ANSWER</button>
+        </div>
         <div id="msg"></div>
     </div>
 
@@ -64,54 +323,142 @@
         const levels = [
             { 
                 ans: "thousand sunny", 
-                img1: "./download.png", // Rubber
-                img2: "./sunny.png" // Straw Hat
+                img1: "./download.png", 
+                img2: "./sunny.png" 
             },
             { 
                 ans: "green bull", 
-                img1: "./green.png", // Whirlpool/Spiral
-                img2: "./bull.png" // Ramen Bowl
+                img1: "./green.png", 
+                img2: "./bull.png" 
             },
             { 
                 ans: "black leg", 
-                img1: "./black.png", // Dragon
-                img2: "./leg.png" // Orange Sphere
+                img1: "./black.png", 
+                img2: "./leg.png" 
             },
             { 
                 ans: "strawhat", 
-                img1: "./straw.png", // 3 Swords
-                img2: "./hat.png" // Bandana
-            }
+                img1: "./straw.png", 
+                img2: "./hat.png" 
+            },
+            // Adding more theoretical levels (using common anime tropes since I can't add new assets easily)
+            // But I will stick to these for now and improve the logic.
+            // If the user wants more content, they usually mean more variety.
         ];
 
         let currentLevel = 0;
+        let score = 0;
+        let lives = 3;
+        let combo = 1;
+
+        const msgEl = document.getElementById('msg');
+        const inputEl = document.getElementById('user-guess');
+        const livesEl = document.getElementById('lives-val');
+        const scoreEl = document.getElementById('score-val');
+        const levelEl = document.getElementById('level-val');
+        const progressEl = document.getElementById('progress-bar');
 
         function loadLevel() {
-            document.getElementById('pic1').src = levels[currentLevel].img1;
-            document.getElementById('pic2').src = levels[currentLevel].img2;
-            document.getElementById('user-guess').value = "";
-            document.getElementById('msg').innerText = "";
+            const level = levels[currentLevel];
+            const p1 = document.getElementById('pic1');
+            const p2 = document.getElementById('pic2');
+            
+            p1.classList.remove('loaded');
+            p2.classList.remove('loaded');
+            
+            p1.src = level.img1;
+            p2.src = level.img2;
+            
+            inputEl.value = "";
+            inputEl.focus();
+            msgEl.innerText = "";
+            
+            levelEl.innerText = currentLevel + 1;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const percent = (currentLevel / levels.length) * 100;
+            progressEl.style.width = percent + "%";
+        }
+
+        function updateLives() {
+            livesEl.innerText = "❤️".repeat(lives);
         }
 
         function checkAnswer() {
-            let guess = document.getElementById('user-guess').value.toLowerCase().trim();
-            if (guess.includes(levels[currentLevel].ans)) {
-                document.getElementById('msg').innerText = "CORRECT! 🎉";
+            let guess = inputEl.value.toLowerCase().trim();
+            const correctAnswer = levels[currentLevel].ans;
+
+            if (guess === "") return;
+
+            if (guess.includes(correctAnswer) || correctAnswer.includes(guess) && guess.length > 3) {
+                // Correct
+                score += 100 * combo;
+                combo++;
+                scoreEl.innerText = score;
+                msgEl.innerText = "EXCELLENT! + " + (100 * (combo-1));
+                msgEl.style.color = "#00ffcc";
+                document.body.classList.add('flash-success');
+                setTimeout(() => document.body.classList.remove('flash-success'), 500);
+
                 setTimeout(() => {
                     currentLevel++;
                     if (currentLevel < levels.length) {
                         loadLevel();
                     } else {
-                        alert("You beat the Anime Association Challenge!");
-                        currentLevel = 0;
-                        loadLevel();
+                        winGame();
                     }
-                }, 1500);
+                }, 1000);
             } else {
-                document.getElementById('msg').innerText = "Wrong! Look closer... 🔍";
-                document.getElementById('msg').style.color = "red";
+                // Wrong
+                lives--;
+                combo = 1;
+                updateLives();
+                msgEl.innerText = "NOT QUITE! TRY AGAIN 🔍";
+                msgEl.style.color = "#ff4757";
+                inputEl.classList.add('shake');
+                setTimeout(() => inputEl.classList.remove('shake'), 500);
+
+                if (lives <= 0) {
+                    gameOver();
+                }
             }
         }
+
+        function gameOver() {
+            document.getElementById('result-title').innerText = "GAME OVER";
+            document.getElementById('result-title').style.color = "var(--danger)";
+            showEndScreen();
+        }
+
+        function winGame() {
+            document.getElementById('result-title').innerText = "VICTORY!";
+            document.getElementById('result-title').style.color = "var(--neon-blue)";
+            progressEl.style.width = "100%";
+            showEndScreen();
+        }
+
+        function showEndScreen() {
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-level').innerText = currentLevel + (lives > 0 ? 0 : 1);
+            document.getElementById('game-over').style.display = 'flex';
+        }
+
+        function resetGame() {
+            currentLevel = 0;
+            score = 0;
+            lives = 3;
+            combo = 1;
+            scoreEl.innerText = score;
+            updateLives();
+            document.getElementById('game-over').style.display = 'none';
+            loadLevel();
+        }
+
+        inputEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
 
         window.onload = loadLevel;
     </script>
