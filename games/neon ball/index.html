@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Ball</title>
+    <title>Neon Ball - Anime Maze Odyssey</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-pink: #ff0055;
+            --neon-purple: #bc13fe;
+            --neon-green: #39ff14;
+            --dark-bg: #050505;
+            --card-bg: #111;
+            --gold: #ffd700;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,75 +24,52 @@
         }
         
         body {
-            background: #000;
+            background: var(--dark-bg);
+            color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Courier New', monospace;
+            font-family: 'Inter', sans-serif;
             overflow: hidden;
         }
-        
 
-         /* --- Ambient Neon Background --- */
+        /* --- Ambient Neon Background --- */
         .neon-bg {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             pointer-events: none;
             z-index: 0;
+            overflow: hidden;
         }
 
-        .neon-item {
+        .neon-orb {
             position: absolute;
-            user-select: none;
-            filter: blur(2px);
-            animation: neon-float 15s infinite ease-in-out;
-        }
-
-        /* Ladybug Symbol */
-        .ladybug::before {
-            content: '⚽';
-            filter: drop-shadow(0 0 10px currentColor);
-        }
-
-        /* Light Orbs */
-        .light-orb {
             border-radius: 50%;
-            filter: blur(20px);
-            opacity: 0.4;
-            animation: orb-pulse 8s infinite ease-in-out;
+            filter: blur(60px);
+            opacity: 0.15;
+            animation: orb-float 20s infinite ease-in-out;
         }
 
-        @keyframes neon-float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(60px, -80px) rotate(25deg); }
-            66% { transform: translate(-40px, 40px) rotate(-15deg); }
+        @keyframes orb-float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(100px, -50px) scale(1.2); }
+            66% { transform: translate(-50px, 100px) scale(0.8); }
         }
 
-        @keyframes orb-pulse {
-            0%, 100% { transform: scale(1); opacity: 0.2; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-        }
-
-
-
-
-          /* Graffiti Title */
+        /* Graffiti Title */
         #gameTitle {
-            font-family: 'Permanent Marker', cursive;
+            font-family: 'Bungee', cursive;
             font-size: 3rem;
-            color: #fff;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            text-shadow: 
-                0 0 10px #fff,
-                0 0 20px #ff00ff,
-                0 0 40px #ff00ff,
-                2px 2px 0px #00ffff;
-            transform: rotate(-3deg);
+            margin-bottom: 80px;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
             z-index: 10;
+            letter-spacing: 2px;
         }
 
         #gameContainer {
@@ -90,137 +78,247 @@
             height: 95vw;
             max-width: 600px;
             max-height: 600px;
+            z-index: 5;
         }
         
         canvas {
             width: 100%;
             height: 100%;
-            background: #0a0a0a;
-            box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
-            border: 2px solid #00ffff;
+            background: rgba(0,0,0,0.8);
+            box-shadow: 0 0 50px rgba(0, 210, 255, 0.2);
+            border: 3px solid #1a1a1a;
+            border-radius: 10px;
         }
         
         #ui {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
-            color: #00ffff;
         }
-        
-        #levelDisplay { position: absolute; top: 15px; left: 15px; font-size: 18px; text-shadow: 0 0 10px #00ffff; }
-        #timer { position: absolute; top: 15px; right: 15px; font-size: 16px; }
-        
-        /* Neon Mute Button */
-        #muteBtn {
-            position: fixed;
-            top: 20px;
+
+        #game-stats {
+            position: absolute;
+            top: -60px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 8px 16px;
-            background: transparent;
-            color: #ff00ff;
-            border: 2px solid #ff00ff;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            text-transform: uppercase;
-            box-shadow: 0 0 10px #ff00ff;
-            text-shadow: 0 0 5px #ff00ff;
+            display: flex;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 8px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: max-content;
             pointer-events: auto;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+        }
+
+        .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-family: 'Bungee', cursive; font-size: 1rem; color: var(--neon-blue); }
+        .stat-value.lives { color: var(--neon-pink); }
+        .stat-value.score { color: var(--gold); }
+
+        #muteBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background: var(--card-bg);
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
             z-index: 100;
-            transition: 0.2s;
+            transition: 0.3s;
+            pointer-events: auto;
         }
 
         #muteBtn.muted {
             color: #555;
             border-color: #555;
             box-shadow: none;
-            text-shadow: none;
         }
 
-        #levelComplete {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 32px;
-            text-align: center;
-            text-shadow: 0 0 20px #00ff00;
-            color: #00ff00;
-            opacity: 0;
-            transition: opacity 0.5s;
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
         }
-        #levelComplete.show { opacity: 1; }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.2);
+            max-width: 90%;
+            width: 350px;
+        }
+
+        .modal h2 {
+            font-family: 'Bungee', cursive;
+            color: var(--neon-blue);
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .modal p { margin-bottom: 20px; color: #ccc; }
+
+        .btn {
+            background: var(--neon-blue);
+            color: black;
+            border: none;
+            padding: 12px 30px;
+            font-family: 'Bungee', cursive;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            box-shadow: 0 0 20px var(--neon-blue);
+            transform: scale(1.05);
+        }
 
         #joystickContainer {
             position: fixed;
-            bottom: 30px; left: 30px;
-            width: 100px; height: 100px;
-            background: rgba(255, 255, 255, 0.1);
+            bottom: 40px; left: 40px;
+            width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 210, 255, 0.2);
             border-radius: 50%;
             display: none;
-            border: 1px solid rgba(0, 255, 255, 0.3);
+            z-index: 100;
         }
+
         #joystickKnob {
             position: absolute;
             top: 50%; left: 50%;
-            width: 40px; height: 40px;
-            background: #00ffff;
+            width: 50px; height: 50px;
+            background: var(--neon-blue);
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 15px #00ffff;
+            box-shadow: 0 0 20px var(--neon-blue);
         }
 
         @media (pointer: coarse) { #joystickContainer { display: block; } }
+
+        .combo-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Bungee', cursive;
+            font-size: 4rem;
+            color: var(--neon-pink);
+            opacity: 0;
+            pointer-events: none;
+            text-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        @keyframes combo-up {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -150%) scale(1.5); opacity: 0; }
+        }
+
+        .score-pop {
+            position: absolute;
+            color: var(--gold);
+            font-family: 'Bungee', cursive;
+            pointer-events: none;
+            animation: score-float 1s forwards;
+        }
+
+        @keyframes score-float {
+            to { transform: translateY(-50px); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-
-    <div class="neon-item ladybug" style="left: 10%; top: 15%; font-size: 4rem; color: #ff0055; animation-delay: 0s;"></div>
-        <div class="neon-item ladybug" style="right: 15%; top: 10%; font-size: 3rem; color: #00ff99; animation-delay: 2s;"></div>
-        <div class="neon-item ladybug" style="left: 20%; bottom: 15%; font-size: 5rem; color: #00ffff; animation-delay: 4s;"></div>
-        <div class="neon-item ladybug" style="right: 5%; bottom: 20%; font-size: 4.5rem; color: #ff00ff; animation-delay: 1s;"></div>
-        
-        <div class="neon-tube" style="left: 5%; top: 20%; background: #00ffff; box-shadow: 0 0 20px #00ffff;"></div>
-    <div class="neon-tube" style="right: 8%; bottom: 10%; background: #ff00ff; box-shadow: 0 0 20px #ff00ff;"></div>
-    
-    <div class="pulse-ring" style="left: 50%; top: 50%; animation-delay: 0s;"></div>
-    <div class="pulse-ring" style="left: 50%; top: 50%; animation-delay: 3s; border-color: #ff00ff;"></div>
-        
-        <div class="neon-item light-orb" style="left: 50%; top: 20%; width: 100px; height: 100px; background: #00ffff; animation-duration: 10s;"></div>
-        <div class="neon-item light-orb" style="right: 30%; bottom: 10%; width: 150px; height: 150px; background: #ff00ff; animation-duration: 12s;"></div>
-        <div class="neon-item light-orb" style="left: 5%; bottom: 40%; width: 80px; height: 80px; background: #ffff00; animation-duration: 7s;"></div>
-
-        <div class="pulse-ring" style="left: 50%; top: 50%; animation-delay: 0s;"></div>
-    <div class="pulse-ring" style="left: 50%; top: 50%; animation-delay: 3s; border-color: #ff00ff;"></div>
-
-    <div class="neon-item light-orb" style="left: 70%; top: 20%; width: 120px; height: 120px; background: #0044ff;"></div>
-    <div class="neon-item light-orb" style="left: 10%; bottom: 30%; width: 90px; height: 90px; background: #ff0055;"></div>
+    <div class="neon-bg">
+        <div class="neon-orb" style="width: 300px; height: 300px; background: var(--neon-blue); top: -100px; left: -100px;"></div>
+        <div class="neon-orb" style="width: 400px; height: 400px; background: var(--neon-pink); bottom: -150px; right: -150px; animation-delay: -5s;"></div>
+        <div class="neon-orb" style="width: 250px; height: 250px; background: var(--neon-purple); top: 50%; right: -50px; animation-delay: -10s;"></div>
     </div>
 
-
-
-    <h1 id="gameTitle">Neon Ball</h1>
-    <button id="muteBtn">Audio: ON</button>
+    <h1 id="gameTitle">NEON BALL</h1>
 
     <div id="gameContainer">
+        <div id="game-stats">
+            <div class="stat-item">
+                <span class="stat-label">Level</span>
+                <span id="levelDisplay" class="stat-value">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Score</span>
+                <span id="scoreDisplay" class="stat-value score">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Lives</span>
+                <span id="livesDisplay" class="stat-value lives">❤️❤️❤️</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Time</span>
+                <span id="timer" class="stat-value">0:00</span>
+            </div>
+        </div>
+
         <canvas id="gameCanvas"></canvas>
         <div id="ui">
-            <div id="levelDisplay">Level 1</div>
-            <div id="timer">0:00</div>
-            <div id="levelComplete">LEVEL COMPLETE!</div>
+            <div id="comboDisplay" class="combo-badge">COMBO!</div>
         </div>
     </div>
 
+    <button id="muteBtn">🔊</button>
+
     <div id="joystickContainer"><div id="joystickKnob"></div></div>
 
+    <!-- Modals -->
+    <div id="startModal" class="modal show">
+        <div class="modal-content">
+            <h2>MAZE RUNNER</h2>
+            <p>Navigate the maze, collect Spirit Orbs, and reach the portal!</p>
+            <p style="font-size: 0.8rem; color: #888;">Use WASD, Arrows or Joystick</p>
+            <button class="btn" onclick="startGame()">ENTER MAZE</button>
+        </div>
+    </div>
+
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2>MISSION FAILED</h2>
+            <p id="finalScoreMsg">Score: 0</p>
+            <button class="btn" onclick="location.reload()">RETRY</button>
+        </div>
+    </div>
+
     <script>
-        // ========== AUDIO ENGINE (Synthesized) ==========
+        // ========== AUDIO ENGINE ==========
         const AudioEngine = (() => {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             let isMuted = false;
-            let bgOsc = null;
             let bgGain = null;
 
             const playSound = (freq, type, duration, volume) => {
@@ -240,34 +338,36 @@
             return {
                 toggle: () => { 
                     isMuted = !isMuted; 
-                    if(isMuted && bgGain) bgGain.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
-                    else if(bgGain) bgGain.gain.setTargetAtTime(0.05, ctx.currentTime, 0.1);
+                    if(bgGain) bgGain.gain.setTargetAtTime(isMuted ? 0 : 0.05, ctx.currentTime, 0.1);
                     return isMuted; 
                 },
                 startMusic: () => {
-                    if (bgOsc) return;
+                    if (bgGain) return;
                     bgGain = ctx.createGain();
                     bgGain.gain.value = isMuted ? 0 : 0.05;
                     bgGain.connect(ctx.destination);
                     
+                    const notes = [164.81, 196.00, 220.00, 246.94]; // E, G, A, B
+                    let noteIdx = 0;
                     const playNote = () => {
                         const osc = ctx.createOscillator();
                         osc.type = 'triangle';
-                        // Ethereal minor scale melody
-                        const notes = [164.81, 196.00, 220.00, 246.94];
-                        osc.frequency.value = notes[Math.floor(Math.random()*notes.length)];
+                        osc.frequency.value = notes[noteIdx];
+                        noteIdx = (noteIdx + 1) % notes.length;
                         osc.connect(bgGain);
                         osc.start();
-                        osc.stop(ctx.currentTime + 2);
-                        setTimeout(playNote, 2000);
+                        osc.stop(ctx.currentTime + 1);
+                        setTimeout(playNote, 1000);
                     };
                     playNote();
                 },
-                playBounce: () => playSound(150, 'sine', 0.1, 0.1),
+                playBounce: () => playSound(100, 'sine', 0.1, 0.1),
+                playPickup: () => playSound(880, 'sine', 0.2, 0.1),
                 playWin: () => {
                     playSound(440, 'square', 0.2, 0.1);
                     setTimeout(() => playSound(880, 'square', 0.4, 0.1), 150);
                 },
+                playHit: () => playSound(60, 'sawtooth', 0.3, 0.1),
                 resume: () => ctx.resume()
             };
         })();
@@ -278,45 +378,56 @@
         canvas.width = 800; canvas.height = 800;
 
         let level = 1, mazeSize = 10, cellSize = 60, maze = [];
-        let player = { x: 0, y: 0, vx: 0, vy: 0, radius: 12, maxSpeed: 5, acceleration: 0.4, friction: 0.92 };
-        let exit = { x: 0, y: 0 }, keys = {}, gameState = 'playing', transitionAlpha = 0, levelStartTime = Date.now();
+        let score = 0, lives = 3, combo = 0, lastPickupTime = 0;
+        let player = { x: 0, y: 0, vx: 0, vy: 0, radius: 14, maxSpeed: 6, acceleration: 0.5, friction: 0.92 };
+        let exit = { x: 0, y: 0 }, orbs = [], keys = {}, gameState = 'menu', transitionAlpha = 0, levelStartTime = 0;
+        let timeLimit = 30; // Seconds per level
 
-        // Mute Toggle Listener
-        document.getElementById('muteBtn').addEventListener('click', (e) => {
-            AudioEngine.resume();
-            AudioEngine.startMusic();
-            const muted = AudioEngine.toggle();
-            e.target.textContent = muted ? "Audio: OFF" : "Audio: ON";
-            e.target.classList.toggle('muted', muted);
-        });
+        // UI Updates
+        function updateUI() {
+            document.getElementById('levelDisplay').textContent = level;
+            document.getElementById('scoreDisplay').textContent = score;
+            document.getElementById('livesDisplay').textContent = '❤️'.repeat(lives);
+        }
 
-        // Joystick Logic
+        function showCombo() {
+            const badge = document.getElementById('comboDisplay');
+            badge.style.animation = 'none';
+            badge.offsetHeight; // trigger reflow
+            badge.style.animation = 'combo-up 0.8s forwards';
+        }
+
+        // Joystick
         let touchActive = false, joystickPos = { x: 0, y: 0 };
         const joystickBase = document.getElementById('joystickContainer'), knob = document.getElementById('joystickKnob');
 
         const handleTouch = (e) => {
-            AudioEngine.resume(); // Unlock audio on first touch
-            AudioEngine.startMusic();
+            if (gameState !== 'playing') return;
+            AudioEngine.resume();
             if (e.touches.length > 0) {
                 touchActive = true;
                 const rect = joystickBase.getBoundingClientRect();
-                const dx = e.touches[0].clientX - (rect.left + rect.width/2);
-                const dy = e.touches[0].clientY - (rect.top + rect.height/2);
+                const touch = e.touches[0];
+                const dx = touch.clientX - (rect.left + rect.width/2);
+                const dy = touch.clientY - (rect.top + rect.height/2);
                 const dist = Math.min(rect.width/2, Math.sqrt(dx*dx + dy*dy));
                 const angle = Math.atan2(dy, dx);
                 joystickPos = { x: Math.cos(angle) * (dist/(rect.width/2)), y: Math.sin(angle) * (dist/(rect.width/2)) };
-                knob.style.transform = `translate(calc(-50% + ${dx*(dist/Math.hypot(dx,dy))}px), calc(-50% + ${dy*(dist/Math.hypot(dx,dy))}px))`;
+                knob.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
             }
         };
         joystickBase.addEventListener('touchstart', handleTouch);
         joystickBase.addEventListener('touchmove', handleTouch);
         joystickBase.addEventListener('touchend', () => { touchActive = false; joystickPos = {x:0,y:0}; knob.style.transform = `translate(-50%, -50%)`; });
 
-        // Maze Gen
+        // Maze Generation (DFS)
         function generateMaze(size) {
-            const grid = Array.from({length: size}, (_, y) => Array.from({length: size}, (_, x) => ({x, y, walls: {top:true,right:true,bottom:true,left:true}, visited: false})));
+            const grid = Array.from({length: size}, (_, y) => Array.from({length: size}, (_, x) => ({
+                x, y, walls: {top:true,right:true,bottom:true,left:true}, visited: false
+            })));
             const stack = [];
             const start = grid[0][0]; start.visited = true; stack.push(start);
+            
             while (stack.length > 0) {
                 const curr = stack[stack.length - 1];
                 const neighbors = [];
@@ -325,6 +436,7 @@
                 if (x < size-1 && !grid[y][x+1].visited) neighbors.push(grid[y][x+1]);
                 if (y < size-1 && !grid[y+1][x].visited) neighbors.push(grid[y+1][x]);
                 if (x > 0 && !grid[y][x-1].visited) neighbors.push(grid[y][x-1]);
+                
                 if (neighbors.length > 0) {
                     const next = neighbors[Math.floor(Math.random() * neighbors.length)];
                     if (next.x > curr.x) { curr.walls.right = false; next.walls.left = false; }
@@ -348,20 +460,32 @@
                 const normX = (player.x - nx) / dist, normY = (player.y - ny) / dist;
                 player.x += normX * overlap; player.y += normY * overlap;
                 const dot = player.vx * normX + player.vy * normY;
-                player.vx -= 1.6 * dot * normX; player.vy -= 1.6 * dot * normY;
+                player.vx -= 1.4 * dot * normX; player.vy -= 1.4 * dot * normY;
+                
+                // Visual shake
+                canvas.style.transform = `translate(${normX * 5}px, ${normY * 5}px)`;
+                setTimeout(() => canvas.style.transform = 'translate(0,0)', 50);
             }
         }
 
         function update() {
-            if (touchActive) { player.vx += joystickPos.x * player.acceleration; player.vy += joystickPos.y * player.acceleration; }
-            else {
+            if (gameState !== 'playing') return;
+
+            // Movement
+            if (touchActive) {
+                player.vx += joystickPos.x * player.acceleration;
+                player.vy += joystickPos.y * player.acceleration;
+            } else {
                 if (keys['ArrowUp'] || keys['w']) player.vy -= player.acceleration;
                 if (keys['ArrowDown'] || keys['s']) player.vy += player.acceleration;
                 if (keys['ArrowLeft'] || keys['a']) player.vx -= player.acceleration;
                 if (keys['ArrowRight'] || keys['d']) player.vx += player.acceleration;
             }
+            
             player.vx *= player.friction; player.vy *= player.friction;
             player.x += player.vx; player.y += player.vy;
+
+            // Collision
             const cx = Math.floor(player.x / cellSize), cy = Math.floor(player.y / cellSize);
             for (let dy = -1; dy <= 1; dy++) {
                 for (let dx = -1; dx <= 1; dx++) {
@@ -375,77 +499,191 @@
                     }
                 }
             }
-            if (Math.hypot(player.x - exit.x, player.y - exit.y) < 30 && gameState === 'playing') levelComplete();
+
+            // Orbs
+            orbs = orbs.filter(orb => {
+                const dist = Math.hypot(player.x - orb.x, player.y - orb.y);
+                if (dist < player.radius + 10) {
+                    AudioEngine.playPickup();
+                    const now = Date.now();
+                    if (now - lastPickupTime < 1000) {
+                        combo++;
+                        if (combo > 2) showCombo();
+                    } else {
+                        combo = 1;
+                    }
+                    lastPickupTime = now;
+                    score += 10 * combo;
+                    updateUI();
+                    return false;
+                }
+                return true;
+            });
+
+            // Win condition
+            if (Math.hypot(player.x - exit.x, player.y - exit.y) < 30) {
+                levelComplete();
+            }
         }
 
         function render() {
-            ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw Maze
+            ctx.lineCap = 'round';
             maze.forEach(row => row.forEach(cell => {
                 const dist = Math.hypot(cell.x * cellSize + cellSize/2 - player.x, cell.y * cellSize + cellSize/2 - player.y);
-                const opacity = Math.max(0, 1 - dist / 250);
-                if (opacity <= 0) return;
-                ctx.strokeStyle = `rgba(0, 255, 255, ${opacity})`; ctx.lineWidth = 4;
-                ctx.beginPath(); const x = cell.x * cellSize, y = cell.y * cellSize;
-                if (cell.walls.top) { ctx.moveTo(x, y); ctx.lineTo(x+cellSize, y); }
-                if (cell.walls.right) { ctx.moveTo(x+cellSize, y); ctx.lineTo(x+cellSize, y+cellSize); }
-                if (cell.walls.bottom) { ctx.moveTo(x, y+cellSize); ctx.lineTo(x+cellSize, y+cellSize); }
-                if (cell.walls.left) { ctx.moveTo(x, y); ctx.lineTo(x, y+cellSize); }
+                const opacity = Math.max(0.1, 1 - dist / 300);
+                ctx.strokeStyle = `rgba(0, 210, 255, ${opacity})`;
+                ctx.lineWidth = 6;
+                ctx.shadowBlur = 10 * opacity;
+                ctx.shadowColor = 'var(--neon-blue)';
+                
+                const x = cell.x * cellSize, y = cell.y * cellSize;
+                ctx.beginPath();
+                if (cell.walls.top) { ctx.moveTo(x+5, y); ctx.lineTo(x+cellSize-5, y); }
+                if (cell.walls.right) { ctx.moveTo(x+cellSize, y+5); ctx.lineTo(x+cellSize, y+cellSize-5); }
+                if (cell.walls.bottom) { ctx.moveTo(x+5, y+cellSize); ctx.lineTo(x+cellSize-5, y+cellSize); }
+                if (cell.walls.left) { ctx.moveTo(x, y+5); ctx.lineTo(x, y+cellSize-5); }
                 ctx.stroke();
             }));
-            const exitDist = Math.hypot(exit.x - player.x, exit.y - player.y);
-            const exitOp = Math.max(0, 1 - exitDist / 250);
-            if (exitOp > 0) {
-                ctx.fillStyle = `rgba(0, 255, 0, ${exitOp})`;
-                ctx.beginPath(); ctx.arc(exit.x, exit.y, 12 + Math.sin(Date.now()/200)*3, 0, Math.PI*2); ctx.fill();
-            }
-            ctx.fillStyle = '#00ffff'; ctx.shadowBlur = 15; ctx.shadowColor = '#00ffff';
-            ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
             ctx.shadowBlur = 0;
-            if (gameState === 'transitioning') { ctx.fillStyle = `rgba(10, 10, 10, ${transitionAlpha})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+
+            // Draw Exit
+            const pulse = Math.sin(Date.now() / 200) * 5;
+            ctx.fillStyle = 'var(--neon-green)';
+            ctx.shadowBlur = 20; ctx.shadowColor = 'var(--neon-green)';
+            ctx.beginPath(); ctx.arc(exit.x, exit.y, 15 + pulse, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
+            
+            // Draw Orbs
+            orbs.forEach(orb => {
+                const orbPulse = Math.sin(Date.now() / 150 + orb.x) * 3;
+                ctx.fillStyle = 'var(--gold)';
+                ctx.shadowBlur = 15; ctx.shadowColor = 'var(--gold)';
+                ctx.beginPath(); ctx.arc(orb.x, orb.y, 6 + orbPulse, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Draw Player
+            ctx.fillStyle = 'white';
+            ctx.shadowBlur = 25; ctx.shadowColor = 'var(--neon-blue)';
+            ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
+            
+            // Player Inner Eye
+            ctx.fillStyle = 'var(--neon-blue)';
+            ctx.beginPath(); 
+            ctx.arc(player.x + player.vx, player.y + player.vy, player.radius/2, 0, Math.PI*2); 
+            ctx.fill();
+
+            if (gameState === 'transitioning') {
+                ctx.fillStyle = `rgba(5, 5, 5, ${transitionAlpha})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
         }
 
         function initLevel() {
-            mazeSize = 8 + (level * 2); cellSize = canvas.width / mazeSize;
-            maze = generateMaze(mazeSize); player.x = cellSize / 2; player.y = cellSize / 2;
-            player.vx = 0; player.vy = 0; exit = { x: (mazeSize - 0.5) * cellSize, y: (mazeSize - 0.5) * cellSize };
-            document.getElementById('levelDisplay').textContent = `Level ${level}`; levelStartTime = Date.now();
+            mazeSize = 6 + (level * 2); 
+            if (mazeSize > 20) mazeSize = 20;
+            cellSize = canvas.width / mazeSize;
+            maze = generateMaze(mazeSize);
+            
+            player.x = cellSize / 2;
+            player.y = cellSize / 2;
+            player.vx = 0; player.vy = 0;
+            exit = { x: (mazeSize - 0.5) * cellSize, y: (mazeSize - 0.5) * cellSize };
+            
+            // Generate Orbs
+            orbs = [];
+            for (let i = 0; i < mazeSize; i++) {
+                let ox = Math.floor(Math.random() * mazeSize);
+                let oy = Math.floor(Math.random() * mazeSize);
+                if (ox === 0 && oy === 0) continue;
+                orbs.push({ x: (ox + 0.5) * cellSize, y: (oy + 0.5) * cellSize });
+            }
+            
+            levelStartTime = Date.now();
+            timeLimit = 25 + (level * 5); // More time for larger mazes
+            if (timeLimit > 60) timeLimit = 60; // Max 1 minute
+            updateUI();
+        }
+
+        function startGame() {
+            AudioEngine.resume();
+            AudioEngine.startMusic();
+            document.getElementById('startModal').classList.remove('show');
+            gameState = 'playing';
+            initLevel();
         }
 
         function levelComplete() {
             AudioEngine.playWin();
             gameState = 'transitioning';
-            document.getElementById('levelComplete').classList.add('show');
-            let fade = setInterval(() => {
-                transitionAlpha += 0.1;
+            score += 100 * level;
+            updateUI();
+            
+            let fadeOut = setInterval(() => {
+                transitionAlpha += 0.05;
                 if (transitionAlpha >= 1) {
-                    clearInterval(fade); level++; initLevel();
+                    clearInterval(fadeOut);
+                    level++;
+                    initLevel();
                     setTimeout(() => {
-                        document.getElementById('levelComplete').classList.remove('show');
                         let fadeIn = setInterval(() => {
-                            transitionAlpha -= 0.1;
-                            if (transitionAlpha <= 0) { clearInterval(fadeIn); gameState = 'playing'; }
+                            transitionAlpha -= 0.05;
+                            if (transitionAlpha <= 0) {
+                                clearInterval(fadeIn);
+                                transitionAlpha = 0;
+                                gameState = 'playing';
+                            }
                         }, 30);
-                    }, 1000);
+                    }, 500);
                 }
-            }, 50);
+            }, 30);
+        }
+
+        function gameOver() {
+            gameState = 'gameover';
+            document.getElementById('finalScoreMsg').textContent = `Final Score: ${score}`;
+            document.getElementById('gameOverModal').classList.add('show');
+            AudioEngine.playHit();
         }
 
         function loop() {
             if (gameState === 'playing') {
                 update();
                 const elapsed = Math.floor((Date.now() - levelStartTime) / 1000);
-                document.getElementById('timer').textContent = `${Math.floor(elapsed/60)}:${(elapsed%60).toString().padStart(2,'0')}`;
+                const remaining = Math.max(0, timeLimit - elapsed);
+                document.getElementById('timer').textContent = `${Math.floor(remaining/60)}:${(remaining%60).toString().padStart(2,'0')}`;
+                
+                if (remaining <= 0) {
+                    lives--;
+                    updateUI();
+                    if (lives <= 0) {
+                        gameOver();
+                    } else {
+                        AudioEngine.playHit();
+                        initLevel(); // Reset current level
+                    }
+                }
             }
-            render(); requestAnimationFrame(loop);
+            render();
+            requestAnimationFrame(loop);
         }
 
-        document.addEventListener('keydown', e => { 
-            AudioEngine.resume(); AudioEngine.startMusic();
-            keys[e.key] = true; 
+        // Listeners
+        document.addEventListener('keydown', e => {
+            if (gameState === 'menu') return;
+            AudioEngine.resume();
+            keys[e.key] = true;
         });
         document.addEventListener('keyup', e => keys[e.key] = false);
 
-        initLevel();
+        document.getElementById('muteBtn').addEventListener('click', (e) => {
+            const muted = AudioEngine.toggle();
+            e.target.textContent = muted ? "🔇" : "🔊";
+            e.target.classList.toggle('muted', muted);
+        });
+
         loop();
     </script>
 </body>
