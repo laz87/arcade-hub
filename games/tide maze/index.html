@@ -377,7 +377,7 @@
         // --- GAME STATE ---
         let level = 1, mazeSize = 8, cellSize = 100, maze = [];
         let score = 0, lives = 3, gameState = 'menu';
-        let player = { x: 0, y: 0, vx: 0, vy: 0, radius: 20, accel: 0.45, fric: 0.92, emoji: '🚢' };
+        let player = { x: 0, y: 0, vx: 0, vy: 0, radius: 20, accel: 0.8, fric: 0.88, emoji: '🚢' };
         let exit = { x: 0, y: 0 }, treasureTime = 0, levelStartTime = 0;
         let keys = {}, touchActive = false, joystickPos = { x: 0, y: 0 };
 
@@ -480,6 +480,7 @@
         joystickBase.addEventListener('touchstart', handleTouch, {passive: false});
         joystickBase.addEventListener('touchmove', handleTouch, {passive: false});
         joystickBase.addEventListener('touchend', () => { touchActive = false; joystickPos = { x: 0, y: 0 }; knob.style.transform = `translate(-50%, -50%)`; }, {passive: false});
+        joystickBase.addEventListener('touchcancel', () => { touchActive = false; joystickPos = { x: 0, y: 0 }; knob.style.transform = `translate(-50%, -50%)`; }, {passive: false});
 
         document.getElementById('muteBtn').onclick = () => {
             const muted = AudioEngine.toggle();
