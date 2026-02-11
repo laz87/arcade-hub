@@ -133,6 +133,10 @@ playerSprite.onload = () => {
     spriteLoaded = true;
 };
 
+// Load Dungeon Wall Texture
+const wallTexture = new Image();
+wallTexture.src = 'https://opengameart.org/sites/default/files/handpaintedwall2.png'; // A seamless stone brick texture
+
     // Constants
     const CANVAS_WIDTH = 360;
     const CANVAS_HEIGHT = 600;
@@ -411,8 +415,25 @@ playerSprite.onload = () => {
 
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         
-        ctx.save();
-        ctx.translate(0, -scrollY);
+       // Create the repeating stone pattern
+    const pattern = ctx.createPattern(wallTexture, 'repeat');
+    
+    ctx.save();
+    ctx.translate(0, -scrollY);
+
+    // 1. Draw the Background (The deep wall)
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, scrollY, CANVAS_WIDTH, CANVAS_HEIGHT);
+    
+    // 2. Add a dark "vignette" overlay to make it look spooky and deep
+    const darkness = ctx.createLinearGradient(0, scrollY, 0, scrollY + CANVAS_HEIGHT);
+    darkness.addColorStop(0, 'rgba(0,0,0,0.4)');
+    darkness.addColorStop(0.5, 'rgba(0,0,0,0)');
+    darkness.addColorStop(1, 'rgba(0,0,0,0.4)');
+    ctx.fillStyle = darkness;
+    ctx.fillRect(0, scrollY, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // ... (rest of your wall and spike code) ...
 
         // Background Grid (scrolling)
         ctx.strokeStyle = "rgba(255,255,255,0.03)";
