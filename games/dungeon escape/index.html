@@ -298,14 +298,15 @@
             }
         }
 
-        // Forced Scrolling behavior
+            // Forced Scrolling behavior
         scrollY -= scrollSpeed;
-        lavaY = scrollY + CANVAS_HEIGHT; // Lava stays at the bottom of the screen
-        
-        if (player.y > lavaY) {
+        // This moves the "kill line" 60 pixels up from the bottom
+        lavaY = scrollY + CANVAS_HEIGHT - 60; 
+
+        // Check if player's bottom edge touches the lava
+        if (player.y + PLAYER_RADIUS > lavaY) {
             endGame();
         }
-        
         // Speed up scroll over time
         scrollSpeed = 0.8 + (score * 0.05);
 
@@ -424,16 +425,23 @@
 
 
 
-        // Draw Lava
-        ctx.fillStyle = "rgba(233, 69, 96, 0.9)"; // More opaque
-        ctx.fillRect(0, lavaY, CANVAS_WIDTH, 400); // Taller lava block
-        
-        // Lava Top Glow/Edge
+            // 1. Draw the Main Lava Body (The 60px solid block)
+        ctx.fillStyle = "#e94560"; 
+        ctx.fillRect(0, lavaY, CANVAS_WIDTH, 200); // Draws 200px deep to ensure no gaps
+
+        // 2. Add a bright "Surface" line
         ctx.fillStyle = "#ff4d00";
-        ctx.fillRect(0, lavaY, CANVAS_WIDTH, 4);
+        ctx.fillRect(0, lavaY, CANVAS_WIDTH, 6); // 6px thick hot edge
+
+        // 3. Add a Glow/Gradient above the lava
+        let glow = ctx.createLinearGradient(0, lavaY - 50, 0, lavaY);
+        glow.addColorStop(0, "rgba(233, 69, 96, 0)");   // Transparent
+        glow.addColorStop(1, "rgba(233, 69, 96, 0.4)"); // Faint Red
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, lavaY - 50, CANVAS_WIDTH, 50);
         
 
-        
+
         // Lava bubbles
         if (gameState === 'PLAYING') {
             if (Math.random() < 0.1) {
