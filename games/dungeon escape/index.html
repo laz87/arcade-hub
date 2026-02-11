@@ -121,6 +121,18 @@
     const finalScoreText = document.getElementById('final-score');
     const bestScoreText = document.getElementById('best-score');
 
+    // 1. Create the image object
+const playerSprite = new Image();
+
+// 2. Set the source (The URL of the image)
+playerSprite.src = 'https://opengameart.org/sites/default/files/icon_10.png'; 
+
+// 3. (Optional) Let's add a "ready" check to make sure it loads
+let spriteLoaded = false;
+playerSprite.onload = () => {
+    spriteLoaded = true;
+};
+
     // Constants
     const CANVAS_WIDTH = 360;
     const CANVAS_HEIGHT = 600;
@@ -516,24 +528,26 @@
             const scaleY = 1 + stretch;
             ctx.scale(scaleX, scaleY);
 
-            // Body
-            ctx.fillStyle = player.isCharging ? '#ffcc00' : player.color;
-            ctx.beginPath();
-            ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Eyes
-            ctx.fillStyle = "#000";
-            let eyeX = 0;
-            if (player.isJumping) {
-                eyeX = player.vx > 0 ? 4 : -4;
-            } else {
-                eyeX = player.side === 'LEFT' ? 4 : -4;
-            }
-            
-            ctx.beginPath();
-            ctx.arc(eyeX, -2, 2.5, 0, Math.PI * 2); // Main eye
-            ctx.fill();
+            if (spriteLoaded) {
+        // This draws the image centered on the player's position
+        // We use PLAYER_RADIUS * 2.5 to make the sprite slightly bigger than the hitbox
+        const size = PLAYER_RADIUS * 2.8;
+        
+        ctx.save();
+        // Flip the sprite if moving left
+        if (player.side === 'LEFT') {
+            ctx.scale(-1, 1);
+        }
+        
+        ctx.drawImage(playerSprite, -size/2, -size/2, size, size);
+        ctx.restore();
+    } else {
+        // Fallback: if image hasn't loaded yet, draw the original circle
+        ctx.fillStyle = player.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
             // Charge indicator
             if (player.isCharging) {
