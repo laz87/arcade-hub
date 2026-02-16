@@ -297,6 +297,87 @@
             border-radius: 5px;
         }
 
+        /* Accordion - Mobile Only */
+        .mobile-accordion {
+            display: none;
+            width: 100%;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            overflow: visible;
+            background: white;
+            z-index: 100;
+            position: relative;
+        }
+
+        .accordion-header {
+            padding: 12px 20px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .accordion-header:hover {
+            background: #f9fafb;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: white;
+            position: absolute;
+            top: 100%;
+            left: -2px;
+            right: -2px;
+            border: 2px solid #ddd;
+            border-top: none;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .mobile-accordion.active .accordion-content {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .mobile-accordion.active .accordion-header {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .accordion-list {
+            list-style: none;
+            padding: 10px;
+        }
+
+        .accordion-list li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .accordion-list li .word-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .check-mark {
+            color: var(--success);
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -338,6 +419,11 @@
         }
 
         /* Mobile specific adjustments */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .mobile-accordion { display: block; }
+        }
+
         @media (max-width: 500px) {
             h1 { font-size: 2.2rem; }
             .hexagon-container { width: 260px; height: 260px; }
@@ -375,6 +461,18 @@
 
         <div class="message-box" id="message-display"></div>
         
+        <div class="mobile-accordion" id="found-accordion">
+            <div class="accordion-header" onclick="toggleAccordion()">
+                <span>Found Words (<span id="acc-count">0</span>/10)</span>
+                <span id="acc-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <ul class="accordion-list" id="accordion-list">
+                    <!-- Found words will appear here -->
+                </ul>
+            </div>
+        </div>
+
         <div class="word-display" id="word-input"></div>
 
         <div class="hexagon-container">
@@ -518,10 +616,7 @@
 
     const PUZZLES = [
         { center: 'A', outer: ['M', 'C', 'E', 'K', 'B', 'H'] },
-        { center: 'I', outer: ['K', 'T', 'A', 'B', 'S', 'Z'] },
-        { center: 'U', outer: ['M', 'B', 'A', 'N', 'Y', 'H'] },
-        { center: 'O', outer: ['M', 'J', 'A', 'I', 'K', 'L'] },
-        { center: 'E', outer: ['S', 'M', 'A', 'K', 'I', 'H'] }
+       
     ];
 
     let currentPuzzle = null;
@@ -536,7 +631,16 @@
     const rankEl = document.getElementById('rank-display');
     const foundListEl = document.getElementById('found-list');
     const countEl = document.getElementById('count-display');
+    const accCountEl = document.getElementById('acc-count');
+    const accListEl = document.getElementById('accordion-list');
     const hexGridEl = document.getElementById('hex-grid');
+
+    function toggleAccordion() {
+        const accordion = document.getElementById('found-accordion');
+        const icon = document.getElementById('acc-icon');
+        accordion.classList.toggle('active');
+        icon.textContent = accordion.classList.contains('active') ? '▲' : '▼';
+    }
 
     function initGame() {
         // Pick a puzzle based on date to keep it consistent for the day
@@ -643,6 +747,7 @@
     function updateStats() {
         scoreEl.textContent = score;
         countEl.textContent = foundWords.length;
+        if (accCountEl) accCountEl.textContent = foundWords.length;
         
         // Ranks
         const maxScore = validWordsInPuzzle.reduce((acc, w) => acc + (w.swahili.length === 4 ? 1 : w.swahili.length), 0);
@@ -659,10 +764,24 @@
 
     function updateFoundList() {
         foundListEl.innerHTML = '';
+        if (accListEl) accListEl.innerHTML = '';
+        
         foundWords.forEach(wordObj => {
             const li = document.createElement('li');
             li.innerHTML = `<strong>${wordObj.swahili}</strong> <span class="word-translation">(${wordObj.english})</span>`;
             foundListEl.appendChild(li);
+
+            if (accListEl) {
+                const accLi = document.createElement('li');
+                accLi.innerHTML = `
+                    <div class="word-info">
+                        <strong>${wordObj.swahili}</strong>
+                        <span class="word-translation">(${wordObj.english})</span>
+                    </div>
+                    <span class="check-mark">✓</span>
+                `;
+                accListEl.appendChild(accLi);
+            }
         });
     }
 
