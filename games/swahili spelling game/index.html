@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JDJ9TGXZ7Q"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-JDJ9TGXZ7Q');
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swahili Spelling Game - Learn Kiswahili Vocabulary</title>
+    <meta name="description" content="Play Swahili Spelling Bee! Challenge yourself to find as many Kiswahili words as possible using the given letters. Fun, addictive, and educational!">
+    <meta name="keywords" content="Swahili game, Kiswahili Spelling Bee, learn Kiswahili, Swahili vocabulary, educational game, African languages">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Bangers&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --background: #fdf6e3;
+            --surface: #ffffff;
+            --primary: #fbbf24;
+            --primary-dark: #f59e0b;
+            --secondary: #6366f1;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --success: #10b981;
+            --error: #ef4444;
+            --hex-bg: #e5e7eb;
+            --hex-hover: #d1d5db;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+        }
+
+        h1 {
+            font-family: 'Bangers', cursive;
+            color: var(--primary-dark);
+            font-size: 3rem;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        #game-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+        }
+
+        @media (max-width: 900px) {
+            #game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .main-game {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .stats-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .rank-info {
+            text-align: left;
+        }
+
+        .rank-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .rank-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .score-info {
+            text-align: right;
+        }
+
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .word-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+
+        .word-display:empty::after {
+            content: 'Type or click...';
+            color: var(--text-light);
+            font-size: 1.2rem;
+            letter-spacing: 0;
+            opacity: 0.5;
+        }
+
+        .message-box {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 0 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            opacity: 0;
+        }
+
+        .message-box.visible { opacity: 1; }
+        .message-box.success { background: #d1fae5; color: #065f46; }
+        .message-box.error { background: #fee2e2; color: #991b1b; }
+
+        .hexagon-container {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .hex-grid {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hexagon {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+
+        .hexagon:active { transform: scale(0.9); }
+
+        .hex-shape {
+            width: 100%;
+            height: 100%;
+            background: var(--hex-bg);
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .hexagon:hover .hex-shape { background: var(--hex-hover); }
+        .hexagon.center .hex-shape { background: var(--primary); }
+        .hexagon.center:hover .hex-shape { background: var(--primary-dark); }
+
+        /* Positioning hexagons */
+        .h-center { top: 105px; left: 105px; }
+        .h-top { top: 10px; left: 105px; }
+        .h-tr { top: 57px; left: 187px; }
+        .h-br { top: 153px; left: 187px; }
+        .h-bottom { top: 200px; left: 105px; }
+        .h-bl { top: 153px; left: 23px; }
+        .h-tl { top: 57px; left: 23px; }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: 2px solid #ddd;
+            background: white;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover { background: #f9fafb; border-color: #999; }
+        
+        .btn-primary {
+            background: var(--text);
+            color: white;
+            border-color: var(--text);
+        }
+
+        .btn-primary:hover {
+            background: #4b5563;
+            border-color: #4b5563;
+        }
+
+        .sidebar {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--background);
+        }
+
+        .found-words-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .found-words-list li {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            text-transform: uppercase;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .found-words-list li:first-child {
+            color: var(--secondary);
+            background: #f5f3ff;
+            border-radius: 5px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .modal.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+
+        .btn-large {
+            margin-top: 25px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 500px) {
+            h1 { font-size: 2.2rem; }
+            .hexagon-container { width: 260px; height: 260px; }
+            .hexagon { width: 80px; height: 80px; }
+            .h-center { top: 90px; left: 90px; }
+            .h-top { top: 5px; left: 90px; }
+            .h-tr { top: 48px; left: 165px; }
+            .h-br { top: 132px; left: 165px; }
+            .h-bottom { top: 175px; left: 90px; }
+            .h-bl { top: 132px; left: 15px; }
+            .h-tl { top: 48px; left: 15px; }
+            .controls { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Swahili Spelling Game</h1>
+    <p class="subtitle">Find as many Swahili words as you can!</p>
+</header>
+
+<div id="game-container">
+    <div class="main-game">
+        <div class="stats-bar">
+            <div class="rank-info">
+                <div class="rank-label">Rank</div>
+                <div class="rank-value" id="rank-display">Beginner</div>
+            </div>
+            <div class="score-info">
+                <div class="rank-label">Score</div>
+                <div class="score-value" id="score-display">0</div>
+            </div>
+        </div>
+
+        <div class="message-box" id="message-display"></div>
+        
+        <div class="word-display" id="word-input"></div>
+
+        <div class="hexagon-container">
+            <div class="hex-grid" id="hex-grid">
+                <!-- Hexagons will be injected here -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="deleteLetter()">Delete</button>
+            <button onclick="shuffleLetters()">🔄 Shuffle</button>
+            <button class="btn-primary" onclick="submitWord()">Enter</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Found Words (<span id="count-display">0</span>)</h2>
+        <ul class="found-words-list" id="found-list">
+            <!-- Words will appear here -->
+        </ul>
+    </div>
+</div>
+
+<div id="win-modal" class="modal">
+    <div class="modal-content">
+        <h2>BINGWA!</h2>
+        <p>You found all the possible words for this level!</p>
+        <p style="margin-top: 10px; font-weight: 600;">Final Score: <span id="final-score">0</span></p>
+        <button class="btn-primary btn-large" onclick="resetGame()">PLAY NEW PUZZLE</button>
+    </div>
+</div>
+
+<script>
+    // Swahili Word List
+    const KISWAHILI_WORDS = [
+        "baba", "mama", "kaka", "dada", "paka", "mbwa", "taka", "hapa", "pale",
+        "kule", "lala", "nana", "tano", "sita", "saba", "nane", "tisa", "kumi",
+        "maji", "nazi", "pesa", "basi", "hali", "rais", "sisi", "wiki", "vita",
+        "kazi", "wazi", "hizi", "huko", "yako", "yangu", "jina", "kina", "moja",
+        "mbili", "tatu", "nchi", "mchi", "chai", "aina", "asali", "baada", "nyama",
+        "shika", "amani", "barua", "bibi", "kitabu", "rafiki", "familia", "chakula",
+        "nyumbani", "shule", "habari", "safari", "bahari", "samaki", "ndege",
+        "tembo", "twiga", "simba", "cheza", "penda", "soma", "andika", "sema",
+        "sikia", "tazama", "kimya", "furaha", "uzuri", "jambo", "karibu", "kwaheri",
+        "mwalimu", "mwanafunzi", "marafiki", "watoto", "wazazi", "nyumba",
+        "shangazi", "mjomba", "kijana", "mzazi", "wasiwasi", "kama", "kaba", "chama",
+        "haba", "hama", "hema", "acha", "amka", "mamba", "baka", "bamba", "beba",
+        "beka", "bemba", "chacha", "chaka", "cheche", "kacha", "kamba", "kame", "kema"
+    ];
+
+    const PUZZLES = [
+        { center: 'A', outer: ['M', 'C', 'E', 'K', 'B', 'H'] },
+        { center: 'I', outer: ['K', 'T', 'A', 'B', 'S', 'Z'] },
+        { center: 'U', outer: ['M', 'B', 'A', 'N', 'Y', 'H'] },
+        { center: 'O', outer: ['M', 'J', 'A', 'I', 'K', 'L'] },
+        { center: 'E', outer: ['S', 'M', 'A', 'K', 'I', 'H'] }
+    ];
+
+    let currentPuzzle = null;
+    let currentWord = "";
+    let foundWords = [];
+    let score = 0;
+    let validWordsInPuzzle = [];
+
+    const wordInputEl = document.getElementById('word-input');
+    const messageEl = document.getElementById('message-display');
+    const scoreEl = document.getElementById('score-display');
+    const rankEl = document.getElementById('rank-display');
+    const foundListEl = document.getElementById('found-list');
+    const countEl = document.getElementById('count-display');
+    const hexGridEl = document.getElementById('hex-grid');
+
+    function initGame() {
+        // Pick a puzzle based on date to keep it consistent for the day
+        const now = new Date();
+        const start = new Date(now.getFullYear(), 0, 0);
+        const diff = now - start;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const dayOfYear = Math.floor(diff / oneDay);
+        
+        currentPuzzle = PUZZLES[dayOfYear % PUZZLES.length];
+        
+        // Find all valid words for this puzzle
+        const allLetters = [currentPuzzle.center.toLowerCase(), ...currentPuzzle.outer.map(l => l.toLowerCase())];
+        validWordsInPuzzle = KISWAHILI_WORDS.filter(word => {
+            if (word.length < 4) return false;
+            if (!word.includes(currentPuzzle.center.toLowerCase())) return false;
+            return word.split('').every(char => allLetters.includes(char));
+        });
+
+        renderHexagons();
+        updateStats();
+    }
+
+    function renderHexagons() {
+        hexGridEl.innerHTML = '';
+        
+        // Center
+        const centerHex = createHex(currentPuzzle.center, 'center h-center');
+        hexGridEl.appendChild(centerHex);
+
+        // Outer
+        const positions = ['h-top', 'h-tr', 'h-br', 'h-bottom', 'h-bl', 'h-tl'];
+        currentPuzzle.outer.forEach((letter, i) => {
+            const hex = createHex(letter, positions[i]);
+            hexGridEl.appendChild(hex);
+        });
+    }
+
+    function createHex(letter, className) {
+        const div = document.createElement('div');
+        div.className = `hexagon ${className}`;
+        div.innerHTML = `<div class="hex-shape">${letter}</div>`;
+        div.onclick = () => addLetter(letter);
+        return div;
+    }
+
+    function addLetter(letter) {
+        currentWord += letter;
+        wordInputEl.textContent = currentWord;
+    }
+
+    function deleteLetter() {
+        currentWord = currentWord.slice(0, -1);
+        wordInputEl.textContent = currentWord;
+    }
+
+    function shuffleLetters() {
+        const shuffled = [...currentPuzzle.outer].sort(() => Math.random() - 0.5);
+        currentPuzzle.outer = shuffled;
+        renderHexagons();
+    }
+
+    function submitWord() {
+        const word = currentWord.toLowerCase();
+        
+        if (word.length < 4) {
+            showMessage("Too short!", "error");
+        } else if (!word.includes(currentPuzzle.center.toLowerCase())) {
+            showMessage(`Missing center letter: ${currentPuzzle.center}!`, "error");
+        } else if (foundWords.includes(word)) {
+            showMessage("Already found!", "error");
+        } else if (validWordsInPuzzle.includes(word)) {
+            const points = word.length === 4 ? 1 : word.length;
+            score += points;
+            foundWords.unshift(word);
+            
+            showMessage(`Nice! +${points}`, "success");
+            updateStats();
+            updateFoundList();
+            
+            if (foundWords.length === validWordsInPuzzle.length) {
+                showWin();
+            }
+        } else {
+            showMessage("Not in word list!", "error");
+        }
+
+        currentWord = "";
+        wordInputEl.textContent = "";
+    }
+
+    function showMessage(text, type) {
+        messageEl.textContent = text;
+        messageEl.className = `message-box visible ${type}`;
+        setTimeout(() => {
+            messageEl.classList.remove('visible');
+        }, 2000);
+    }
+
+    function updateStats() {
+        scoreEl.textContent = score;
+        countEl.textContent = foundWords.length;
+        
+        // Ranks
+        const maxScore = validWordsInPuzzle.reduce((acc, w) => acc + (w.length === 4 ? 1 : w.length), 0);
+        const percent = maxScore > 0 ? (score / maxScore) * 100 : 0;
+        
+        let rank = "Beginner";
+        if (percent >= 70) rank = "Master (Bingwa)";
+        else if (percent >= 50) rank = "Great (Hodari)";
+        else if (percent >= 30) rank = "Solid (Mzuri)";
+        else if (percent >= 10) rank = "Moving Up";
+        
+        rankEl.textContent = rank;
+    }
+
+    function updateFoundList() {
+        foundListEl.innerHTML = '';
+        foundWords.forEach(word => {
+            const li = document.createElement('li');
+            li.textContent = word;
+            foundListEl.appendChild(li);
+        });
+    }
+
+    function showWin() {
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('win-modal').classList.add('active');
+    }
+
+    function resetGame() {
+        location.reload();
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') deleteLetter();
+        else if (e.key === 'Enter') submitWord();
+        else if (/^[a-zA-Z]$/.test(e.key)) {
+            const char = e.key.toUpperCase();
+            if (char === currentPuzzle.center || currentPuzzle.outer.includes(char)) {
+                addLetter(char);
+            }
+        }
+    });
+
+    initGame();
+</script>
+
+</body>
+</html>
