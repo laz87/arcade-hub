@@ -184,6 +184,14 @@
             font-size: 0.9rem;
             opacity: 0.7;
             transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .word-translation {
+            font-size: 0.75rem;
+            font-style: italic;
+            opacity: 0.6;
         }
 
         .word-item.found {
@@ -298,27 +306,82 @@
     const CATEGORIES = [
         {
             name: "Greetings",
-            words: ["HABARI", "JAMBO", "HODI", "KWAHERI", "ASANTE", "KARIBU", "SALAMA", "SHIKAMOO", "MARAHABA", "UMESHINDASHJE"],
+            words: [
+                { swahili: "HABARI", english: "News/How are you" },
+                { swahili: "JAMBO", english: "Hello" },
+                { swahili: "HODI", english: "May I come in" },
+                { swahili: "KWAHERI", english: "Goodbye" },
+                { swahili: "ASANTE", english: "Thank you" },
+                { swahili: "KARIBU", english: "Welcome" },
+                { swahili: "SALAMA", english: "Peaceful/Fine" },
+                { swahili: "SHIKAMOO", english: "Respectful greeting" },
+                { swahili: "MARAHABA", english: "Response to Shikamoo" },
+                { swahili: "UMESHINDASHJE", english: "How was your day" }
+            ],
             gridSize: 12
         },
         {
             name: "Family",
-            words: ["MAMA", "BABA", "KAKA", "DADA", "BABU", "BIBI", "MTOTO", "RAFIKI", "NDUGU", "JAMII"],
+            words: [
+                { swahili: "MAMA", english: "Mother" },
+                { swahili: "BABA", english: "Father" },
+                { swahili: "KAKA", english: "Brother" },
+                { swahili: "DADA", english: "Sister" },
+                { swahili: "BABU", english: "Grandfather" },
+                { swahili: "BIBI", english: "Grandmother" },
+                { swahili: "MTOTO", english: "Child" },
+                { swahili: "RAFIKI", english: "Friend" },
+                { swahili: "NDUGU", english: "Relative" },
+                { swahili: "JAMII", english: "Family/Community" }
+            ],
             gridSize: 12
         },
         {
             name: "Common Objects",
-            words: ["KITI", "MEZA", "KITABU", "KALAMU", "NYUMBA", "DIRISHA", "MLANGO", "SIMU", "CHAKULA", "MAJI"],
+            words: [
+                { swahili: "KITI", english: "Chair" },
+                { swahili: "MEZA", english: "Table" },
+                { swahili: "KITABU", english: "Book" },
+                { swahili: "KALAMU", english: "Pen/Pencil" },
+                { swahili: "NYUMBA", english: "House" },
+                { swahili: "DIRISHA", english: "Window" },
+                { swahili: "MLANGO", english: "Door" },
+                { swahili: "SIMU", english: "Phone" },
+                { swahili: "CHAKULA", english: "Food" },
+                { swahili: "MAJI", english: "Water" }
+            ],
             gridSize: 12
         },
         {
             name: "Animals",
-            words: ["SIMBA", "TEMBO", "TWIGA", "NYOKA", "NDEGE", "PURA", "MBWA", "KUKU", "SAMAKI", "DUDU"],
+            words: [
+                { swahili: "SIMBA", english: "Lion" },
+                { swahili: "TEMBO", english: "Elephant" },
+                { swahili: "TWIGA", english: "Giraffe" },
+                { swahili: "NYOKA", english: "Snake" },
+                { swahili: "NDEGE", english: "Bird" },
+                { swahili: "PURA", english: "Cat" },
+                { swahili: "MBWA", english: "Dog" },
+                { swahili: "KUKU", english: "Chicken" },
+                { swahili: "SAMAKI", english: "Fish" },
+                { swahili: "DUDU", english: "Insect" }
+            ],
             gridSize: 12
         },
         {
             name: "Places",
-            words: ["SHULE", "SOKO", "MJINI", "PWANI", "MSIKITI", "KANISA", "DUKA", "BARABARA", "BUSTANI", "SHAMBA"],
+            words: [
+                { swahili: "SHULE", english: "School" },
+                { swahili: "SOKO", english: "Market" },
+                { swahili: "MJINI", english: "Town" },
+                { swahili: "PWANI", english: "Coast" },
+                { swahili: "MSIKITI", english: "Mosque" },
+                { swahili: "KANISA", english: "Church" },
+                { swahili: "DUKA", english: "Shop" },
+                { swahili: "BARABARA", english: "Road" },
+                { swahili: "BUSTANI", english: "Garden" },
+                { swahili: "SHAMBA", english: "Farm" }
+            ],
             gridSize: 12
         }
     ];
@@ -356,7 +419,7 @@
     function loadCategory(index) {
         currentCategoryIndex = index;
         const cat = CATEGORIES[index];
-        wordsToFind = cat.words.map(w => w.toUpperCase());
+        wordsToFind = cat.words.map(w => w.swahili.toUpperCase());
         foundWords = [];
         gridSize = cat.gridSize;
         
@@ -462,10 +525,12 @@
 
     function renderWordList() {
         wordListEl.innerHTML = '';
-        wordsToFind.forEach(word => {
+        const cat = CATEGORIES[currentCategoryIndex];
+        cat.words.forEach(wordObj => {
+            const word = wordObj.swahili.toUpperCase();
             const li = document.createElement('li');
             li.className = 'word-item';
-            li.textContent = word;
+            li.innerHTML = `<strong>${word}</strong> <span class="word-translation">(${wordObj.english})</span>`;
             li.id = `word-${word}`;
             if (foundWords.includes(word)) li.classList.add('found');
             wordListEl.appendChild(li);
