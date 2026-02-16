@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JDJ9TGXZ7Q"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-JDJ9TGXZ7Q');
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swahili Vocabulary Quiz - Learn Kiswahili Fast</title>
+    <meta name="description" content="Test your Kiswahili skills with our Swahili Vocabulary Quiz! Learn common words and phrases in an interactive and fun way. AdSense compliant educational game.">
+    <meta name="keywords" content="Swahili quiz, learn Kiswahili, Swahili vocabulary, Kiswahili game, educational quiz, African languages">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --background: #F7FFF7;
+            --text: #2F2F2F;
+            --white: #FFFFFF;
+            --success: #6BCB77;
+            --error: #FF6B6B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            background: var(--white);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--secondary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-box {
+            margin-bottom: 30px;
+        }
+
+        .question-label {
+            font-size: 0.9rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .swahili-word {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: var(--white);
+            border: 2px solid #eee;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover {
+            border-color: var(--secondary);
+            background: #f0fdfa;
+        }
+
+        .option-btn.correct {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .option-btn.wrong {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .next-btn:active {
+            transform: scale(0.95);
+        }
+
+        .result-screen {
+            display: none;
+        }
+
+        .result-screen h2 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 8px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 auto 30px;
+        }
+
+        .restart-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        @media (max-width: 500px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 2rem; }
+            .swahili-word { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Swahili Vocabulary Quiz</h1>
+        <p>Master Kiswahili words one by one!</p>
+    </header>
+
+    <div class="container" id="quiz-container">
+        <!-- Quiz UI -->
+        <div id="game-ui">
+            <div class="stats">
+                <span>Question: <span id="current-q">1</span>/<span id="total-q">10</span></span>
+                <span>Score: <span id="score">0</span></span>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+
+            <div class="question-box">
+                <div class="question-label">What is the English for:</div>
+                <div class="swahili-word" id="swahili-word">RAFIKI</div>
+            </div>
+
+            <div class="options" id="options">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div class="controls" id="controls">
+                <button class="next-btn" onclick="nextQuestion()">NEXT QUESTION</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="result-screen" id="result-screen">
+            <h2>Well Done!</h2>
+            <div class="score-circle" id="final-score">8/10</div>
+            <p style="margin-bottom: 30px; font-size: 1.1rem;">You've completed the Swahili Vocabulary Quiz!</p>
+            <button class="restart-btn" onclick="restartGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const VOCABULARY = [
+            { s: "Rafiki", e: "Friend" },
+            { s: "Mama", e: "Mother" },
+            { s: "Baba", e: "Father" },
+            { s: "Shule", e: "School" },
+            { s: "Maji", e: "Water" },
+            { s: "Chakula", e: "Food" },
+            { s: "Kitabu", e: "Book" },
+            { s: "Nyumba", e: "House" },
+            { s: "Simba", e: "Lion" },
+            { s: "Tembo", e: "Elephant" },
+            { s: "Twiga", e: "Giraffe" },
+            { s: "Habari", e: "Hello/News" },
+            { s: "Asante", e: "Thank You" },
+            { s: "Karibu", e: "Welcome" },
+            { s: "Kwaheri", e: "Goodbye" },
+            { s: "Hodi", e: "Knock knock" },
+            { s: "Lala", e: "Sleep" },
+            { s: "Kula", e: "Eat" },
+            { s: "Soma", e: "Read/Study" },
+            { s: "Andika", e: "Write" },
+            { s: "Meza", e: "Table" },
+            { s: "Kiti", e: "Chair" },
+            { s: "Mwalimu", e: "Teacher" },
+            { s: "Mwanafunzi", e: "Student" },
+            { s: "Pesa", e: "Money" },
+            { s: "Soko", e: "Market" },
+            { s: "Duka", e: "Shop" },
+            { s: "Ndege", e: "Bird/Plane" },
+            { s: "Mti", e: "Tree" },
+            { s: "Maua", e: "Flowers" }
+        ];
+
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        const totalQ = 10;
+
+        function initQuiz() {
+            // Randomly select 10 questions
+            currentQuestions = [...VOCABULARY].sort(() => 0.5 - Math.random()).slice(0, totalQ);
+            currentIndex = 0;
+            score = 0;
+            answered = false;
+            
+            document.getElementById('game-ui').style.display = 'block';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('total-q').textContent = totalQ;
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            answered = false;
+            const question = currentQuestions[currentIndex];
+            
+            document.getElementById('current-q').textContent = currentIndex + 1;
+            document.getElementById('score').textContent = score;
+            document.getElementById('swahili-word').textContent = question.s.toUpperCase();
+            document.getElementById('controls').style.display = 'none';
+            
+            const progress = ((currentIndex) / totalQ) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+
+            // Generate options
+            let options = [question.e];
+            while (options.length < 4) {
+                const randomWord = VOCABULARY[Math.floor(Math.random() * VOCABULARY.length)].e;
+                if (!options.includes(randomWord)) {
+                    options.push(randomWord);
+                }
+            }
+            options.sort(() => 0.5 - Math.random());
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, btn) {
+            if (answered) return;
+            answered = true;
+            
+            const correct = currentQuestions[currentIndex].e;
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            if (selected === correct) {
+                btn.classList.add('correct');
+                score++;
+                document.getElementById('score').textContent = score;
+            } else {
+                btn.classList.add('wrong');
+                // Highlight correct answer
+                buttons.forEach(b => {
+                    if (b.textContent === correct) b.classList.add('correct');
+                });
+            }
+
+            document.getElementById('controls').style.display = 'block';
+            if (currentIndex === totalQ - 1) {
+                document.querySelector('.next-btn').textContent = "SEE RESULTS";
+            } else {
+                document.querySelector('.next-btn').textContent = "NEXT QUESTION";
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < totalQ) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('final-score').textContent = `${score}/${totalQ}`;
+            document.getElementById('progress').style.width = '100%';
+        }
+
+        function restartGame() {
+            initQuiz();
+        }
+
+        initQuiz();
+    </script>
+</body>
+</html>
