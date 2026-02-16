@@ -279,7 +279,16 @@
             text-transform: uppercase;
             font-weight: 600;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .word-translation {
+            font-size: 0.75rem;
+            font-style: italic;
+            opacity: 0.6;
+            text-transform: none;
+            font-weight: 400;
         }
 
         .found-words-list li:first-child {
@@ -399,21 +408,112 @@
 </div>
 
 <script>
-    // Swahili Word List
+    // Swahili Word List with English Translations
     const KISWAHILI_WORDS = [
-        "baba", "mama", "kaka", "dada", "paka", "mbwa", "taka", "hapa", "pale",
-        "kule", "lala", "nana", "tano", "sita", "saba", "nane", "tisa", "kumi",
-        "maji", "nazi", "pesa", "basi", "hali", "rais", "sisi", "wiki", "vita",
-        "kazi", "wazi", "hizi", "huko", "yako", "yangu", "jina", "kina", "moja",
-        "mbili", "tatu", "nchi", "mchi", "chai", "aina", "asali", "baada", "nyama",
-        "shika", "amani", "barua", "bibi", "kitabu", "rafiki", "familia", "chakula",
-        "nyumbani", "shule", "habari", "safari", "bahari", "samaki", "ndege",
-        "tembo", "twiga", "simba", "cheza", "penda", "soma", "andika", "sema",
-        "sikia", "tazama", "kimya", "furaha", "uzuri", "jambo", "karibu", "kwaheri",
-        "mwalimu", "mwanafunzi", "marafiki", "watoto", "wazazi", "nyumba",
-        "shangazi", "mjomba", "kijana", "mzazi", "wasiwasi", "kama", "kaba", "chama",
-        "haba", "hama", "hema", "acha", "amka", "mamba", "baka", "bamba", "beba",
-        "beka", "bemba", "chacha", "chaka", "cheche", "kacha", "kamba", "kame", "kema"
+        { swahili: "baba", english: "Father" },
+        { swahili: "mama", english: "Mother" },
+        { swahili: "kaka", english: "Brother" },
+        { swahili: "dada", english: "Sister" },
+        { swahili: "paka", english: "Cat" },
+        { swahili: "mbwa", english: "Dog" },
+        { swahili: "taka", english: "Want" },
+        { swahili: "hapa", english: "Here" },
+        { swahili: "pale", english: "There" },
+        { swahili: "kule", english: "Over there" },
+        { swahili: "lala", english: "Sleep" },
+        { swahili: "tano", english: "Five" },
+        { swahili: "sita", english: "Six" },
+        { swahili: "saba", english: "Seven" },
+        { swahili: "nane", english: "Eight" },
+        { swahili: "tisa", english: "Nine" },
+        { swahili: "kumi", english: "Ten" },
+        { swahili: "maji", english: "Water" },
+        { swahili: "nazi", english: "Coconut" },
+        { swahili: "pesa", english: "Money" },
+        { swahili: "basi", english: "Bus" },
+        { swahili: "hali", english: "Condition" },
+        { swahili: "rais", english: "President" },
+        { swahili: "sisi", english: "We" },
+        { swahili: "wiki", english: "Week" },
+        { swahili: "vita", english: "War" },
+        { swahili: "kazi", english: "Work" },
+        { swahili: "wazi", english: "Open" },
+        { swahili: "hizi", english: "These" },
+        { swahili: "huko", english: "There" },
+        { swahili: "yako", english: "Your" },
+        { swahili: "yangu", english: "My" },
+        { swahili: "jina", english: "Name" },
+        { swahili: "kina", english: "Depth" },
+        { swahili: "moja", english: "One" },
+        { swahili: "mbili", english: "Two" },
+        { swahili: "tatu", english: "Three" },
+        { swahili: "nchi", english: "Country" },
+        { swahili: "mchi", english: "Pestle" },
+        { swahili: "chai", english: "Tea" },
+        { swahili: "aina", english: "Type" },
+        { swahili: "asali", english: "Honey" },
+        { swahili: "baada", english: "After" },
+        { swahili: "nyama", english: "Meat" },
+        { swahili: "shika", english: "Hold" },
+        { swahili: "amani", english: "Peace" },
+        { swahili: "barua", english: "Letter" },
+        { swahili: "bibi", english: "Grandmother" },
+        { swahili: "kitabu", english: "Book" },
+        { swahili: "rafiki", english: "Friend" },
+        { swahili: "familia", english: "Family" },
+        { swahili: "chakula", english: "Food" },
+        { swahili: "nyumbani", english: "At home" },
+        { swahili: "shule", english: "School" },
+        { swahili: "habari", english: "News" },
+        { swahili: "safari", english: "Journey" },
+        { swahili: "bahari", english: "Ocean" },
+        { swahili: "samaki", english: "Fish" },
+        { swahili: "ndege", english: "Bird" },
+        { swahili: "tembo", english: "Elephant" },
+        { swahili: "twiga", english: "Giraffe" },
+        { swahili: "simba", english: "Lion" },
+        { swahili: "cheza", english: "Play" },
+        { swahili: "penda", english: "Love" },
+        { swahili: "soma", english: "Read" },
+        { swahili: "andika", english: "Write" },
+        { swahili: "sema", english: "Say" },
+        { swahili: "sikia", english: "Hear" },
+        { swahili: "tazama", english: "Watch" },
+        { swahili: "kimya", english: "Quiet" },
+        { swahili: "furaha", english: "Happiness" },
+        { swahili: "uzuri", english: "Beauty" },
+        { swahili: "jambo", english: "Issue" },
+        { swahili: "karibu", english: "Welcome" },
+        { swahili: "kwaheri", english: "Goodbye" },
+        { swahili: "mwalimu", english: "Teacher" },
+        { swahili: "mwanafunzi", english: "Student" },
+        { swahili: "marafiki", english: "Friends" },
+        { swahili: "watoto", english: "Children" },
+        { swahili: "wazazi", english: "Parents" },
+        { swahili: "nyumba", english: "House" },
+        { swahili: "shangazi", english: "Aunt" },
+        { swahili: "mjomba", english: "Uncle" },
+        { swahili: "kijana", english: "Youth" },
+        { swahili: "mzazi", english: "Parent" },
+        { swahili: "wasiwasi", english: "Worry" },
+        { swahili: "kama", english: "Like" },
+        { swahili: "kaba", english: "Tighten" },
+        { swahili: "chama", english: "Association" },
+        { swahili: "haba", english: "Few" },
+        { swahili: "hama", english: "Migrate" },
+        { swahili: "hema", english: "Tent" },
+        { swahili: "acha", english: "Leave" },
+        { swahili: "amka", english: "Wake up" },
+        { swahili: "mamba", english: "Crocodile" },
+        { swahili: "baka", english: "Stain" },
+        { swahili: "bamba", english: "Arrest" },
+        { swahili: "beba", english: "Carry" },
+        { swahili: "bemba", english: "Coax" },
+        { swahili: "chacha", english: "Ferment" },
+        { swahili: "chaka", english: "Bush" },
+        { swahili: "cheche", english: "Spark" },
+        { swahili: "kamba", english: "Rope" },
+        { swahili: "kame", english: "Arid" }
     ];
 
     const PUZZLES = [
@@ -450,7 +550,8 @@
         
         // Find all valid words for this puzzle
         const allLetters = [currentPuzzle.center.toLowerCase(), ...currentPuzzle.outer.map(l => l.toLowerCase())];
-        validWordsInPuzzle = KISWAHILI_WORDS.filter(word => {
+        validWordsInPuzzle = KISWAHILI_WORDS.filter(wordObj => {
+            const word = wordObj.swahili;
             if (word.length < 4) return false;
             if (!word.includes(currentPuzzle.center.toLowerCase())) return false;
             return word.split('').every(char => allLetters.includes(char));
@@ -506,22 +607,25 @@
             showMessage("Too short!", "error");
         } else if (!word.includes(currentPuzzle.center.toLowerCase())) {
             showMessage(`Missing center letter: ${currentPuzzle.center}!`, "error");
-        } else if (foundWords.includes(word)) {
+        } else if (foundWords.some(w => w.swahili === word)) {
             showMessage("Already found!", "error");
-        } else if (validWordsInPuzzle.includes(word)) {
-            const points = word.length === 4 ? 1 : word.length;
-            score += points;
-            foundWords.unshift(word);
-            
-            showMessage(`Nice! +${points}`, "success");
-            updateStats();
-            updateFoundList();
-            
-            if (foundWords.length === validWordsInPuzzle.length) {
-                showWin();
-            }
         } else {
-            showMessage("Not in word list!", "error");
+            const matchedWordObj = validWordsInPuzzle.find(w => w.swahili === word);
+            if (matchedWordObj) {
+                const points = word.length === 4 ? 1 : word.length;
+                score += points;
+                foundWords.unshift(matchedWordObj);
+                
+                showMessage(`Nice! +${points}`, "success");
+                updateStats();
+                updateFoundList();
+                
+                if (foundWords.length === validWordsInPuzzle.length) {
+                    showWin();
+                }
+            } else {
+                showMessage("Not in word list!", "error");
+            }
         }
 
         currentWord = "";
@@ -541,7 +645,7 @@
         countEl.textContent = foundWords.length;
         
         // Ranks
-        const maxScore = validWordsInPuzzle.reduce((acc, w) => acc + (w.length === 4 ? 1 : w.length), 0);
+        const maxScore = validWordsInPuzzle.reduce((acc, w) => acc + (w.swahili.length === 4 ? 1 : w.swahili.length), 0);
         const percent = maxScore > 0 ? (score / maxScore) * 100 : 0;
         
         let rank = "Beginner";
@@ -555,9 +659,9 @@
 
     function updateFoundList() {
         foundListEl.innerHTML = '';
-        foundWords.forEach(word => {
+        foundWords.forEach(wordObj => {
             const li = document.createElement('li');
-            li.textContent = word;
+            li.innerHTML = `<strong>${wordObj.swahili}</strong> <span class="word-translation">(${wordObj.english})</span>`;
             foundListEl.appendChild(li);
         });
     }
