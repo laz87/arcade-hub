@@ -14,7 +14,9 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Line Word Search</title>
+    <title>Swahili Word Search - Learn Kiswahili Vocabulary</title>
+    <meta name="description" content="Master Swahili vocabulary with this fun and interactive Swahili Word Search game. Find words related to family, greetings, animals, and more!">
+    <meta name="keywords" content="Swahili game, Kiswahili word search, learn Swahili, Swahili vocabulary, educational game, African languages">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Bangers&display=swap" rel="stylesheet">
@@ -257,8 +259,8 @@
 <body>
 
 <header>
-    <h1>GrandLine Word Search</h1>
-    <p class="subtitle">Find the hidden items from each One Piece Arc!</p>
+    <h1>Swahili Word Search</h1>
+    <p class="subtitle">Learn Kiswahili by finding the hidden words!</p>
 </header>
 
 <div id="game-container">
@@ -267,7 +269,7 @@
     </div>
 
     <div id="status-bar">
-        <div id="current-arc">Arc: Skypiea</div>
+        <div id="current-category">Category: Greetings</div>
         <div id="found-count">Found: 0/10</div>
     </div>
 
@@ -278,7 +280,7 @@
         </div>
 
         <div id="word-list-container">
-            <h2 id="list-title">Words to Find</h2>
+            <h2 id="list-title">Find these Swahili words</h2>
             <ul id="word-list"></ul>
         </div>
     </div>
@@ -286,42 +288,42 @@
 
 <div id="win-modal" class="modal">
     <div class="modal-content">
-        <h2 style="font-size: 3rem;">ARC CLEARED!</h2>
-        <p id="win-stats">You found all the words!</p>
-        <button class="btn-large" id="next-arc-btn">NEXT ARC</button>
+        <h2 style="font-size: 3rem;">WELL DONE!</h2>
+        <p id="win-stats">You found all the Swahili words!</p>
+        <button class="btn-large" id="next-category-btn">NEXT CATEGORY</button>
     </div>
 </div>
 
 <script>
-    const ARCS = [
+    const CATEGORIES = [
         {
-            name: "Skypiea",
-            words: ["JAYA", "ENEL", "SHANDORA", "MANTRA", "SHURA", "SATORI", "OHM", "GEDATSU", "MAXIM", "PIERRE"],
+            name: "Greetings",
+            words: ["HABARI", "JAMBO", "HODI", "KWAHERI", "ASANTE", "KARIBU", "SALAMA", "SHIKAMOO", "MARAHABA", "UMESHINDASHJE"],
             gridSize: 12
         },
         {
-            name: "Alabasta",
-            words: ["VIVI", "CROCODILE", "ROBIN", "CHAKA", "PELL", "KAROO", "KOZA", "IGARAM", "COBRA", "PLUTON"],
+            name: "Family",
+            words: ["MAMA", "BABA", "KAKA", "DADA", "BABU", "BIBI", "MTOTO", "RAFIKI", "NDUGU", "JAMII"],
             gridSize: 12
         },
         {
-            name: "Water 7",
-            words: ["FRANKY", "CP9", "GALLEYLA", "KOKORO", "LUCCI", "KALIFA", "KAKU", "BLUENO", "ICEBURG", "SOGEKING"],
+            name: "Common Objects",
+            words: ["KITI", "MEZA", "KITABU", "KALAMU", "NYUMBA", "DIRISHA", "MLANGO", "SIMU", "CHAKULA", "MAJI"],
             gridSize: 12
         },
         {
-            name: "Wano",
-            words: ["KAIDO", "ODEN", "MOMO", "YAMATO", "OROCHI", "SAMURAI", "ONIGASHIMA", "LUFFY", "MARCO", "SMILE"],
-            gridSize: 13
+            name: "Animals",
+            words: ["SIMBA", "TEMBO", "TWIGA", "NYOKA", "NDEGE", "PURA", "MBWA", "KUKU", "SAMAKI", "DUDU"],
+            gridSize: 12
         },
         {
-            name: "Marineford",
-            words: ["ACE", "WHITEBEARD", "AKAINU", "SENGOKU", "GARP", "BUGGY", "HANCOCK", "JIMBEI", "AOKIJI", "SHANKS"],
+            name: "Places",
+            words: ["SHULE", "SOKO", "MJINI", "PWANI", "MSIKITI", "KANISA", "DUKA", "BARABARA", "BUSTANI", "SHAMBA"],
             gridSize: 12
         }
     ];
 
-    let currentArcIndex = 0;
+    let currentCategoryIndex = 0;
     let grid = [];
     let wordsToFind = [];
     let foundWords = [];
@@ -334,32 +336,32 @@
     const wordListEl = document.getElementById('word-list');
     const levelSelectEl = document.getElementById('level-select');
     const foundCountEl = document.getElementById('found-count');
-    const currentArcEl = document.getElementById('current-arc');
+    const currentCategoryEl = document.getElementById('current-category');
     const winModal = document.getElementById('win-modal');
-    const nextArcBtn = document.getElementById('next-arc-btn');
+    const nextCategoryBtn = document.getElementById('next-category-btn');
     const canvas = document.getElementById('selection-canvas');
     const ctx = canvas.getContext('2d');
 
     function initLevelSelect() {
         levelSelectEl.innerHTML = '';
-        ARCS.forEach((arc, index) => {
+        CATEGORIES.forEach((cat, index) => {
             const btn = document.createElement('button');
-            btn.className = `level-btn ${index === currentArcIndex ? 'active' : ''}`;
-            btn.textContent = arc.name;
-            btn.onclick = () => loadArc(index);
+            btn.className = `level-btn ${index === currentCategoryIndex ? 'active' : ''}`;
+            btn.textContent = cat.name;
+            btn.onclick = () => loadCategory(index);
             levelSelectEl.appendChild(btn);
         });
     }
 
-    function loadArc(index) {
-        currentArcIndex = index;
-        const arc = ARCS[index];
-        wordsToFind = arc.words.map(w => w.toUpperCase());
+    function loadCategory(index) {
+        currentCategoryIndex = index;
+        const cat = CATEGORIES[index];
+        wordsToFind = cat.words.map(w => w.toUpperCase());
         foundWords = [];
-        gridSize = arc.gridSize;
+        gridSize = cat.gridSize;
         
         initLevelSelect();
-        currentArcEl.textContent = `Arc: ${arc.name}`;
+        currentCategoryEl.textContent = `Category: ${cat.name}`;
         updateFoundCount();
         generateGrid();
         renderGrid();
@@ -574,27 +576,27 @@
     }
 
     function showWin() {
-        document.getElementById('win-stats').textContent = `You cleared the ${ARCS[currentArcIndex].name} Arc!`;
+        document.getElementById('win-stats').textContent = `You cleared the ${CATEGORIES[currentCategoryIndex].name} category!`;
         winModal.classList.add('active');
         
-        if (currentArcIndex === ARCS.length - 1) {
-            nextArcBtn.textContent = "REPLAY ALL";
+        if (currentCategoryIndex === CATEGORIES.length - 1) {
+            nextCategoryBtn.textContent = "REPLAY ALL";
         } else {
-            nextArcBtn.textContent = "NEXT ARC";
+            nextCategoryBtn.textContent = "NEXT CATEGORY";
         }
     }
 
-    nextArcBtn.onclick = () => {
+    nextCategoryBtn.onclick = () => {
         winModal.classList.remove('active');
-        if (currentArcIndex === ARCS.length - 1) {
-            loadArc(0);
+        if (currentCategoryIndex === CATEGORIES.length - 1) {
+            loadCategory(0);
         } else {
-            loadArc(currentArcIndex + 1);
+            loadCategory(currentCategoryIndex + 1);
         }
     };
 
     // Initialize the first level
-    loadArc(0);
+    loadCategory(0);
 
     // Re-adjust canvas on window resize
     window.onresize = () => {

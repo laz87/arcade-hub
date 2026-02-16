@@ -454,7 +454,22 @@
     <h2 class="section-title">Featured Games</h2>
     <div class="games-grid" id="gamesGrid">
 
-<!--1. ani games tab-->        
+<!--1. swahili games tab-->   
+
+ <!-- Game 1: swahili word search -->
+        <div class="game-card" data-category="puzzle"
+             onclick="playGame('swahili word search')">
+            <div class="game-thumbnail"><img src="./images/gl wordsearch.webp" alt="swahili word search"></div>
+            <div class="game-info">
+                <div class="game-title">Swahili WordSearch</div>
+                <span class="game-category">puzzle</span>
+                <div class="game-stats">
+                    <span class="play-count">1K plays</span>
+                    <span class="rating">4.8</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Game new: Anime Mahjong -->
         <div class="game-card" data-category="new" onclick="playGame('anime mahjong')">
             <div class="game-thumbnail"><img src="./images/ani mahjong.webp" alt="anime mahjong"></div>
@@ -481,19 +496,7 @@
             </div>
         </div>
 
-        <!-- Game 1: grandline word search -->
-        <div class="game-card" data-category="anime"
-             onclick="playGame('grandline word search')">
-            <div class="game-thumbnail"><img src="./images/gl wordsearch.webp" alt="grandline word search"></div>
-            <div class="game-info">
-                <div class="game-title">Grandline WordSearch</div>
-                <span class="game-category">Anime</span>
-                <div class="game-stats">
-                    <span class="play-count">1K plays</span>
-                    <span class="rating">4.8</span>
-                </div>
-            </div>
-        </div>
+       
 
         <!-- ANISPIN -->
         <div class="game-card" data-category="anime"
@@ -760,7 +763,7 @@
         const gameUrls = {
             'anime mahjong': 'games/anime mahjong/index.html',
             'op links': 'games/op links/index.html',
-            'grandline word search': 'games/grandline word search/index.html',
+            'swahili word search': 'games/swahili word search/index.html',
             'ani spin': 'games/ani spin/index.html',
             'anime association': 'games/anime association/index.html',
             'anime slide': 'games/anime slide/index.html',
