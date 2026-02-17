@@ -14,7 +14,17 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Piece: Find the Connection</title>
+    <title>Learn Swahili Connections - Vocabulary Game</title>
+    <meta name="description" content="Play a colorful, mobile-friendly Swahili vocabulary game. Interface in English, words in Swahili with English translations in brackets. Learn by forming connections and score points.">
+    <meta name="keywords" content="Swahili, Kiswahili, vocabulary game, learn Swahili, word game, quiz, connections, language learning">
+    <meta property="og:title" content="Learn Swahili Connections - Vocabulary Game">
+    <meta property="og:description" content="Form groups of related Swahili words (with English translations) and score points. Mobile responsive and fun.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/images/vocabulary quiz.webp">
+    <meta property="og:url" content="https://your-domain.example/games/op%20links/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Learn Swahili Connections - Vocabulary Game">
+    <meta name="twitter:description" content="Interface in English. Content in Swahili. Learn by connecting words and earn points.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -54,6 +64,7 @@
         header { text-align: center; }
         h1 { margin: 0; color: var(--accent); font-size: 2.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
         p { margin-top: 0.5rem; font-weight: 500; }
+        #score { margin-top: 0.5rem; font-weight: 700; }
         #grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -252,8 +263,9 @@
 
 <div id="game-container">
     <header>
-        <h1>Find the Connection</h1>
-        <p>Create four groups of four!</p>
+        <h1>Learn Swahili Connections</h1>
+        <p>Form four groups of four related Swahili words. UI is in English; words are in Swahili with English translations in brackets.</p>
+        <div id="score">Score: 0</div>
     </header>
 
     <div id="feedback"></div>
@@ -409,6 +421,56 @@
         }
     ];
 
+    // Replace default puzzles with Swahili vocabulary puzzles (UI in English; content in Swahili with English translations)
+    const swPuzzles = [
+        {
+            name: "Beginner Nouns",
+            categories: [
+                { name: "Family", words: ["MAMA (Mother)", "BABA (Father)", "RAFIKI (Friend)", "MTOTO (Child)"], difficulty: "yellow" },
+                { name: "Places", words: ["SHULE (School)", "SOKO (Market)", "NYUMBA (House)", "HOSPITALI (Hospital)"], difficulty: "green" },
+                { name: "Animals", words: ["MBWA (Dog)", "PAKA (Cat)", "NDEGE (Bird)", "SAMAKI (Fish)"], difficulty: "blue" },
+                { name: "Colors", words: ["NYEKUNDU (Red)", "KIJANI (Green)", "MANJANO (Yellow)", "SAMAWATI (Blue)"], difficulty: "purple" }
+            ]
+        },
+        {
+            name: "Daily Basics",
+            categories: [
+                { name: "Common Verbs", words: ["KULA (Eat)", "KUNYWA (Drink)", "KUSOMA (Read)", "KUANDIKA (Write)"], difficulty: "yellow" },
+                { name: "Numbers", words: ["MOJA (One)", "MBILI (Two)", "TATU (Three)", "NNE (Four)"], difficulty: "green" },
+                { name: "Body Parts", words: ["MKONO (Arm)", "MGUU (Leg)", "JICHO (Eye)", "SIKIO (Ear)"], difficulty: "blue" },
+                { name: "Days", words: ["JUMATATU (Monday)", "JUMANNE (Tuesday)", "JUMATANO (Wednesday)", "ALHAMISI (Thursday)"], difficulty: "purple" }
+            ]
+        },
+        {
+            name: "Everyday Life",
+            categories: [
+                { name: "Food & Drink", words: ["MKATE (Bread)", "MAZIWA (Milk)", "MAJI (Water)", "MCHELE (Rice)"], difficulty: "yellow" },
+                { name: "Directions", words: ["KUSHOTO (Left)", "KULIA (Right)", "MBELE (Front)", "NYUMA (Back)"], difficulty: "green" },
+                { name: "Weather", words: ["MVUA (Rain)", "JUA (Sun)", "UPEPO (Wind)", "BARIDI (Cold)"], difficulty: "blue" },
+                { name: "Occupations", words: ["MWALIMU (Teacher)", "DAKTARI (Doctor)", "MKULIMA (Farmer)", "POLISI (Police Officer)"], difficulty: "purple" }
+            ]
+        },
+        {
+            name: "Home & Garden",
+            categories: [
+                { name: "Furniture", words: ["KITI (Chair)", "MEZA (Table)", "KITANDA (Bed)", "KABATI (Cupboard)"], difficulty: "yellow" },
+                { name: "Kitchenware", words: ["SAHANI (Plate)", "KIJIJI (Spoon)", "UMA (Fork)", "KIKOMBE (Cup)"], difficulty: "green" },
+                { name: "Garden", words: ["UA (Flower)", "MTI (Tree)", "MAJANI (Grass)", "UDONGO (Soil)"], difficulty: "blue" },
+                { name: "Cleaning", words: ["UFAGIO (Broom)", "SABUNI (Soap)", "MAJI (Water)", "TAULO (Towel)"], difficulty: "purple" }
+            ]
+        },
+        {
+            name: "Travel & Transport",
+            categories: [
+                { name: "Vehicles", words: ["GARI (Car)", "BASI (Bus)", "BAISKELI (Bicycle)", "PIKIPIKI (Motorcycle)"], difficulty: "yellow" },
+                { name: "Transport Hubs", words: ["UWANJA WA NDEGE (Airport)", "KITUO CHA BASI (Bus Station)", "BANDARI (Harbor)", "STASHENI (Station)"], difficulty: "green" },
+                { name: "Nature/Travel", words: ["MLIMA (Mountain)", "ZIRA (Island)", "PWANI (Coast)", "MSITU (Forest)"], difficulty: "blue" },
+                { name: "Essentials", words: ["PASIPOTI (Passport)", "TIKETI (Ticket)", "PESA (Money)", "MKANDA (Belt/Strap)"], difficulty: "purple" }
+            ]
+        }
+    ];
+    puzzles.splice(0, puzzles.length, ...swPuzzles);
+
     const gridEl = document.getElementById('grid');
     const mistakesEl = document.getElementById('mistakes');
     const shuffleBtn = document.getElementById('shuffle-btn');
@@ -418,6 +480,8 @@
     const victoryMessageEl = document.getElementById('victory-message');
     const victoryCategoryEl = document.getElementById('victory-category');
     const levelSelectEl = document.getElementById('level-select');
+    const scoreEl = document.getElementById('score');
+    let score = 0;
 
     const DIFFICULTY_COLORS = {
         yellow: "#f9df6d",
@@ -442,6 +506,8 @@
         victoryMessageEl.style.display = 'none';
         mistakesEl.style.display = 'flex';
         feedbackEl.textContent = '';
+        score = 0;
+        updateScoreUI();
 
         // Remove any play-again or next-puzzle buttons from previous games
         const existingNextBtn = document.getElementById('next-puzzle-btn');
@@ -581,6 +647,8 @@
     function handleCorrectGuess(category) {
         showFeedback("Correct!");
         foundCategories.push(category);
+        score += 25;
+        updateScoreUI();
         
         // Remove found words from gridWords
         gridWords = gridWords.filter(word => !category.words.includes(word));
@@ -599,6 +667,8 @@
     function handleIncorrectGuess() {
         mistakes++;
         updateMistakesUI();
+        score = Math.max(0, score - 5);
+        updateScoreUI();
         
         // Shake the incorrect tiles
         const selectedElements = document.querySelectorAll('.grid-item.selected');
@@ -720,7 +790,11 @@
             dots[i].style.backgroundColor = i < mistakes ? 'var(--destructive)' : '#d1d5db';
         }
     }
-
+    
+    function updateScoreUI() {
+        if (scoreEl) scoreEl.textContent = `Score: ${score}`;
+    }
+    
     function showFeedback(message) {
         feedbackEl.textContent = message;
         // Keep "One away" or "Not a connection" for a while
