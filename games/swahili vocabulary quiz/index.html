@@ -25,11 +25,29 @@
             --primary: #FF6B6B;
             --secondary: #4ECDC4;
             --accent: #FFE66D;
-            --background: #F7FFF7;
-            --text: #2F2F2F;
-            --white: #FFFFFF;
-            --success: #6BCB77;
-            --error: #FF6B6B;
+            --background: #f0f4f8;
+            --text: #2d3436;
+            --white: #ffffff;
+            --success: #00b894;
+            --error: #d63031;
+            --shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         * {
@@ -37,361 +55,478 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--background);
+            background: radial-gradient(circle at top right, #e0f2f1, #f0f4f8);
             color: var(--text);
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease-out;
         }
 
         h1 {
             font-family: 'Fredoka One', cursive;
             color: var(--primary);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 2.8rem;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.05);
+            margin-bottom: 5px;
         }
 
         .container {
             background: var(--white);
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            text-align: center;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 0.6s ease-out;
         }
 
-        .stats {
+        .stats-bar {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-weight: 600;
-            color: var(--text);
+            font-size: 0.9rem;
+            color: #636e72;
         }
 
-        .progress-bar {
+        .progress-container {
             width: 100%;
-            height: 10px;
+            height: 12px;
             background: #eee;
-            border-radius: 5px;
-            margin-bottom: 30px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            position: relative;
             overflow: hidden;
         }
 
-        .progress {
+        .progress-fill {
             height: 100%;
-            background: var(--secondary);
+            background: linear-gradient(90deg, var(--secondary), #00cec9);
             width: 0%;
-            transition: width 0.3s ease;
+            transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .question-box {
+        .timer-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: var(--primary);
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+
+        .question-area {
             margin-bottom: 30px;
         }
 
-        .question-label {
-            font-size: 0.9rem;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
+        .streak-badge {
+            display: inline-block;
+            background: var(--accent);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            transform: scale(0);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .streak-badge.active {
+            transform: scale(1);
         }
 
         .swahili-word {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 3rem;
+            font-weight: 800;
             color: var(--text);
-            margin-bottom: 10px;
+            margin: 10px 0;
+            letter-spacing: -1px;
         }
 
-        .options {
+        .options-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 12px;
         }
 
-        .option-btn {
-            background: var(--white);
-            border: 2px solid #eee;
-            padding: 15px;
-            border-radius: 12px;
+        .option-card {
+            background: #f8f9fa;
+            border: 2px solid #edeff2;
+            padding: 18px;
+            border-radius: 16px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            user-select: none;
         }
 
-        .option-btn:hover {
+        .option-card:hover:not(.disabled) {
             border-color: var(--secondary);
-            background: #f0fdfa;
+            background: #e0f7f6;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
-        .option-btn.correct {
+        .option-card:active:not(.disabled) {
+            transform: translateY(0);
+        }
+
+        .option-card.correct {
             background: var(--success);
             color: white;
             border-color: var(--success);
+            animation: pop 0.4s ease;
         }
 
-        .option-btn.wrong {
+        .option-card.wrong {
             background: var(--error);
             color: white;
             border-color: var(--error);
+            animation: shake 0.4s ease;
         }
 
-        .controls {
-            margin-top: 30px;
-            display: none;
+        .option-card.disabled {
+            cursor: default;
+            opacity: 0.7;
         }
 
-        .next-btn {
+        .feedback-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .start-screen, .result-screen {
+            text-align: center;
+        }
+
+        .btn-main {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 15px 40px;
-            border-radius: 30px;
+            padding: 16px 48px;
+            border-radius: 50px;
             font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-            transition: transform 0.2s;
-        }
-
-        .next-btn:active {
-            transform: scale(0.95);
-        }
-
-        .result-screen {
-            display: none;
-        }
-
-        .result-screen h2 {
-            font-family: 'Fredoka One', cursive;
-            font-size: 2.5rem;
-            color: var(--secondary);
-            margin-bottom: 20px;
-        }
-
-        .score-circle {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 8px solid var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
             font-weight: 700;
-            margin: 0 auto 30px;
-        }
-
-        .restart-btn {
-            background: var(--secondary);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 30px;
-            font-size: 1.2rem;
-            font-weight: 600;
             cursor: pointer;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+            transition: all 0.2s;
+            margin-top: 20px;
         }
 
-        @media (max-width: 500px) {
-            .options {
-                grid-template-columns: 1fr;
-            }
-            h1 { font-size: 2rem; }
-            .swahili-word { font-size: 2rem; }
+        .btn-main:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-main:active {
+            transform: translateY(-1px);
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 20px 0;
+        }
+
+        .high-score {
+            font-size: 0.9rem;
+            color: #95a5a6;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 400px) {
+            h1 { font-size: 2.2rem; }
+            .swahili-word { font-size: 2.2rem; }
+            .container { padding: 20px; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Swahili Vocabulary Quiz</h1>
-        <p>Master Kiswahili words one by one!</p>
+        <h1>Swahili Quest</h1>
+        <p>Master the language of the savannah!</p>
     </header>
 
-    <div class="container" id="quiz-container">
+    <div class="container" id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-screen">
+            <div style="font-size: 5rem; margin-bottom: 20px;">🌍</div>
+            <h2>Ready to Begin?</h2>
+            <p>15 seconds per question. Keep your streak alive!</p>
+            <button class="btn-main" onclick="startGame()">START GAME</button>
+            <div class="high-score" id="menu-high-score">High Score: 0</div>
+        </div>
+
         <!-- Quiz UI -->
-        <div id="game-ui">
-            <div class="stats">
-                <span>Question: <span id="current-q">1</span>/<span id="total-q">10</span></span>
-                <span>Score: <span id="score">0</span></span>
+        <div id="game-ui" style="display: none;">
+            <div class="stats-bar">
+                <span>Lv. <span id="level-val">1</span></span>
+                <span>🔥 <span id="streak-val">0</span></span>
+                <span>Score: <span id="score-val">0</span></span>
             </div>
             
-            <div class="progress-bar">
-                <div class="progress" id="progress"></div>
+            <div class="progress-container">
+                <div class="progress-fill" id="progress-fill"></div>
+                <div class="timer-bar" id="timer-bar"></div>
             </div>
 
-            <div class="question-box">
-                <div class="question-label">What is the English for:</div>
-                <div class="swahili-word" id="swahili-word">RAFIKI</div>
+            <div class="question-area">
+                <div class="streak-badge" id="streak-badge">COMBO x2</div>
+                <div style="font-size: 0.8rem; color: #aaa; text-transform: uppercase;">Translate:</div>
+                <div class="swahili-word" id="target-word">RAFIKI</div>
             </div>
 
-            <div class="options" id="options">
-                <!-- Options will be injected here -->
+            <div class="options-grid" id="options-grid">
+                <!-- Options injected by JS -->
             </div>
-
-            <div class="controls" id="controls">
-                <button class="next-btn" onclick="nextQuestion()">NEXT QUESTION</button>
-            </div>
+            
+            <div id="feedback-emoji" class="feedback-overlay">✅</div>
         </div>
 
         <!-- Result Screen -->
-        <div class="result-screen" id="result-screen">
-            <h2>Well Done!</h2>
-            <div class="score-circle" id="final-score">8/10</div>
-            <p style="margin-bottom: 30px; font-size: 1.1rem;">You've completed the Swahili Vocabulary Quiz!</p>
-            <button class="restart-btn" onclick="restartGame()">PLAY AGAIN</button>
+        <div id="result-screen" class="result-screen" style="display: none;">
+            <h2 id="result-title">Amazing!</h2>
+            <div class="score-display" id="final-score">0</div>
+            <p id="result-text">You're becoming a Swahili expert!</p>
+            <div class="high-score" id="result-high-score">High Score: 0</div>
+            <button class="btn-main" onclick="startGame()">TRY AGAIN</button>
         </div>
     </div>
 
     <script>
         const VOCABULARY = [
-            { s: "Rafiki", e: "Friend" },
-            { s: "Mama", e: "Mother" },
-            { s: "Baba", e: "Father" },
-            { s: "Shule", e: "School" },
-            { s: "Maji", e: "Water" },
-            { s: "Chakula", e: "Food" },
-            { s: "Kitabu", e: "Book" },
-            { s: "Nyumba", e: "House" },
-            { s: "Simba", e: "Lion" },
-            { s: "Tembo", e: "Elephant" },
-            { s: "Twiga", e: "Giraffe" },
-            { s: "Habari", e: "Hello/News" },
-            { s: "Asante", e: "Thank You" },
-            { s: "Karibu", e: "Welcome" },
-            { s: "Kwaheri", e: "Goodbye" },
-            { s: "Hodi", e: "Knock knock" },
-            { s: "Lala", e: "Sleep" },
-            { s: "Kula", e: "Eat" },
-            { s: "Soma", e: "Read/Study" },
-            { s: "Andika", e: "Write" },
-            { s: "Meza", e: "Table" },
-            { s: "Kiti", e: "Chair" },
-            { s: "Mwalimu", e: "Teacher" },
-            { s: "Mwanafunzi", e: "Student" },
-            { s: "Pesa", e: "Money" },
-            { s: "Soko", e: "Market" },
-            { s: "Duka", e: "Shop" },
-            { s: "Ndege", e: "Bird/Plane" },
-            { s: "Mti", e: "Tree" },
-            { s: "Maua", e: "Flowers" }
+            { s: "Rafiki", e: "Friend" }, { s: "Mama", e: "Mother" }, { s: "Baba", e: "Father" },
+            { s: "Shule", e: "School" }, { s: "Maji", e: "Water" }, { s: "Chakula", e: "Food" },
+            { s: "Kitabu", e: "Book" }, { s: "Nyumba", e: "House" }, { s: "Simba", e: "Lion" },
+            { s: "Tembo", e: "Elephant" }, { s: "Twiga", e: "Giraffe" }, { s: "Habari", e: "Hello/News" },
+            { s: "Asante", e: "Thank You" }, { s: "Karibu", e: "Welcome" }, { s: "Kwaheri", e: "Goodbye" },
+            { s: "Hodi", e: "Knock knock" }, { s: "Lala", e: "Sleep" }, { s: "Kula", e: "Eat" },
+            { s: "Soma", e: "Read/Study" }, { s: "Andika", e: "Write" }, { s: "Meza", e: "Table" },
+            { s: "Kiti", e: "Chair" }, { s: "Mwalimu", e: "Teacher" }, { s: "Mwanafunzi", e: "Student" },
+            { s: "Pesa", e: "Money" }, { s: "Soko", e: "Market" }, { s: "Duka", e: "Shop" },
+            { s: "Ndege", e: "Bird/Plane" }, { s: "Mti", e: "Tree" }, { s: "Maua", e: "Flowers" },
+            { s: "Jua", e: "Sun" }, { s: "Mwezi", e: "Moon/Month" }, { s: "Nyota", e: "Star" },
+            { s: "Bahari", e: "Sea/Ocean" }, { s: "Mlima", e: "Mountain" }, { s: "Mvua", e: "Rain" },
+            { s: "Upepo", e: "Wind" }, { s: "Moto", e: "Fire" }, { s: "Udongo", e: "Soil" },
+            { s: "Gari", e: "Car" }, { s: "Baiskeli", e: "Bicycle" }, { s: "Barabara", e: "Road" },
+            { s: "Mji", e: "City/Town" }, { s: "Kijiji", e: "Village" }, { s: "Nchi", e: "Country" }
         ];
 
-        let currentQuestions = [];
-        let currentIndex = 0;
-        let score = 0;
-        let answered = false;
+        let state = {
+            score: 0,
+            streak: 0,
+            level: 1,
+            currentIndex: 0,
+            questions: [],
+            timeLeft: 15,
+            timer: null,
+            canAnswer: true,
+            highScore: localStorage.getItem('swahili_highscore') || 0
+        };
 
-        const totalQ = 10;
+        const elements = {
+            start: document.getElementById('start-screen'),
+            game: document.getElementById('game-ui'),
+            result: document.getElementById('result-screen'),
+            word: document.getElementById('target-word'),
+            options: document.getElementById('options-grid'),
+            timer: document.getElementById('timer-bar'),
+            progress: document.getElementById('progress-fill'),
+            score: document.getElementById('score-val'),
+            streak: document.getElementById('streak-val'),
+            level: document.getElementById('level-val'),
+            badge: document.getElementById('streak-badge'),
+            feedback: document.getElementById('feedback-emoji'),
+            finalScore: document.getElementById('final-score'),
+            menuHigh: document.getElementById('menu-high-score'),
+            resultHigh: document.getElementById('result-high-score')
+        };
 
-        function initQuiz() {
-            // Randomly select 10 questions
-            currentQuestions = [...VOCABULARY].sort(() => 0.5 - Math.random()).slice(0, totalQ);
-            currentIndex = 0;
-            score = 0;
-            answered = false;
-            
-            document.getElementById('game-ui').style.display = 'block';
-            document.getElementById('result-screen').style.display = 'none';
-            document.getElementById('total-q').textContent = totalQ;
-            
-            showQuestion();
+        function updateHighScores() {
+            elements.menuHigh.textContent = `High Score: ${state.highScore}`;
+            elements.resultHigh.textContent = `High Score: ${state.highScore}`;
         }
 
-        function showQuestion() {
-            answered = false;
-            const question = currentQuestions[currentIndex];
+        function startGame() {
+            state.score = 0;
+            state.streak = 0;
+            state.level = 1;
+            state.currentIndex = 0;
+            state.questions = [...VOCABULARY].sort(() => 0.5 - Math.random()).slice(0, 15);
             
-            document.getElementById('current-q').textContent = currentIndex + 1;
-            document.getElementById('score').textContent = score;
-            document.getElementById('swahili-word').textContent = question.s.toUpperCase();
-            document.getElementById('controls').style.display = 'none';
+            elements.start.style.display = 'none';
+            elements.result.style.display = 'none';
+            elements.game.style.display = 'block';
             
-            const progress = ((currentIndex) / totalQ) * 100;
-            document.getElementById('progress').style.width = progress + '%';
-
-            // Generate options
-            let options = [question.e];
-            while (options.length < 4) {
-                const randomWord = VOCABULARY[Math.floor(Math.random() * VOCABULARY.length)].e;
-                if (!options.includes(randomWord)) {
-                    options.push(randomWord);
-                }
-            }
-            options.sort(() => 0.5 - Math.random());
-
-            const optionsContainer = document.getElementById('options');
-            optionsContainer.innerHTML = '';
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = opt;
-                btn.onclick = () => checkAnswer(opt, btn);
-                optionsContainer.appendChild(btn);
-            });
-        }
-
-        function checkAnswer(selected, btn) {
-            if (answered) return;
-            answered = true;
-            
-            const correct = currentQuestions[currentIndex].e;
-            const buttons = document.querySelectorAll('.option-btn');
-            
-            if (selected === correct) {
-                btn.classList.add('correct');
-                score++;
-                document.getElementById('score').textContent = score;
-            } else {
-                btn.classList.add('wrong');
-                // Highlight correct answer
-                buttons.forEach(b => {
-                    if (b.textContent === correct) b.classList.add('correct');
-                });
-            }
-
-            document.getElementById('controls').style.display = 'block';
-            if (currentIndex === totalQ - 1) {
-                document.querySelector('.next-btn').textContent = "SEE RESULTS";
-            } else {
-                document.querySelector('.next-btn').textContent = "NEXT QUESTION";
-            }
+            updateHighScores();
+            nextQuestion();
         }
 
         function nextQuestion() {
-            currentIndex++;
-            if (currentIndex < totalQ) {
-                showQuestion();
-            } else {
-                showResults();
+            if (state.currentIndex >= state.questions.length) {
+                return endGame();
             }
+
+            state.canAnswer = true;
+            state.timeLeft = 15;
+            const q = state.questions[state.currentIndex];
+            
+            elements.word.textContent = q.s.toUpperCase();
+            elements.score.textContent = state.score;
+            elements.streak.textContent = state.streak;
+            elements.level.textContent = Math.floor(state.currentIndex / 3) + 1;
+            elements.progress.style.width = `${(state.currentIndex / state.questions.length) * 100}%`;
+            
+            // Generate options
+            let opts = [q.e];
+            while (opts.length < 4) {
+                const r = VOCABULARY[Math.floor(Math.random() * VOCABULARY.length)].e;
+                if (!opts.includes(r)) opts.push(r);
+            }
+            opts.sort(() => 0.5 - Math.random());
+
+            elements.options.innerHTML = '';
+            opts.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'option-card';
+                div.textContent = opt;
+                div.onclick = () => checkAnswer(opt, div);
+                elements.options.appendChild(div);
+            });
+
+            startTimer();
         }
 
-        function showResults() {
-            document.getElementById('game-ui').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'block';
-            document.getElementById('final-score').textContent = `${score}/${totalQ}`;
-            document.getElementById('progress').style.width = '100%';
+        function startTimer() {
+            clearInterval(state.timer);
+            elements.timer.style.width = '100%';
+            elements.timer.style.background = 'var(--primary)';
+            
+            state.timer = setInterval(() => {
+                state.timeLeft -= 0.1;
+                const percent = (state.timeLeft / 15) * 100;
+                elements.timer.style.width = `${percent}%`;
+                
+                if (state.timeLeft <= 5) {
+                    elements.timer.style.background = '#e74c3c';
+                }
+
+                if (state.timeLeft <= 0) {
+                    clearInterval(state.timer);
+                    handleTimeout();
+                }
+            }, 100);
         }
 
-        function restartGame() {
-            initQuiz();
+        function handleTimeout() {
+            if (!state.canAnswer) return;
+            state.streak = 0;
+            showFeedback('⏰', false);
+            revealCorrect();
+            setTimeout(proceed, 1500);
         }
 
-        initQuiz();
+        function checkAnswer(selected, el) {
+            if (!state.canAnswer) return;
+            state.canAnswer = false;
+            clearInterval(state.timer);
+
+            const correct = state.questions[state.currentIndex].e;
+            const isCorrect = selected === correct;
+
+            if (isCorrect) {
+                state.streak++;
+                const bonus = Math.floor(state.streak / 3);
+                state.score += 10 + (bonus * 5);
+                el.classList.add('correct');
+                showFeedback('✅', true);
+                
+                if (state.streak >= 3) {
+                    elements.badge.textContent = `COMBO x${Math.floor(state.streak/3) + 1}`;
+                    elements.badge.classList.add('active');
+                }
+            } else {
+                state.streak = 0;
+                el.classList.add('wrong');
+                elements.badge.classList.remove('active');
+                revealCorrect();
+                showFeedback('❌', false);
+            }
+
+            setTimeout(proceed, 1200);
+        }
+
+        function revealCorrect() {
+            const correct = state.questions[state.currentIndex].e;
+            Array.from(elements.options.children).forEach(child => {
+                child.classList.add('disabled');
+                if (child.textContent === correct) {
+                    child.classList.add('correct');
+                }
+            });
+        }
+
+        function showFeedback(emoji, success) {
+            elements.feedback.textContent = emoji;
+            elements.feedback.style.opacity = '1';
+            elements.feedback.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            
+            setTimeout(() => {
+                elements.feedback.style.opacity = '0';
+                elements.feedback.style.transform = 'translate(-50%, -50%) scale(0.5)';
+            }, 800);
+        }
+
+        function proceed() {
+            state.currentIndex++;
+            nextQuestion();
+        }
+
+        function endGame() {
+            elements.game.style.display = 'none';
+            elements.result.style.display = 'block';
+            elements.finalScore.textContent = state.score;
+            
+            if (state.score > state.highScore) {
+                state.highScore = state.score;
+                localStorage.setItem('swahili_highscore', state.highScore);
+                elements.resultTitle.textContent = "NEW HIGH SCORE!";
+            } else {
+                elements.resultTitle.textContent = state.score > 100 ? "Incredible!" : "Good Effort!";
+            }
+            
+            updateHighScores();
+        }
+
+        updateHighScores();
     </script>
 </body>
 </html>
