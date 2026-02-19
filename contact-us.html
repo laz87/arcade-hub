@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us | GameLet</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#ffffff">
+  <style>
+    body { font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; background:#f8f9fa; color:#333; }
+    header { background:#ffda00; padding:16px 20px; }
+    header a { color:#000; text-decoration:none; font-weight:900; font-size:1.4rem; }
+    main { max-width: 900px; margin: 30px auto; background:#fff; padding: 24px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    h1 { font-size:1.6rem; margin:0 0 12px; }
+    label { display:block; margin:12px 0 6px; font-weight:600; }
+    input, textarea { width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; font-size:1rem; }
+    button { margin-top:12px; background:#ffda00; border:none; padding:10px 16px; font-weight:800; border-radius:8px; cursor:pointer; }
+    .note { font-size:0.92rem; color:#555; }
+    footer { background:#fff; border-top:1px solid #e0e0e0; color:#5f6368; text-align:center; padding:24px 16px; margin-top:30px; }
+    .footer-links a { color:#1a0dab; text-decoration:none; margin:0 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="./">GameLet</a>
+  </header>
+  <main>
+    <h1>Contact Us</h1>
+    <p>You can reach us any time at <a href="mailto:habarikamusi@gmail.com">habarikamusi@gmail.com</a>. We typically respond within 1 business days.</p>
+
+    <h2>Send a Message</h2>
+    <p class="note">This form uses your email client to send us a message. Alternatively, email us directly.</p>
+    <form action="mailto:habarikamusi87@gmail.com" method="post" enctype="text/plain">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="6" required></textarea>
+
+      <button type="submit">Send</button>
+    </form>
+  </main>
+  <footer>
+    <div class="footer-links">
+      <a href="./about-us.html">About Us</a> •
+      <a href="./contact-us.html">Contact Us</a> •
+      <a href="./terms-of-service.html">Terms of Service</a> •
+      <a href="./privacy-policy.html">Privacy Policy</a>
+    </div>
+    <div style="margin-top:8px">&copy; 2026 GameLet</div>
+  </footer>
+</body>
+</html>
