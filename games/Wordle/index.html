@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Swahili Wordle - Word Master</title>
+<meta name="description" content="Ultimate Swahili Wordle challenge! Guess the 5-letter word, earn streaks, and climb the ranks. Fun Kiswahili learning.">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --primary: #38bdf8;
+    --secondary: #fbbf24;
+    --accent: #f472b6;
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --error: #f87171;
+    --absent: #334155;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Quicksand', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 40%);
+  }
+
+  /* Animations */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  .shake { animation: shake 0.2s ease-in-out 0s 2; }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+  @keyframes flip {
+    0% { transform: rotateX(0deg); }
+    50% { transform: rotateX(-90deg); }
+    100% { transform: rotateX(0deg); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Layout */
+  .game-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-grow: 1;
+  }
+
+  header {
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    color: var(--secondary);
+    text-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    margin-bottom: 4px;
+  }
+
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  /* Board Area */
+  #board {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    margin: 10px 0;
+  }
+
+  .row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .tile {
+    width: 55px;
+    height: 55px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .tile.filled {
+    border-color: var(--text-muted);
+    transform: scale(1.05);
+  }
+
+  .tile.correct { background: var(--success); border-color: var(--success); color: white; }
+  .tile.present { background: var(--warning); border-color: var(--warning); color: white; }
+  .tile.absent { background: var(--absent); border-color: var(--absent); color: var(--text-muted); }
+
+  .tile.flip { animation: flip 0.5s ease forwards; }
+
+  /* Hint Display */
+  .hint-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .hint-label {
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: block;
+  }
+  #hint-text {
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  /* Keyboard */
+  #keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: auto;
+  }
+  .kb-row {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+  }
+  .key {
+    height: 50px;
+    min-width: 32px;
+    padding: 0 5px;
+    border-radius: 6px;
+    border: none;
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    border-bottom: 3px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .key:active { transform: translateY(2px); border-bottom-width: 1px; }
+  .key.wide { min-width: 50px; font-size: 0.8rem; }
+  
+  .key.correct { background: var(--success); border-bottom-color: #16a34a; }
+  .key.present { background: var(--warning); border-bottom-color: #d97706; }
+  .key.absent { background: var(--absent); border-bottom-color: #1e293b; opacity: 0.5; }
+
+  /* Buttons */
+  .btn {
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    width: 100%;
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-primary { background: var(--success); color: white; font-size: 1.1rem; }
+
+  /* Modals */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    padding: 20px;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 400px;
+    border-radius: 24px;
+    padding: 40px 30px;
+    text-align: center;
+    border: 2px solid var(--border);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .overlay.active .modal { transform: scale(1); }
+
+  .score-display {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin: 10px 0;
+    font-family: 'Fredoka One', cursive;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; gap: 20px; }
+
+  #feedback-toast {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50px);
+    padding: 12px 24px;
+    border-radius: 100px;
+    background: var(--surface);
+    color: white;
+    font-weight: 700;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 2000;
+    pointer-events: none;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  #feedback-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Responsive Adjustments */
+  @media (max-width: 400px) {
+    .tile { width: 48px; height: 48px; font-size: 1.5rem; }
+    .key { height: 45px; min-width: 28px; font-size: 0.8rem; }
+    h1 { font-size: 2rem; }
+    .game-container { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <!-- Start Screen -->
+  <div id="start-screen" class="screen active">
+    <header style="margin-top: 40px;">
+      <div style="font-size: 4rem; animation: float 3s ease-in-out infinite;">🦁</div>
+      <h1>Swahili Wordle</h1>
+      <p style="color: var(--text-muted)">Master Kiswahili words daily</p>
+    </header>
+    
+    <div class="stat-item" style="margin-top: auto; padding: 20px;">
+      <div class="stat-label">Best Win Streak</div>
+      <div id="best-streak-main" class="score-display" style="font-size: 2.5rem; margin: 10px 0;">0</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showGame()" style="padding: 20px;">PLAY NOW 🚀</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <div class="stat-bar">
+      <div class="stat-item">
+        <div class="stat-label">Streak</div>
+        <div id="streak-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Best</div>
+        <div id="best-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Wins</div>
+        <div id="wins-val" class="stat-value">0</div>
+      </div>
+    </div>
+
+    <div id="board"></div>
+
+    <div class="hint-container">
+      <span class="hint-label">💡 Clue</span>
+      <div id="hint-text">Waiting for guess...</div>
+    </div>
+
+    <div id="keyboard"></div>
+
+    <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+      <button class="btn btn-secondary" onclick="useHint()">Get a Hint (Reveal letter) 💡</button>
+    </div>
+  </div>
+</div>
+
+<!-- End Modal -->
+<div id="end-modal" class="overlay">
+  <div class="modal">
+    <h2 id="end-title">Excellent!</h2>
+    <div id="end-word" class="score-display" style="font-size: 2.5rem; letter-spacing: 5px;"></div>
+    <p id="end-meaning" style="margin-bottom: 30px; color: var(--text-muted);"></p>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Win Rate</div>
+        <div id="end-rate" class="stat-value">100%</div>
+      </div>
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Streak</div>
+        <div id="end-streak" class="stat-value">0</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="initGame()">PLAY AGAIN 🔄</button>
+    <button class="btn btn-secondary" onclick="showStart()" style="margin-top: 10px; width: 100%; box-shadow: none; border: none;">Home</button>
+  </div>
+</div>
+
+<div id="feedback-toast"></div>
+
+<script>
+const WORDS = [
+  { word: "AMANI", meaning: "Peace" },
+  { word: "BABA", meaning: "Father (short version of word often used)" },
+  { word: "MAMA", meaning: "Mother" },
+  { word: "NDOTO", meaning: "Dream" },
+  { word: "IMARA", meaning: "Strong / Firm" },
+  { word: "NJEMA", meaning: "Good / Fine" },
+  { word: "RAFIK", meaning: "Friend (Base: Rafiki)" },
+  { word: "ELIMU", meaning: "Education" },
+  { word: "SAMAK", meaning: "Fish (Base: Samaki)" },
+  { word: "SHULE", meaning: "School" },
+  { word: "MWILI", meaning: "Body" },
+  { word: "PUMZI", meaning: "Breath" },
+  { word: "RANGI", meaning: "Color" },
+  { word: "UHURU", meaning: "Freedom / Liberty" },
+  { word: "FURAHA", meaning: "Happiness (Base for Fun)" },
+  { word: "UPEND", meaning: "Love (Base: Upendo)" },
+  { word: "CHAFU", meaning: "Dirty" },
+  { word: "NYOTA", meaning: "Star" },
+  { word: "KUKU", meaning: "Chicken (Common 4 letter)" },
+  { word: "TEMBO", meaning: "Elephant" },
+  { word: "SIMBA", meaning: "Lion" },
+  { word: "MWEZI", meaning: "Moon / Month" },
+  { word: "MOTO", meaning: "Fire (Common 4)" },
+  { word: "ASALI", meaning: "Honey" },
+  { word: "BONDE", meaning: "Valley" },
+  { word: "KICHO", meaning: "Awe / Fear" },
+  { word: "MOYO", meaning: "Heart (Common 4)" },
+  { word: "BAYA", meaning: "Bad" },
+  { word: "KITI", meaning: "Chair (Common 4)" },
+  { word: "MKATE", meaning: "Bread" },
+  { word: "SAMAA", meaning: "Forgive / Sky" },
+  { word: "TAARI", meaning: "Warning" },
+  { word: "UPEPO", meaning: "Wind" },
+  { word: "ZITO", meaning: "Heavy" },
+  { word: "YUMBA", meaning: "Sway / Totter" },
+  { word: "NYOKA", meaning: "Snake" },
+  { word: "MAJI", meaning: "Water" },
+  { word: "CHINI", meaning: "Below" },
+  { word: "DUNIA", meaning: "World" },
+  { word: "BADO", meaning: "Still / Yet" }
+];
+
+// Clean WORDS to exactly 5 letters for Wordle compatibility
+const CLEAN_WORDS = WORDS.map(w => ({
+  word: w.word.padEnd(5, 'A').substring(0, 5).toUpperCase(),
+  meaning: w.meaning
+}));
+
+let state = {
+  streak: parseInt(localStorage.getItem('sw_wordle_streak') || '0'),
+  best: parseInt(localStorage.getItem('sw_wordle_best') || '0'),
+  wins: parseInt(localStorage.getItem('sw_wordle_wins') || '0'),
+  totalGames: parseInt(localStorage.getItem('sw_wordle_total') || '0'),
+  currentRow: 0,
+  currentCol: 0,
+  board: [],
+  target: null,
+  isLocked: false,
+  keyStates: {}
+};
+
+function showStart() {
+  hideAllScreens();
+  document.getElementById('start-screen').classList.add('active');
+  document.getElementById('best-streak-main').textContent = state.best;
+}
+
+function showGame() {
+  hideAllScreens();
+  document.getElementById('game-screen').classList.add('active');
+  initGame();
+}
+
+function hideAllScreens() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('end-modal').classList.remove('active');
+}
+
+function initGame() {
+  state.currentRow = 0;
+  state.currentCol = 0;
+  state.isLocked = false;
+  state.keyStates = {};
+  state.target = CLEAN_WORDS[Math.floor(Math.random() * CLEAN_WORDS.length)];
+  
+  updateStats();
+  buildBoard();
+  buildKeyboard();
+  document.getElementById('hint-text').textContent = "Ready? Start guessing!";
+  document.getElementById('end-modal').classList.remove('active');
+}
+
+function buildBoard() {
+  const container = document.getElementById('board');
+  container.innerHTML = '';
+  state.board = [];
+  for (let r = 0; r < 6; r++) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    state.board[r] = [];
+    for (let c = 0; c < 5; c++) {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      row.appendChild(tile);
+      state.board[r][c] = { el: tile, letter: '' };
+    }
+    container.appendChild(row);
+  }
+}
+
+function buildKeyboard() {
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  const rows = [
+    ['Q','W','E','R','T','Y','U','I','O','P'],
+    ['A','S','D','F','G','H','J','K','L'],
+    ['ENTER', 'Z','X','C','V','B','N','M', '⌫']
+  ];
+
+  rows.forEach(row => {
+    const rEl = document.createElement('div');
+    rEl.className = 'kb-row';
+    row.forEach(key => {
+      const btn = document.createElement('button');
+      btn.className = 'key' + (key.length > 1 ? ' wide' : '');
+      btn.textContent = key;
+      btn.dataset.key = key;
+      btn.onclick = () => handleInput(key);
+      rEl.appendChild(btn);
+    });
+    kb.appendChild(rEl);
+  });
+}
+
+function handleInput(key) {
+  if (state.isLocked) return;
+
+  if (key === 'ENTER') {
+    submitGuess();
+  } else if (key === '⌫' || key === 'BACKSPACE') {
+    if (state.currentCol > 0) {
+      state.currentCol--;
+      const tile = state.board[state.currentRow][state.currentCol];
+      tile.letter = '';
+      tile.el.textContent = '';
+      tile.el.classList.remove('filled');
+    }
+  } else if (key.length === 1 && /^[A-Z]$/.test(key)) {
+    if (state.currentCol < 5) {
+      const tile = state.board[state.currentRow][state.currentCol];
+      tile.letter = key;
+      tile.el.textContent = key;
+      tile.el.classList.add('filled', 'pop');
+      setTimeout(() => tile.el.classList.remove('pop'), 200);
+      state.currentCol++;
+    }
+  }
+}
+
+function submitGuess() {
+  if (state.currentCol < 5) {
+    shakeRow();
+    showToast("Need 5 letters!");
+    return;
+  }
+
+  const guess = state.board[state.currentRow].map(t => t.letter).join('');
+  revealRow(guess);
+}
+
+function revealRow(guess) {
+  state.isLocked = true;
+  const target = state.target.word;
+  const result = Array(5).fill('absent');
+  const targetChars = target.split('');
+  const guessChars = guess.split('');
+
+  // 1st pass: Corrects
+  for (let i = 0; i < 5; i++) {
+    if (guessChars[i] === targetChars[i]) {
+      result[i] = 'correct';
+      targetChars[i] = null;
+      guessChars[i] = null;
+    }
+  }
+
+  // 2nd pass: Presents
+  for (let i = 0; i < 5; i++) {
+    if (guessChars[i] && targetChars.includes(guessChars[i])) {
+      result[i] = 'present';
+      targetChars[targetChars.indexOf(guessChars[i])] = null;
+    }
+  }
+
+  state.board[state.currentRow].forEach((tile, i) => {
+    setTimeout(() => {
+      tile.el.classList.add('flip');
+      setTimeout(() => {
+        tile.el.classList.add(result[i]);
+        updateKeyUI(tile.letter, result[i]);
+      }, 250);
+    }, i * 150);
+  });
+
+  setTimeout(() => {
+    if (guess === target) {
+      handleWin();
+    } else if (state.currentRow >= 5) {
+      handleLoss();
+    } else {
+      state.currentRow++;
+      state.currentCol = 0;
+      state.isLocked = false;
+      document.getElementById('hint-text').textContent = state.target.meaning;
+    }
+  }, 1200);
+}
+
+function handleWin() {
+  state.wins++;
+  state.streak++;
+  state.totalGames++;
+  if (state.streak > state.best) state.best = state.streak;
+  saveStats();
+  updateStats();
+  
+  // Celebration bounce
+  state.board[state.currentRow].forEach((t, i) => {
+    setTimeout(() => t.el.style.transform = 'translateY(-10px)', i * 100);
+    setTimeout(() => t.el.style.transform = 'translateY(0)', i * 100 + 200);
+  });
+
+  setTimeout(() => {
+    showEnd(true);
+  }, 1000);
+}
+
+function handleLoss() {
+  state.streak = 0;
+  state.totalGames++;
+  saveStats();
+  updateStats();
+  showEnd(false);
+}
+
+function showEnd(won) {
+  document.getElementById('end-title').textContent = won ? "🎉 Safi Sana!" : "😔 Pole sana...";
+  document.getElementById('end-word').textContent = state.target.word;
+  document.getElementById('end-word').style.color = won ? 'var(--success)' : 'var(--error)';
+  document.getElementById('end-meaning').textContent = "Meaning: " + state.target.meaning;
+  
+  const winRate = state.totalGames > 0 ? Math.round((state.wins / state.totalGames) * 100) : 0;
+  document.getElementById('end-rate').textContent = winRate + "%";
+  document.getElementById('end-streak').textContent = state.streak;
+  
+  document.getElementById('end-modal').classList.add('active');
+}
+
+function updateKeyUI(letter, status) {
+  const priority = { correct: 3, present: 2, absent: 1, undefined: 0 };
+  if (priority[status] > (priority[state.keyStates[letter]] || 0)) {
+    state.keyStates[letter] = status;
+    const keyEl = document.querySelector(`.key[data-key="${letter}"]`);
+    if (keyEl) {
+      keyEl.classList.remove('correct', 'present', 'absent');
+      keyEl.classList.add(status);
+    }
+  }
+}
+
+function useHint() {
+  if (state.isLocked) return;
+  // Simple hint: reveal one letter of target that isn't found yet
+  const targetArr = state.target.word.split('');
+  showToast(`A hidden letter is "${targetArr[Math.floor(Math.random()*5)]}"`);
+}
+
+function shakeRow() {
+  const rowEl = document.querySelector(`#board .row:nth-child(${state.currentRow + 1})`);
+  rowEl.classList.add('shake');
+  setTimeout(() => rowEl.classList.remove('shake'), 500);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('feedback-toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function saveStats() {
+  localStorage.setItem('sw_wordle_streak', state.streak);
+  localStorage.setItem('sw_wordle_best', state.best);
+  localStorage.setItem('sw_wordle_wins', state.wins);
+  localStorage.setItem('sw_wordle_total', state.totalGames);
+}
+
+function updateStats() {
+  document.getElementById('streak-val').textContent = state.streak;
+  document.getElementById('best-val').textContent = state.best;
+  document.getElementById('wins-val').textContent = state.wins;
+  if (document.getElementById('best-streak-main')) {
+    document.getElementById('best-streak-main').textContent = state.best;
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  let key = e.key.toUpperCase();
+  if (key === 'BACKSPACE') key = '⌫';
+  handleInput(key);
+});
+
+updateStats();
+</script>
+</body>
+</html>

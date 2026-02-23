@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Swahili Memory Match - Master of Kiswahili</title>
+<meta name="description" content="Ultimate Swahili Memory Match challenge! Match words, earn combos, and climb the ranks. Fun and addictive Kiswahili learning.">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --primary: #38bdf8;
+    --secondary: #fbbf24;
+    --accent: #f472b6;
+    --success: #4ade80;
+    --error: #f87171;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --card-back: #1e293b;
+    --card-back-border: #334155;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Quicksand', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 40%);
+  }
+
+  /* Animations */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  .shake { animation: shake 0.2s ease-in-out 0s 2; }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Layout */
+  .game-container {
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex-grow: 1;
+  }
+
+  header {
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    color: var(--secondary);
+    text-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    margin-bottom: 4px;
+  }
+
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  /* Card Grid Area */
+  #card-grid {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  .card {
+    aspect-ratio: 1 / 1.2;
+    perspective: 1000px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+    border-radius: 12px;
+  }
+
+  .card.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    padding: 8px;
+    font-weight: 700;
+    box-shadow: var(--shadow);
+  }
+
+  .card-back {
+    background: var(--surface);
+    color: var(--primary);
+    font-size: 2rem;
+  }
+
+  .card-front {
+    transform: rotateY(180deg);
+    background: var(--primary);
+    color: white;
+    font-size: clamp(0.7rem, 3vw, 1rem);
+    word-break: break-word;
+  }
+
+  .card-front.en { background: var(--accent); }
+  .card-front.sw { background: var(--primary); }
+
+  .card.matched .card-inner {
+    animation: pop 0.5s ease forwards;
+  }
+  .card.matched .card-face {
+    background: var(--success);
+    border-color: var(--success);
+    opacity: 0.8;
+  }
+
+  .card-lang {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  /* Controls */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .btn {
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+  .btn-primary { background: var(--success); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+  /* Screens & Modals */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; gap: 20px; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    padding: 20px;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 400px;
+    border-radius: 24px;
+    padding: 40px 30px;
+    text-align: center;
+    border: 2px solid var(--border);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .overlay.active .modal { transform: scale(1); }
+
+  .score-display {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin: 20px 0;
+    font-family: 'Fredoka One', cursive;
+  }
+
+  #feedback-toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(50px);
+    padding: 12px 24px;
+    border-radius: 100px;
+    background: var(--surface);
+    color: white;
+    font-weight: 700;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 2000;
+    pointer-events: none;
+    border: 1px solid var(--border);
+  }
+  #feedback-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 400px) {
+    h1 { font-size: 2rem; }
+    .stat-item { padding: 6px; }
+    .stat-value { font-size: 0.9rem; }
+    #card-grid { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <!-- Start Screen -->
+  <div id="start-screen" class="screen active">
+    <header style="margin-top: 40px;">
+      <div style="font-size: 4rem; animation: float 3s ease-in-out infinite;">🧠</div>
+      <h1>Swahili Memory</h1>
+      <p style="color: var(--text-muted)">Pair the words, train your brain</p>
+    </header>
+    
+    <div class="stat-item" style="margin-top: auto; padding: 20px;">
+      <div class="stat-label">All-Time High Score</div>
+      <div id="high-score-main" class="score-display" style="font-size: 2rem; margin: 10px 0;">0</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showGame()" style="padding: 20px;">PLAY NOW 🚀</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <div class="stat-bar">
+      <div class="stat-item">
+        <div class="stat-label">Score</div>
+        <div id="score-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Streak</div>
+        <div id="streak-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Level</div>
+        <div id="level-val" class="stat-value">1</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Time</div>
+        <div id="time-val" class="stat-value">0:00</div>
+      </div>
+    </div>
+
+    <div id="card-grid"></div>
+
+    <div class="controls">
+      <button class="btn btn-secondary" onclick="restartGame()">Reset Board 🔄</button>
+    </div>
+  </div>
+</div>
+
+<!-- End Modal -->
+<div id="end-modal" class="overlay">
+  <div class="modal">
+    <h2 id="end-title">Game Complete!</h2>
+    <p id="end-msg">Master of Memory! Here's your result:</p>
+    <div id="end-score" class="score-display">0</div>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Pairs Matched</div>
+        <div id="end-matched" class="stat-value">0</div>
+      </div>
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Best Combo</div>
+        <div id="end-streak" class="stat-value">0</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showGame()">PLAY AGAIN 🔄</button>
+    <button class="btn btn-secondary" onclick="showStart()" style="margin-top: 10px; width: 100%; box-shadow: none; border: none;">Home</button>
+  </div>
+</div>
+
+<div id="feedback-toast">Message here</div>
+
+<script>
+const VOCAB = [
+  {sw:"MAMA",en:"Mother"}, {sw:"BABA",en:"Father"}, {sw:"MTOTO",en:"Child"},
+  {sw:"RAFIKI",en:"Friend"}, {sw:"NYUMBA",en:"House"}, {sw:"SHULE",en:"School"},
+  {sw:"MAJI",en:"Water"}, {sw:"CHAKULA",en:"Food"}, {sw:"SIMBA",en:"Lion"},
+  {sw:"TEMBO",en:"Elephant"}, {sw:"NDEGE",en:"Bird"}, {sw:"SAMAKI",en:"Fish"},
+  {sw:"AMANI",en:"Peace"}, {sw:"UHURU",en:"Freedom"}, {sw:"FURAHA",en:"Happiness"},
+  {sw:"UPENDO",en:"Love"}, {sw:"IMARA",en:"Strong"}, {sw:"HARAKA",en:"Fast"},
+  {sw:"KITABU",en:"Book"}, {sw:"BAHARI",en:"Ocean"}, {sw:"MSITU",en:"Forest"},
+  {sw:"MVUA",en:"Rain"}, {sw:"JUA",en:"Sun"}, {sw:"MWEZI",en:"Moon"},
+  {sw:"NYOTA",en:"Star"}, {sw:"DUNIA",en:"World"}, {sw:"UA",en:"Flower"},
+  {sw:"GARI",en:"Car"}, {sw:"MEZA",en:"Table"}, {sw:"KITI",en:"Chair"},
+  {sw:"LALA",en:"Sleep"}, {sw:"KULA",en:"Eat"}, {sw:"CHEZA",en:"Play"}
+];
+
+let state = {
+  score: 0,
+  level: 1,
+  streak: 0,
+  maxStreak: 0,
+  matches: 0,
+  totalPairs: 6,
+  flipped: [],
+  isLocked: false,
+  startTime: null,
+  timerInterval: null,
+  highScore: localStorage.getItem('swahili_memory_highscore') || 0
+};
+
+function showStart() {
+  hideAllScreens();
+  document.getElementById('start-screen').classList.add('active');
+  document.getElementById('high-score-main').textContent = state.highScore;
+}
+
+function showGame() {
+  hideAllScreens();
+  document.getElementById('game-screen').classList.add('active');
+  resetGame();
+  initBoard();
+}
+
+function hideAllScreens() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('end-modal').classList.remove('active');
+}
+
+function resetGame() {
+  state.score = 0;
+  state.level = 1;
+  state.streak = 0;
+  state.maxStreak = 0;
+  state.matches = 0;
+  state.totalPairs = 6;
+  state.isLocked = false;
+  state.flipped = [];
+  clearInterval(state.timerInterval);
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('score-val').textContent = state.score;
+  document.getElementById('streak-val').textContent = state.streak;
+  document.getElementById('level-val').textContent = state.level;
+}
+
+function initBoard() {
+  state.matches = 0;
+  state.flipped = [];
+  state.isLocked = false;
+  state.totalPairs = Math.min(12, 5 + state.level);
+  
+  const pairs = [...VOCAB].sort(() => 0.5 - Math.random()).slice(0, state.totalPairs);
+  let cards = [];
+  pairs.forEach((p, i) => {
+    cards.push({ id: i, word: p.sw, lang: 'sw', pairId: i });
+    cards.push({ id: i + 100, word: p.en, lang: 'en', pairId: i });
+  });
+  cards.sort(() => 0.5 - Math.random());
+
+  const grid = document.getElementById('card-grid');
+  const cols = state.totalPairs <= 6 ? 3 : 4;
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid.innerHTML = '';
+
+  cards.forEach(data => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.pairId = data.pairId;
+    card.dataset.id = data.id;
+    
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face card-back">🌍</div>
+        <div class="card-face card-front ${data.lang}">
+          <div class="card-lang">${data.lang === 'sw' ? 'SWAHILI' : 'ENGLISH'}</div>
+          <div>${data.word}</div>
+        </div>
+      </div>
+    `;
+    
+    card.onclick = () => flipCard(card);
+    grid.appendChild(card);
+  });
+
+  state.startTime = Date.now();
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(updateTimer, 1000);
+}
+
+function flipCard(card) {
+  if (state.isLocked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+  card.classList.add('flipped');
+  state.flipped.push(card);
+
+  if (state.flipped.length === 2) {
+    state.isLocked = true;
+    checkMatch();
+  }
+}
+
+function checkMatch() {
+  const [c1, c2] = state.flipped;
+  const isMatch = c1.dataset.pairId === c2.dataset.pairId;
+
+  if (isMatch) {
+    state.matches++;
+    state.streak++;
+    state.maxStreak = Math.max(state.streak, state.maxStreak);
+    
+    const basePoints = 50;
+    const streakBonus = (state.streak - 1) * 20;
+    const levelBonus = state.level * 10;
+    const total = basePoints + streakBonus + levelBonus;
+    state.score += total;
+
+    c1.classList.add('matched');
+    c2.classList.add('matched');
+    
+    showToast(`Match! +${total} pts 🔥`);
+    state.flipped = [];
+    state.isLocked = false;
+    updateUI();
+
+    if (state.matches === state.totalPairs) {
+      setTimeout(nextLevel, 1000);
+    }
+  } else {
+    state.streak = 0;
+    updateUI();
+    setTimeout(() => {
+      c1.classList.remove('flipped');
+      c2.classList.remove('flipped');
+      state.flipped = [];
+      state.isLocked = false;
+    }, 1000);
+  }
+}
+
+function nextLevel() {
+  state.level++;
+  showToast(`Level ${state.level}! 🚀`);
+  initBoard();
+  updateUI();
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  document.getElementById('time-val').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function restartGame() {
+  if (confirm("Restart current game? Your score will be lost.")) {
+    showGame();
+  }
+}
+
+function endGame() {
+  clearInterval(state.timerInterval);
+  state.isLocked = true;
+  
+  if (state.score > state.highScore) {
+    state.highScore = state.score;
+    localStorage.setItem('swahili_memory_highscore', state.highScore);
+  }
+
+  document.getElementById('end-score').textContent = state.score;
+  document.getElementById('end-matched').textContent = state.matches;
+  document.getElementById('end-streak').textContent = state.maxStreak;
+  document.getElementById('end-modal').classList.add('active');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('feedback-toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+showStart();
+</script>
+</body>
+</html>

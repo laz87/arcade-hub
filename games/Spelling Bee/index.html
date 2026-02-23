@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Swahili Spelling Bee - Master of Kiswahili</title>
+<meta name="description" content="The ultimate Swahili Spelling Bee challenge! Master Kiswahili vocabulary with addictive spelling puzzles. Fun, fast, and educational.">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --primary: #38bdf8;
+    --secondary: #fbbf24;
+    --accent: #f472b6;
+    --success: #4ade80;
+    --error: #f87171;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Quicksand', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 40%);
+  }
+
+  /* Animations */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  .shake { animation: shake 0.2s ease-in-out 0s 2; }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Layout */
+  .game-container {
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex-grow: 1;
+  }
+
+  header {
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    color: var(--secondary);
+    text-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    margin-bottom: 4px;
+  }
+
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  /* Game Main Area */
+  .game-main {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 24px;
+    border: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .bee-icon {
+    font-size: 4rem;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Word Display */
+  #word-display {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 50px;
+  }
+
+  .letter-slot {
+    width: 35px;
+    height: 45px;
+    border-bottom: 3px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--primary);
+    transition: all 0.3s;
+  }
+  .letter-slot.active { border-bottom-color: var(--secondary); border-bottom-width: 5px; }
+  .letter-slot.filled { border-bottom-color: var(--primary); }
+  .letter-slot.correct { color: var(--success); border-bottom-color: var(--success); }
+  .letter-slot.wrong { color: var(--error); border-bottom-color: var(--error); }
+
+  /* Category & Hint */
+  .hint-box {
+    text-align: center;
+  }
+  .category-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--primary);
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .meaning-text {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Keyboard */
+  #keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: auto;
+  }
+  .kb-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+  .key {
+    flex: 1;
+    max-width: 45px;
+    height: 50px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 0 var(--border);
+  }
+  .key:hover:not(:disabled) { background: var(--border); transform: translateY(-2px); }
+  .key:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+  .key.wide { max-width: 80px; font-size: 0.8rem; }
+  .key.enter { background: var(--success); color: white; border-color: #16a34a; box-shadow: 0 4px 0 #16a34a; }
+  .key.backspace { background: var(--error); color: white; border-color: #dc2626; box-shadow: 0 4px 0 #dc2626; }
+
+  /* Screens & Modals */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; gap: 20px; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    padding: 20px;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 400px;
+    border-radius: 24px;
+    padding: 40px 30px;
+    text-align: center;
+    border: 2px solid var(--border);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .overlay.active .modal { transform: scale(1); }
+
+  .btn {
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    width: 100%;
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+  .btn-primary { background: var(--success); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-accent { background: var(--primary); color: white; }
+
+  .score-display {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin: 20px 0;
+    font-family: 'Fredoka One', cursive;
+  }
+
+  #feedback-toast {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50px);
+    padding: 12px 24px;
+    border-radius: 100px;
+    background: var(--surface);
+    color: white;
+    font-weight: 700;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 2000;
+    pointer-events: none;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  #feedback-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Responsive */
+  @media (max-width: 450px) {
+    .key { height: 45px; font-size: 1rem; }
+    .letter-slot { width: 28px; height: 38px; font-size: 1.4rem; }
+    h1 { font-size: 2rem; }
+    .game-container { padding: 10px; }
+    .meaning-text { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <!-- Start Screen -->
+  <div id="start-screen" class="screen active">
+    <header style="margin-top: 40px;">
+      <div class="bee-icon">🐝</div>
+      <h1>Swahili Spelling Bee</h1>
+      <p style="color: var(--text-muted)">Master the spelling of Kiswahili</p>
+    </header>
+    
+    <div class="stat-item" style="margin-top: auto; padding: 20px;">
+      <div class="stat-label">All-Time High Honey</div>
+      <div id="high-score-main" class="score-display" style="font-size: 2rem; margin: 10px 0;">0</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showGame()" style="padding: 20px;">PLAY NOW 🚀</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <div class="stat-bar">
+      <div class="stat-item">
+        <div class="stat-label">Honey</div>
+        <div id="score-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Combo</div>
+        <div id="streak-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Level</div>
+        <div id="level-val" class="stat-value">1</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Solved</div>
+        <div id="solved-val" class="stat-value">0</div>
+      </div>
+    </div>
+
+    <div class="game-main">
+      <div class="hint-box">
+        <div id="cat-tag" class="category-tag">Category</div>
+        <div id="meaning-text" class="meaning-text">English Meaning</div>
+      </div>
+
+      <div id="word-display"></div>
+    </div>
+
+    <div id="keyboard"></div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button class="btn btn-secondary" onclick="useHint()">Hint (50🍯) 💡</button>
+        <button class="btn btn-accent" onclick="skipWord()">Skip Word ⏭</button>
+    </div>
+  </div>
+</div>
+
+<!-- End Modal -->
+<div id="end-modal" class="overlay">
+  <div class="modal">
+    <h2 id="end-title">Bee Champion!</h2>
+    <p id="end-msg">You've gathered plenty of honey! Here's your result:</p>
+    <div id="end-score" class="score-display">0</div>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Words Solved</div>
+        <div id="end-solved" class="stat-value">0</div>
+      </div>
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Best Combo</div>
+        <div id="end-streak" class="stat-value">0</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showGame()">PLAY AGAIN 🔄</button>
+    <button class="btn btn-secondary" onclick="showStart()" style="margin-top: 10px; width: 100%; box-shadow: none; border: none;">Home</button>
+  </div>
+</div>
+
+<div id="feedback-toast">Message here</div>
+
+<script>
+const WORDS = [
+  {sw:"MAMA",en:"Mother",cat:"Family"}, {sw:"BABA",en:"Father",cat:"Family"},
+  {sw:"NDUGU",en:"Sibling",cat:"Family"}, {sw:"MTOTO",en:"Child",cat:"Family"},
+  {sw:"RAFIKI",en:"Friend",cat:"People"}, {sw:"MWALIMU",en:"Teacher",cat:"People"},
+  {sw:"DAKTARI",en:"Doctor",cat:"People"}, {sw:"ASKARI",en:"Guard/Soldier",cat:"People"},
+  {sw:"PAKA",en:"Cat",cat:"Animals"}, {sw:"MBWA",en:"Dog",cat:"Animals"},
+  {sw:"SIMBA",en:"Lion",cat:"Animals"}, {sw:"TEMBO",en:"Elephant",cat:"Animals"},
+  {sw:"NDEGE",en:"Bird",cat:"Animals"}, {sw:"SAMAKI",en:"Fish",cat:"Animals"},
+  {sw:"NYOKA",en:"Snake",cat:"Animals"}, {sw:"NGURUWE",en:"Pig",cat:"Animals"},
+  {sw:"NYUMBA",en:"House",cat:"Places"}, {sw:"SHULE",en:"School",cat:"Places"},
+  {sw:"BAHARI",en:"Ocean",cat:"Places"}, {sw:"MSITU",en:"Forest",cat:"Places"},
+  {sw:"AMANI",en:"Peace",cat:"Concepts"}, {sw:"UHURU",en:"Freedom",cat:"Concepts"},
+  {sw:"FURAHA",en:"Happiness",cat:"Concepts"}, {sw:"UPENDO",en:"Love",cat:"Concepts"},
+  {sw:"MAJI",en:"Water",cat:"Nature"}, {sw:"MVUA",en:"Rain",cat:"Nature"},
+  {sw:"JUA",en:"Sun",cat:"Nature"}, {sw:"MWEZI",en:"Moon",cat:"Nature"},
+  {sw:"CHAKULA",en:"Food",cat:"Things"}, {sw:"KITABU",en:"Book",cat:"Things"},
+  {sw:"MKATE",en:"Bread",cat:"Food"}, {sw:"CHAI",en:"Tea",cat:"Food"},
+  {sw:"KUKU",en:"Chicken",cat:"Animals"}, {sw:"NG'OMBE",en:"Cow",cat:"Animals"},
+  {sw:"DUKA",en:"Shop",cat:"Places"}, {sw:"SOKO",en:"Market",cat:"Places"},
+  {sw:"BARABARA",en:"Road",cat:"Places"}, {sw:"SAFARI",en:"Journey",cat:"Concepts"},
+  {sw:"PESA",en:"Money",cat:"Things"}, {sw:"GARI",en:"Car",cat:"Things"},
+  {sw:"MEZA",en:"Table",cat:"Things"}, {sw:"KITI",en:"Chair",cat:"Things"},
+  {sw:"DIRISHA",en:"Window",cat:"Things"}, {sw:"MLANGO",en:"Door",cat:"Things"},
+  {sw:"KAZI",en:"Work",cat:"Concepts"}, {sw:"LUGHA",en:"Language",cat:"Concepts"},
+  {sw:"RANGI",en:"Color",cat:"Things"}, {sw:"HARAKA",en:"Fast",cat:"Adjectives"},
+  {sw:"POLE",en:"Slow",cat:"Adjectives"}, {sw:"ZURI",en:"Beautiful",cat:"Adjectives"},
+  {sw:"BAYA",en:"Bad",cat:"Adjectives"}, {sw:"DOGO",en:"Small",cat:"Adjectives"},
+  {sw:"KUBWA",en:"Big",cat:"Adjectives"}, {sw:"MPYA",en:"New",cat:"Adjectives"},
+  {sw:"KALE",en:"Old",cat:"Adjectives"}, {sw:"TAMU",en:"Sweet",cat:"Adjectives"}
+];
+
+const KB_ROWS = [
+  ['Q','W','E','R','T','Y','U','I','O','P'],
+  ['A','S','D','F','G','H','J','K','L'],
+  ['Z','X','C','V','B','N','M', '⌫'],
+  ['ENTER']
+];
+
+let state = {
+  score: 0,
+  solved: 0,
+  streak: 0,
+  maxStreak: 0,
+  level: 1,
+  currentWord: null,
+  typed: '',
+  hints: [],
+  isLocked: false,
+  highScore: localStorage.getItem('swahili_spelling_highscore') || 0
+};
+
+function showStart() {
+  hideAllScreens();
+  document.getElementById('start-screen').classList.add('active');
+  document.getElementById('high-score-main').textContent = state.highScore;
+}
+
+function showGame() {
+  hideAllScreens();
+  document.getElementById('game-screen').classList.add('active');
+  initGame();
+}
+
+function hideAllScreens() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('end-modal').classList.remove('active');
+}
+
+function initGame() {
+  state.score = 0;
+  state.solved = 0;
+  state.streak = 0;
+  state.maxStreak = 0;
+  state.level = 1;
+  state.isLocked = false;
+  updateStats();
+  buildKeyboard();
+  nextWord();
+}
+
+function nextWord() {
+  state.currentWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+  state.typed = '';
+  state.hints = [];
+  state.isLocked = false;
+  
+  // Level up every 5 words
+  state.level = Math.floor(state.solved / 5) + 1;
+  
+  updateStats();
+  renderWord();
+}
+
+function renderWord() {
+  document.getElementById('cat-tag').textContent = state.currentWord.cat;
+  document.getElementById('meaning-text').textContent = state.currentWord.en;
+  
+  const display = document.getElementById('word-display');
+  display.innerHTML = '';
+  
+  const word = state.currentWord.sw;
+  for (let i = 0; i < word.length; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'letter-slot';
+    
+    if (state.hints.includes(i)) {
+      slot.textContent = word[i];
+      slot.classList.add('correct');
+    } else if (i < state.typed.length) {
+      slot.textContent = state.typed[i];
+      slot.classList.add('filled');
+    }
+    
+    if (i === state.typed.length && !state.isLocked) {
+      slot.classList.add('active');
+    }
+    
+    display.appendChild(slot);
+  }
+}
+
+function buildKeyboard() {
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  KB_ROWS.forEach(row => {
+    const r = document.createElement('div');
+    r.className = 'kb-row';
+    row.forEach(k => {
+      const btn = document.createElement('button');
+      btn.className = 'key';
+      if (k === 'ENTER') btn.classList.add('wide', 'enter');
+      if (k === '⌫') btn.classList.add('wide', 'backspace');
+      btn.textContent = k;
+      btn.onclick = () => handleInput(k);
+      r.appendChild(btn);
+    });
+    kb.appendChild(r);
+  });
+}
+
+function handleInput(k) {
+  if (state.isLocked) return;
+
+  if (k === '⌫') {
+    if (state.typed.length > 0) {
+      state.typed = state.typed.slice(0, -1);
+    }
+  } else if (k === 'ENTER') {
+    checkAnswer();
+    return;
+  } else if (state.typed.length < state.currentWord.sw.length) {
+    state.typed += k;
+  }
+  
+  renderWord();
+}
+
+function checkAnswer() {
+  if (state.isLocked || state.typed.length === 0) return;
+  
+  state.isLocked = true;
+  const guess = state.typed.toUpperCase();
+  const correct = state.currentWord.sw.toUpperCase();
+  
+  const slots = document.querySelectorAll('.letter-slot');
+  
+  if (guess === correct) {
+    // Correct
+    slots.forEach(s => s.classList.add('correct'));
+    
+    // Scoring logic
+    const basePoints = 100;
+    const comboBonus = state.streak * 20;
+    const hintPenalty = state.hints.length * 25;
+    const earned = Math.max(10, basePoints + comboBonus - hintPenalty);
+    
+    state.score += earned;
+    state.solved++;
+    state.streak++;
+    state.maxStreak = Math.max(state.streak, state.maxStreak);
+    
+    showToast(`+${earned} Honey! 🍯 ${state.streak > 1 ? state.streak + 'x Combo!' : ''}`);
+    
+    setTimeout(() => {
+      nextWord();
+    }, 1200);
+  } else {
+    // Wrong
+    slots.forEach(s => s.classList.add('wrong'));
+    document.querySelector('.game-main').classList.add('shake');
+    
+    state.streak = 0;
+    showToast('Incorrect! Try again 🐝', 'var(--error)');
+    
+    setTimeout(() => {
+      document.querySelector('.game-main').classList.remove('shake');
+      state.typed = '';
+      state.isLocked = false;
+      renderWord();
+    }, 1000);
+  }
+  updateStats();
+}
+
+function useHint() {
+  if (state.isLocked) return;
+  
+  if (state.score < 50) {
+    showToast('Not enough Honey! 🍯', 'var(--accent)');
+    return;
+  }
+  
+  const unrevealed = [];
+  for (let i = 0; i < state.currentWord.sw.length; i++) {
+    if (!state.hints.includes(i)) unrevealed.push(i);
+  }
+  
+  if (unrevealed.length > 1) { // Leave at least one letter
+    const idx = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    state.hints.push(idx);
+    state.score -= 50;
+    state.typed = ''; // Reset typed to avoid confusion
+    updateStats();
+    renderWord();
+    showToast('Hint used! -50🍯', 'var(--primary)');
+  }
+}
+
+function skipWord() {
+  if (state.isLocked) return;
+  state.streak = 0;
+  updateStats();
+  nextWord();
+  showToast('Word skipped! ⏭');
+}
+
+function updateStats() {
+  document.getElementById('score-val').textContent = state.score;
+  document.getElementById('streak-val').textContent = state.streak;
+  document.getElementById('level-val').textContent = state.level;
+  document.getElementById('solved-val').textContent = state.solved;
+  
+  if (state.score > state.highScore) {
+    state.highScore = state.score;
+    localStorage.setItem('swahili_spelling_highscore', state.highScore);
+  }
+}
+
+function showToast(msg, color = 'var(--surface)') {
+  const toast = document.getElementById('feedback-toast');
+  toast.textContent = msg;
+  toast.style.background = color === 'var(--surface)' ? 'var(--surface)' : color;
+  toast.style.color = color === 'var(--surface)' ? 'var(--primary)' : 'white';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function showEnd() {
+  hideAllScreens();
+  document.getElementById('end-modal').classList.add('active');
+  document.getElementById('end-score').textContent = state.score;
+  document.getElementById('end-solved').textContent = state.solved;
+  document.getElementById('end-streak').textContent = state.maxStreak;
+  
+  const title = document.getElementById('end-title');
+  if (state.score >= 1000) title.textContent = "Honey Master! 👑";
+  else if (state.score >= 500) title.textContent = "Busy Bee! 🐝";
+  else title.textContent = "Keep Practicing! 📚";
+}
+
+// Physical Keyboard Support
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('game-screen').classList.contains('active')) {
+    const key = e.key.toUpperCase();
+    if (key === 'BACKSPACE') handleInput('⌫');
+    else if (key === 'ENTER') handleInput('ENTER');
+    else if (/^[A-Z]$/.test(key)) handleInput(key);
+  }
+});
+
+showStart();
+</script>
+</body>
+</html>

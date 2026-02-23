@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Swahili Hangman - Legend of Kiswahili</title>
+<meta name="description" content="Master Swahili vocabulary in this addictive Hangman challenge! Guess letters, maintain streaks, and climb the global ranks.">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --primary: #38bdf8;
+    --secondary: #fbbf24;
+    --accent: #f472b6;
+    --success: #4ade80;
+    --error: #f87171;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Quicksand', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 40%);
+  }
+
+  /* Animations */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  .shake { animation: shake 0.2s ease-in-out 0s 2; }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Layout */
+  .game-container {
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex-grow: 1;
+  }
+
+  header {
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    color: var(--secondary);
+    text-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    margin-bottom: 4px;
+  }
+
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  /* Game Main Area */
+  .game-main {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 24px;
+    border: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Drawing Section */
+  .drawing-section {
+    position: relative;
+    width: 200px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #hangman-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.2));
+  }
+
+  .gallows-part { stroke: var(--text-muted); stroke-width: 4; stroke-linecap: round; fill: none; }
+  .body-part { stroke: var(--error); stroke-width: 4; stroke-linecap: round; fill: none; transition: opacity 0.3s; }
+
+  /* Word Display */
+  #word-display {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 50px;
+  }
+
+  .letter-slot {
+    width: 35px;
+    height: 45px;
+    border-bottom: 3px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--primary);
+    transition: all 0.3s;
+  }
+  .letter-slot.filled { border-bottom-color: var(--primary); }
+  .letter-slot.revealed { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+  /* Category & Hint */
+  .hint-box {
+    text-align: center;
+  }
+  .category-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--primary);
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .meaning-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* Keyboard */
+  #keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .kb-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+  .key {
+    flex: 1;
+    max-width: 45px;
+    height: 50px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 0 var(--border);
+  }
+  .key:hover:not(:disabled) { background: var(--border); transform: translateY(-2px); }
+  .key:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+  .key.correct { background: var(--success); color: white; border-color: var(--success); box-shadow: 0 4px 0 #16a34a; }
+  .key.wrong { background: var(--error); color: white; border-color: var(--error); box-shadow: 0 4px 0 #dc2626; opacity: 0.6; }
+  .key:disabled { cursor: default; }
+
+  /* Screens & Modals */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; gap: 20px; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    padding: 20px;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 400px;
+    border-radius: 24px;
+    padding: 40px 30px;
+    text-align: center;
+    border: 2px solid var(--border);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .overlay.active .modal { transform: scale(1); }
+
+  .btn {
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    width: 100%;
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+  .btn-primary { background: var(--success); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-accent { background: var(--primary); color: white; }
+
+  .score-display {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin: 20px 0;
+    font-family: 'Fredoka One', cursive;
+  }
+
+  #feedback-toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(50px);
+    padding: 12px 24px;
+    border-radius: 10px;
+    background: var(--surface);
+    color: white;
+    font-weight: 700;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 2000;
+    pointer-events: none;
+    border: 1px solid var(--border);
+  }
+  #feedback-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Responsive */
+  @media (max-width: 450px) {
+    .key { height: 45px; font-size: 1rem; }
+    .letter-slot { width: 28px; height: 38px; font-size: 1.4rem; }
+    h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <!-- Start Screen -->
+  <div id="start-screen" class="screen active">
+    <header style="margin-top: 40px;">
+      <div style="font-size: 4rem; animation: float 3s ease-in-out infinite;">🎭</div>
+      <h1>Swahili Hangman</h1>
+      <p style="color: var(--text-muted)">Save the legend, master the words</p>
+    </header>
+    
+    <div class="stat-item" style="margin-top: auto; padding: 20px;">
+      <div class="stat-label">All-Time High Score</div>
+      <div id="high-score-main" class="score-display" style="font-size: 2rem; margin: 10px 0;">0</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showGame()" style="padding: 20px;">PLAY NOW 🚀</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <div class="stat-bar">
+      <div class="stat-item">
+        <div class="stat-label">Score</div>
+        <div id="score-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Streak</div>
+        <div id="streak-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Lives</div>
+        <div id="lives-val" class="stat-value">6/6</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Level</div>
+        <div id="level-val" class="stat-value">1</div>
+      </div>
+    </div>
+
+    <div class="game-main">
+      <div class="drawing-section">
+        <svg id="hangman-svg" viewBox="0 0 140 160">
+          <!-- Gallows -->
+          <line class="gallows-part" x1="10" y1="155" x2="130" y2="155"/>
+          <line class="gallows-part" x1="40" y1="155" x2="40" y2="5"/>
+          <line class="gallows-part" x1="40" y1="5" x2="90" y2="5"/>
+          <line class="gallows-part" x1="90" y1="5" x2="90" y2="25"/>
+          <!-- Body Parts -->
+          <circle id="hm-head" class="body-part" cx="90" cy="37" r="12" style="opacity:0"/>
+          <line id="hm-body" class="body-part" x1="90" y1="49" x2="90" y2="95" style="opacity:0"/>
+          <line id="hm-larm" class="body-part" x1="90" y1="62" x2="68" y2="82" style="opacity:0"/>
+          <line id="hm-rarm" class="body-part" x1="90" y1="62" x2="112" y2="82" style="opacity:0"/>
+          <line id="hm-lleg" class="body-part" x1="90" y1="95" x2="70" y2="125" style="opacity:0"/>
+          <line id="hm-rleg" class="body-part" x1="90" y1="95" x2="110" y2="125" style="opacity:0"/>
+        </svg>
+      </div>
+
+      <div class="hint-box">
+        <div id="cat-tag" class="category-tag">Category</div>
+        <div id="meaning-text" class="meaning-text">English Meaning</div>
+      </div>
+
+      <div id="word-display"></div>
+    </div>
+
+    <div id="keyboard"></div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button class="btn btn-secondary" onclick="useHint()">Hint (50 pts) 💡</button>
+        <button class="btn btn-accent" onclick="confirmSkip()">Skip ( -20 pts) ⏭</button>
+    </div>
+  </div>
+</div>
+
+<!-- End Modal -->
+<div id="end-modal" class="overlay">
+  <div class="modal">
+    <h2 id="end-title">Game Over!</h2>
+    <p id="end-msg">The word was: <span id="correct-word" style="color:var(--primary); font-weight:700;">WORD</span></p>
+    <div id="end-score" class="score-display">0</div>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Words Solved</div>
+        <div id="end-solved" class="stat-value">0</div>
+      </div>
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Best Streak</div>
+        <div id="end-streak" class="stat-value">0</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showGame()">PLAY AGAIN 🔄</button>
+    <button class="btn btn-secondary" onclick="showStart()" style="margin-top: 10px; width: 100%; box-shadow: none; border: none;">Home</button>
+  </div>
+</div>
+
+<div id="feedback-toast">Message here</div>
+
+<script>
+const WORDS = [
+  {word:"SIMBA",en:"Lion",cat:"Animals"}, {word:"TEMBO",en:"Elephant",cat:"Animals"},
+  {word:"NDEGE",en:"Bird",cat:"Animals"}, {word:"SAMAKI",en:"Fish",cat:"Animals"},
+  {word:"NYOKA",en:"Snake",cat:"Animals"}, {word:"PAKA",en:"Cat",cat:"Animals"},
+  {word:"MBWA",en:"Dog",cat:"Animals"}, {word:"NYUMBA",en:"House",cat:"Places"},
+  {word:"SHULE",en:"School",cat:"Places"}, {word:"HOSPITALI",en:"Hospital",cat:"Places"},
+  {word:"MSITU",en:"Forest",cat:"Places"}, {word:"BAHARI",en:"Ocean",cat:"Places"},
+  {word:"MWALIMU",en:"Teacher",cat:"People"}, {word:"DAKTARI",en:"Doctor",cat:"People"},
+  {word:"MTOTO",en:"Child",cat:"People"}, {word:"MAMA",en:"Mother",cat:"Family"},
+  {word:"BABA",en:"Father",cat:"Family"}, {word:"NDUGU",en:"Sibling",cat:"Family"},
+  {word:"RAFIKI",en:"Friend",cat:"People"}, {word:"CHAKULA",en:"Food",cat:"Things"},
+  {word:"MAJI",en:"Water",cat:"Things"}, {word:"KITABU",en:"Book",cat:"Things"},
+  {word:"PENSELI",en:"Pencil",cat:"Things"}, {word:"BAISKELI",en:"Bicycle",cat:"Things"},
+  {word:"UHURU",en:"Freedom",cat:"Concepts"}, {word:"AMANI",en:"Peace",cat:"Concepts"},
+  {word:"UPENDO",en:"Love",cat:"Concepts"}, {word:"FURAHA",en:"Happiness",cat:"Concepts"},
+  {word:"IMARA",en:"Strong",cat:"Adjectives"}, {word:"HARAKA",en:"Fast/Quick",cat:"Adjectives"},
+  {word:"KUKU",en:"Chicken",cat:"Animals"}, {word:"NG'OMBE",en:"Cow",cat:"Animals"},
+  {word:"BUBBU",en:"Mute",cat:"Adjectives"}, {word:"POLE",en:"Slow/Sorry",cat:"Adjectives"},
+  {word:"ZURI",en:"Beautiful",cat:"Adjectives"}, {word:"BAYA",en:"Bad",cat:"Adjectives"},
+  {word:"KUBWA",en:"Big",cat:"Adjectives"}, {word:"DOGO",en:"Small",cat:"Adjectives"},
+  {word:"MOTO",en:"Fire",cat:"Nature"}, {word:"MWEZI",en:"Moon",cat:"Nature"},
+  {word:"JUA",en:"Sun",cat:"Nature"}, {word:"NYOTA",en:"Star",cat:"Nature"},
+  {word:"DUNIA",en:"World",cat:"Nature"}, {word:"MTI",en:"Tree",cat:"Nature"},
+  {word:"UA",en:"Flower",cat:"Nature"}, {word:"SAFARI",en:"Journey",cat:"Concepts"},
+  {word:"LUGHA",en:"Language",cat:"Concepts"}, {word:"PESA",en:"Money",cat:"Things"},
+  {word:"GARI",en:"Car",cat:"Things"}, {word:"MKATE",en:"Bread",cat:"Food"},
+  {word:"CHAI",en:"Tea",cat:"Food"}, {word:"SOKO",en:"Market",cat:"Places"},
+  {word:"BARABARA",en:"Road",cat:"Places"}, {word:"LALA",en:"Sleep",cat:"Verbs"},
+  {word:"KULA",en:"Eat",cat:"Verbs"}, {word:"CHEZA",en:"Play",cat:"Verbs"},
+  {word:"SOMA",en:"Read",cat:"Verbs"}, {word:"ANDIKA",en:"Write",cat:"Verbs"}
+];
+
+const BODY_PARTS = ['hm-head', 'hm-body', 'hm-larm', 'hm-rarm', 'hm-lleg', 'hm-rleg'];
+const KB_ROWS = [['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['Z','X','C','V','B','N','M']];
+
+let state = {
+  score: 0,
+  solved: 0,
+  streak: 0,
+  maxStreak: 0,
+  level: 1,
+  lives: 6,
+  currentWord: null,
+  guessed: new Set(),
+  isLocked: false,
+  highScore: localStorage.getItem('swahili_hangman_highscore') || 0
+};
+
+function showStart() {
+  hideAllScreens();
+  document.getElementById('start-screen').classList.add('active');
+  document.getElementById('high-score-main').textContent = state.highScore;
+}
+
+function showGame() {
+  hideAllScreens();
+  document.getElementById('game-screen').classList.add('active');
+  resetStats();
+  nextWord();
+}
+
+function hideAllScreens() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('end-modal').classList.remove('active');
+}
+
+function resetStats() {
+  state.score = 0;
+  state.solved = 0;
+  state.streak = 0;
+  state.maxStreak = 0;
+  state.level = 1;
+  state.lives = 6;
+  updateStatsUI();
+}
+
+function updateStatsUI() {
+  document.getElementById('score-val').textContent = state.score;
+  document.getElementById('streak-val').textContent = state.streak;
+  document.getElementById('lives-val').textContent = `${state.lives}/6`;
+  document.getElementById('level-val').textContent = state.level;
+}
+
+function nextWord() {
+  state.currentWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+  state.guessed.clear();
+  state.lives = 6;
+  state.isLocked = false;
+  
+  updateStatsUI();
+  renderGame();
+  resetDrawing();
+}
+
+function renderGame() {
+  document.getElementById('cat-tag').textContent = state.currentWord.cat;
+  document.getElementById('meaning-text').textContent = state.currentWord.en;
+  
+  const display = document.getElementById('word-display');
+  display.innerHTML = '';
+  for (let char of state.currentWord.word) {
+    const slot = document.createElement('div');
+    slot.className = 'letter-slot';
+    slot.dataset.char = char;
+    display.appendChild(slot);
+  }
+  
+  renderKeyboard();
+}
+
+function renderKeyboard() {
+  const container = document.getElementById('keyboard');
+  container.innerHTML = '';
+  KB_ROWS.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'kb-row';
+    row.forEach(key => {
+      const btn = document.createElement('button');
+      btn.className = 'key';
+      btn.textContent = key;
+      btn.onclick = () => handleGuess(key);
+      rowEl.appendChild(btn);
+    });
+    container.appendChild(rowEl);
+  });
+}
+
+function resetDrawing() {
+  BODY_PARTS.forEach(id => {
+    document.getElementById(id).style.opacity = '0';
+  });
+}
+
+function handleGuess(letter) {
+  if (state.isLocked || state.guessed.has(letter)) return;
+  
+  state.guessed.add(letter);
+  const word = state.currentWord.word.toUpperCase();
+  const keys = document.querySelectorAll('.key');
+  let btn;
+  keys.forEach(k => { if(k.textContent === letter) btn = k; });
+
+  if (word.includes(letter)) {
+    btn.classList.add('correct');
+    revealLetters(letter);
+    checkWin();
+  } else {
+    btn.classList.add('wrong');
+    state.lives--;
+    updateDrawing();
+    updateStatsUI();
+    if (state.lives <= 0) endGame(false);
+  }
+}
+
+function revealLetters(letter) {
+  const slots = document.querySelectorAll('.letter-slot');
+  slots.forEach(slot => {
+    if (slot.dataset.char.toUpperCase() === letter) {
+      slot.textContent = letter;
+      slot.classList.add('filled', 'revealed');
+    }
+  });
+}
+
+function updateDrawing() {
+  const index = 5 - state.lives;
+  if (BODY_PARTS[index]) {
+    const part = document.getElementById(BODY_PARTS[index]);
+    part.style.opacity = '1';
+    document.querySelector('.game-main').classList.add('shake');
+    setTimeout(() => document.querySelector('.game-main').classList.remove('shake'), 300);
+  }
+}
+
+function checkWin() {
+  const word = state.currentWord.word.toUpperCase();
+  const isWon = [...word].every(char => state.guessed.has(char));
+  if (isWon) {
+    state.isLocked = true;
+    state.solved++;
+    state.streak++;
+    state.maxStreak = Math.max(state.streak, state.maxStreak);
+    
+    const bonus = state.lives * 10;
+    const levelBonus = state.level * 20;
+    const totalPoints = 50 + bonus + levelBonus;
+    state.score += totalPoints;
+    
+    showToast(`+${totalPoints} Points! 🔥`);
+    
+    if (state.solved % 3 === 0) state.level++;
+    
+    setTimeout(nextWord, 1500);
+  }
+}
+
+function endGame(won) {
+  state.isLocked = true;
+  if (!won) {
+    if (state.score > state.highScore) {
+      state.highScore = state.score;
+      localStorage.setItem('swahili_hangman_highscore', state.highScore);
+    }
+  }
+  
+  document.getElementById('end-title').textContent = won ? "Incredible!" : "Game Over!";
+  document.getElementById('end-title').style.color = won ? "var(--success)" : "var(--error)";
+  document.getElementById('correct-word').textContent = state.currentWord.word;
+  document.getElementById('end-score').textContent = state.score;
+  document.getElementById('end-solved').textContent = state.solved;
+  document.getElementById('end-streak').textContent = state.maxStreak;
+  
+  document.getElementById('end-modal').classList.add('active');
+}
+
+function useHint() {
+  if (state.isLocked || state.score < 50) {
+    if (state.score < 50) showToast("Need 50 points for a hint! ❌");
+    return;
+  }
+  
+  const word = state.currentWord.word.toUpperCase();
+  const unrevealed = [...word].filter(char => !state.guessed.has(char));
+  
+  if (unrevealed.length > 0) {
+    const randomChar = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    state.score -= 50;
+    updateStatsUI();
+    handleGuess(randomChar);
+    showToast("Hint used! -50 pts 💡");
+  }
+}
+
+function confirmSkip() {
+  if (state.isLocked) return;
+  state.score = Math.max(0, state.score - 20);
+  state.streak = 0;
+  showToast("Word skipped! -20 pts ⏭");
+  nextWord();
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('feedback-toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// Physical keyboard support
+document.addEventListener('keydown', (e) => {
+  if (state.isLocked) return;
+  const key = e.key.toUpperCase();
+  if (/^[A-Z]$/.test(key)) {
+    handleGuess(key);
+  }
+});
+
+// Initialize
+showStart();
+</script>
+</body>
+</html>

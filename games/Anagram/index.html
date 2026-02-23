@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Swahili Anagram - Master of Kiswahili</title>
+<meta name="description" content="Ultimate Swahili Anagram challenge! Unscramble words, earn combos, and climb the ranks. Fun and addictive Kiswahili learning.">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --primary: #38bdf8;
+    --secondary: #fbbf24;
+    --accent: #f472b6;
+    --success: #4ade80;
+    --error: #f87171;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Quicksand', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 40%);
+  }
+
+  /* Utility Animations */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  .shake { animation: shake 0.2s ease-in-out 0s 2; }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Layout */
+  .game-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex-grow: 1;
+  }
+
+  header {
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    color: var(--secondary);
+    text-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    margin-bottom: 4px;
+  }
+
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    height: 8px;
+    background: var(--surface);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  #progress-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--success));
+    transition: width 0.3s ease;
+  }
+
+  /* Card Area */
+  .word-card {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    border: 2px solid var(--border);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hint-section {
+    margin-bottom: 20px;
+  }
+
+  .hint-category {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--primary);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .hint-meaning {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Game Rows */
+  #answer-row, #scramble-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    min-height: 60px;
+    margin: 10px 0;
+  }
+
+  .tile {
+    width: 50px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+  }
+
+  .scramble-tile {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 0 #0284c7;
+  }
+  .scramble-tile:active { transform: translateY(2px); box-shadow: 0 2px 0 #0284c7; }
+  .scramble-tile.used { opacity: 0.3; cursor: default; transform: scale(0.9); box-shadow: none; pointer-events: none; }
+
+  .answer-tile {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed var(--border);
+    color: var(--secondary);
+  }
+  .answer-tile.filled {
+    border-style: solid;
+    border-color: var(--secondary);
+    background: rgba(251, 191, 36, 0.1);
+    box-shadow: 0 4px 0 #d97706;
+  }
+
+  .tile.correct { background: var(--success); color: white; border-color: var(--success); box-shadow: 0 4px 0 #16a34a; }
+  .tile.wrong { background: var(--error); color: white; border-color: var(--error); box-shadow: 0 4px 0 #dc2626; }
+
+  /* Controls */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn {
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+
+  .btn-primary { background: var(--success); color: white; grid-column: span 2; font-size: 1.2rem; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-accent { background: var(--accent); color: white; }
+
+  /* Modals */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    padding: 20px;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 400px;
+    border-radius: 24px;
+    padding: 40px 30px;
+    text-align: center;
+    border: 2px solid var(--border);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .overlay.active .modal { transform: scale(1); }
+
+  .modal h2 { font-family: 'Fredoka One', cursive; font-size: 2rem; margin-bottom: 20px; }
+  .modal p { margin-bottom: 30px; color: var(--text-muted); }
+
+  .score-display {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin: 20px 0;
+  }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; gap: 20px; }
+
+  #feedback-toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(50px);
+    padding: 12px 24px;
+    border-radius: 100px;
+    background: var(--surface);
+    color: white;
+    font-weight: 700;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 2000;
+    pointer-events: none;
+    border: 1px solid var(--border);
+  }
+  #feedback-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 400px) {
+    .tile { width: 42px; height: 52px; font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <!-- Start Screen -->
+  <div id="start-screen" class="screen active">
+    <header style="margin-top: 40px;">
+      <div style="font-size: 4rem; animation: float 3s ease-in-out infinite;">🔤</div>
+      <h1>Swahili Anagram</h1>
+      <p style="color: var(--text-muted)">Master the language of East Africa</p>
+    </header>
+    
+    <div class="stat-item" style="margin-top: auto; padding: 20px;">
+      <div class="stat-label">Your Best Score</div>
+      <div id="high-score-main" class="score-display" style="font-size: 2rem; margin: 10px 0;">0</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showGame()" style="padding: 20px;">PLAY NOW 🚀</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <div class="stat-bar">
+      <div class="stat-item">
+        <div class="stat-label">Score</div>
+        <div id="score-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Streak</div>
+        <div id="streak-val" class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Level</div>
+        <div id="level-val" class="stat-value">1</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Time</div>
+        <div id="time-val" class="stat-value">30</div>
+      </div>
+    </div>
+
+    <div class="progress-container">
+      <div id="progress-fill"></div>
+    </div>
+
+    <div id="main-card" class="word-card">
+      <div class="hint-section">
+        <div id="hint-category" class="hint-category">Category</div>
+        <div id="hint-meaning" class="hint-meaning">English Meaning</div>
+      </div>
+
+      <div id="answer-row"></div>
+      <div id="scramble-row"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-secondary" onclick="clearAnswer()">Clear 🗑</button>
+      <button class="btn btn-secondary" onclick="useHint()">Hint (20 pts) 💡</button>
+      <button class="btn btn-accent" onclick="skipWord()">Skip Word ⏭</button>
+      <button class="btn btn-primary" onclick="checkAnswer()">CHECK ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- End Modal -->
+<div id="end-modal" class="overlay">
+  <div class="modal">
+    <h2 id="end-title">Game Over!</h2>
+    <p>You did amazing! Here's your result:</p>
+    <div id="end-score" class="score-display">0</div>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Words</div>
+        <div id="end-solved" class="stat-value">0</div>
+      </div>
+      <div class="stat-item" style="flex: 1">
+        <div class="stat-label">Best Streak</div>
+        <div id="end-streak" class="stat-value">0</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showGame()">TRY AGAIN 🔄</button>
+    <button class="btn btn-secondary" onclick="showStart()" style="margin-top: 10px; width: 100%; box-shadow: none; border: none;">Home</button>
+  </div>
+</div>
+
+<div id="feedback-toast">Message here</div>
+
+<script>
+const WORDS = [
+  {word:"MAMA",en:"Mother",cat:"Family"}, {word:"BABA",en:"Father",cat:"Family"},
+  {word:"PAKA",en:"Cat",cat:"Animals"}, {word:"MBWA",en:"Dog",cat:"Animals"},
+  {word:"MAJI",en:"Water",cat:"Nature"}, {word:"MOTO",en:"Fire",cat:"Nature"},
+  {word:"NDOTO",en:"Dream",cat:"Concepts"}, {word:"AMANI",en:"Peace",cat:"Concepts"},
+  {word:"IMARA",en:"Strong",cat:"Adjectives"}, {word:"NJEMA",en:"Good",cat:"Adjectives"},
+  {word:"SIMBA",en:"Lion",cat:"Animals"}, {word:"TEMBO",en:"Elephant",cat:"Animals"},
+  {word:"NDEGE",en:"Bird",cat:"Animals"}, {word:"NYOKA",en:"Snake",cat:"Animals"},
+  {word:"SHULE",en:"School",cat:"Places"}, {word:"BAHARI",en:"Ocean",cat:"Nature"},
+  {word:"MSITU",en:"Forest",cat:"Nature"}, {word:"RAFIKI",en:"Friend",cat:"People"},
+  {word:"CHAKULA",en:"Food",cat:"Things"}, {word:"NYUMBA",en:"House",cat:"Places"},
+  {word:"KITABU",en:"Book",cat:"Things"}, {word:"FURAHA",en:"Happiness",cat:"Concepts"},
+  {word:"UPENDO",en:"Love",cat:"Concepts"}, {word:"MWALIMU",en:"Teacher",cat:"People"},
+  {word:"DAKTARI",en:"Doctor",cat:"People"}, {word:"UHURU",en:"Freedom",cat:"Concepts"},
+  {word:"HARAKA",en:"Fast",cat:"Adjectives"}, {word:"RANGI",en:"Color",cat:"Things"},
+  {word:"PUMZI",en:"Breath",cat:"Body"}, {word:"MOYO",en:"Heart",cat:"Body"},
+  {word:"JUA",en:"Sun",cat:"Nature"}, {word:"MWEZI",en:"Moon",cat:"Nature"},
+  {word:"NYOTA",en:"Star",cat:"Nature"}, {word:"DUNIA",en:"World",cat:"Nature"},
+  {word:"MTI",en:"Tree",cat:"Nature"}, {word:"UA",en:"Flower",cat:"Nature"},
+  {word:"GARI",en:"Car",cat:"Things"}, {word:"MEZA",en:"Table",cat:"Things"},
+  {word:"KITI",en:"Chair",cat:"Things"}, {word:"DIRISHA",en:"Window",cat:"Things"},
+  {word:"MLANGO",en:"Door",cat:"Things"}, {word:"KAZI",en:"Work",cat:"Concepts"},
+  {word:"MUDA",en:"Time",cat:"Concepts"}, {word:"PESA",en:"Money",cat:"Things"},
+  {word:"SAFARI",en:"Journey",cat:"Concepts"}, {word:"LUGHA",en:"Language",cat:"Concepts"},
+  {word:"KICHOCHEA",en:"Spark",cat:"Concepts"}, {word:"UFUNGUO",en:"Key",cat:"Things"},
+  {word:"MKATE",en:"Bread",cat:"Food"}, {word:"CHAI",en:"Tea",cat:"Food"},
+  {word:"KUKU",en:"Chicken",cat:"Animals"}, {word:"NG'OMBE",en:"Cow",cat:"Animals"},
+  {word:"SAMAKI",en:"Fish",cat:"Animals"}, {word:"DUKA",en:"Shop",cat:"Places"},
+  {word:"SOKO",en:"Market",cat:"Places"}, {word:"BARABARA",en:"Road",cat:"Places"},
+];
+
+let gameState = {
+  score: 0,
+  solved: 0,
+  streak: 0,
+  maxStreak: 0,
+  level: 1,
+  timeLeft: 30,
+  currentWord: null,
+  currentGuess: [],
+  usedIndices: new Set(),
+  timer: null,
+  isLocked: false,
+  highScore: localStorage.getItem('swahili_anagram_highscore') || 0
+};
+
+function showStart() {
+  hideAllScreens();
+  document.getElementById('start-screen').classList.add('active');
+  document.getElementById('high-score-main').textContent = gameState.highScore;
+}
+
+function showGame() {
+  hideAllScreens();
+  document.getElementById('game-screen').classList.add('active');
+  initGame();
+}
+
+function hideAllScreens() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('end-modal').classList.remove('active');
+}
+
+function initGame() {
+  gameState.score = 0;
+  gameState.solved = 0;
+  gameState.streak = 0;
+  gameState.maxStreak = 0;
+  gameState.level = 1;
+  gameState.isLocked = false;
+  updateStats();
+  nextWord();
+}
+
+function nextWord() {
+  gameState.currentWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+  gameState.currentGuess = [];
+  gameState.usedIndices.clear();
+  gameState.isLocked = false;
+  
+  // Set time based on word length and level
+  const baseTime = 20;
+  const lengthBonus = gameState.currentWord.word.length * 2;
+  gameState.timeLeft = Math.max(10, baseTime + lengthBonus - (gameState.level * 2));
+  
+  renderGame();
+  startTimer();
+}
+
+function renderGame() {
+  document.getElementById('hint-meaning').textContent = gameState.currentWord.en;
+  document.getElementById('hint-category').textContent = gameState.currentWord.cat;
+  
+  // Render Answer Slots
+  const answerRow = document.getElementById('answer-row');
+  answerRow.innerHTML = '';
+  for (let i = 0; i < gameState.currentWord.word.length; i++) {
+    const tile = document.createElement('div');
+    tile.className = 'tile answer-tile';
+    tile.dataset.pos = i;
+    tile.onclick = () => removeFromAnswer(i);
+    answerRow.appendChild(tile);
+  }
+
+  // Render Scrambled Letters
+  const scrambleRow = document.getElementById('scramble-row');
+  scrambleRow.innerHTML = '';
+  const letters = scramble(gameState.currentWord.word);
+  letters.forEach((char, idx) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile scramble-tile';
+    tile.textContent = char;
+    tile.dataset.idx = idx;
+    tile.onclick = () => addToAnswer(char, idx, tile);
+    scrambleRow.appendChild(tile);
+  });
+}
+
+function scramble(word) {
+  let arr = word.split('');
+  let attempts = 0;
+  do {
+    arr.sort(() => Math.random() - 0.5);
+    attempts++;
+  } while (arr.join('') === word && attempts < 10);
+  return arr;
+}
+
+function addToAnswer(char, idx, tile) {
+  if (gameState.isLocked || gameState.usedIndices.has(idx)) return;
+  if (gameState.currentGuess.length >= gameState.currentWord.word.length) return;
+
+  const pos = gameState.currentGuess.length;
+  gameState.currentGuess.push({ char, idx });
+  gameState.usedIndices.add(idx);
+  
+  tile.classList.add('used');
+  
+  const answerTile = document.querySelector(`.answer-tile[data-pos="${pos}"]`);
+  answerTile.textContent = char;
+  answerTile.classList.add('filled', 'pop');
+  
+  if (gameState.currentGuess.length === gameState.currentWord.word.length) {
+    setTimeout(checkAnswer, 200);
+  }
+}
+
+function removeFromAnswer(pos) {
+  if (gameState.isLocked || pos >= gameState.currentGuess.length) return;
+  
+  // Clear from that position onwards
+  const removed = gameState.currentGuess.splice(pos);
+  removed.forEach(item => {
+    gameState.usedIndices.delete(item.idx);
+    const scrambleTile = document.querySelector(`.scramble-tile[data-idx="${item.idx}"]`);
+    if (scrambleTile) scrambleTile.classList.remove('used');
+  });
+  
+  // Re-render answer tiles
+  document.querySelectorAll('.answer-tile').forEach((tile, i) => {
+    if (i >= gameState.currentGuess.length) {
+      tile.textContent = '';
+      tile.classList.remove('filled', 'pop');
+    } else {
+      tile.textContent = gameState.currentGuess[i].char;
+    }
+  });
+}
+
+function clearAnswer() {
+  if (gameState.isLocked) return;
+  removeFromAnswer(0);
+}
+
+function checkAnswer() {
+  if (gameState.isLocked) return;
+  if (gameState.currentGuess.length < gameState.currentWord.word.length) return;
+
+  const guess = gameState.currentGuess.map(g => g.char).join('');
+  const target = gameState.currentWord.word;
+  
+  gameState.isLocked = true;
+  clearInterval(gameState.timer);
+
+  if (guess === target) {
+    handleSuccess();
+  } else {
+    handleFailure();
+  }
+}
+
+function handleSuccess() {
+  const points = 100 + (gameState.timeLeft * 5) + (gameState.streak * 20);
+  gameState.score += points;
+  gameState.solved++;
+  gameState.streak++;
+  gameState.maxStreak = Math.max(gameState.streak, gameState.maxStreak);
+  
+  if (gameState.solved % 3 === 0) gameState.level++;
+  
+  document.querySelectorAll('.answer-tile').forEach(t => t.classList.add('correct', 'pop'));
+  showToast(`+${points} Points! Combo x${gameState.streak}`, 'var(--success)');
+  updateStats();
+  
+  setTimeout(nextWord, 1500);
+}
+
+function handleFailure() {
+  gameState.streak = 0;
+  document.getElementById('main-card').classList.add('shake');
+  document.querySelectorAll('.answer-tile').forEach(t => t.classList.add('wrong'));
+  
+  setTimeout(() => {
+    document.getElementById('main-card').classList.remove('shake');
+    document.querySelectorAll('.answer-tile').forEach(t => t.classList.remove('wrong'));
+    gameState.isLocked = false;
+    clearAnswer();
+    startTimer();
+    updateStats();
+  }, 800);
+}
+
+function useHint() {
+  if (gameState.isLocked || gameState.score < 20) {
+    if (gameState.score < 20) showToast("Need 20 points for a hint!", "var(--error)");
+    return;
+  }
+
+  // Find first wrong or empty letter
+  let firstWrongIdx = -1;
+  for (let i = 0; i < gameState.currentWord.word.length; i++) {
+    if (!gameState.currentGuess[i] || gameState.currentGuess[i].char !== gameState.currentWord.word[i]) {
+      firstWrongIdx = i;
+      break;
+    }
+  }
+
+  if (firstWrongIdx !== -1) {
+    gameState.score -= 20;
+    updateStats();
+    removeFromAnswer(firstWrongIdx);
+    
+    // Find the correct tile in scramble
+    const targetChar = gameState.currentWord.word[firstWrongIdx];
+    const scrambleTiles = document.querySelectorAll('.scramble-tile');
+    for (let tile of scrambleTiles) {
+      if (tile.textContent === targetChar && !tile.classList.contains('used')) {
+        addToAnswer(targetChar, parseInt(tile.dataset.idx), tile);
+        break;
+      }
+    }
+  }
+}
+
+function skipWord() {
+  if (gameState.isLocked) return;
+  gameState.streak = 0;
+  showToast(`The word was: ${gameState.currentWord.word}`, 'var(--text-muted)');
+  updateStats();
+  nextWord();
+}
+
+function startTimer() {
+  clearInterval(gameState.timer);
+  const totalTime = gameState.timeLeft;
+  gameState.timer = setInterval(() => {
+    gameState.timeLeft--;
+    updateStats();
+    
+    const progress = (gameState.timeLeft / totalTime) * 100;
+    document.getElementById('progress-fill').style.width = `${progress}%`;
+    
+    if (gameState.timeLeft <= 0) {
+      clearInterval(gameState.timer);
+      gameOver();
+    }
+  }, 1000);
+}
+
+function updateStats() {
+  document.getElementById('score-val').textContent = gameState.score;
+  document.getElementById('streak-val').textContent = gameState.streak;
+  document.getElementById('level-val').textContent = gameState.level;
+  document.getElementById('time-val').textContent = Math.max(0, gameState.timeLeft);
+  
+  if (gameState.timeLeft < 5) {
+    document.getElementById('time-val').style.color = 'var(--error)';
+  } else {
+    document.getElementById('time-val').style.color = 'var(--primary)';
+  }
+}
+
+function showToast(msg, color) {
+  const toast = document.getElementById('feedback-toast');
+  toast.textContent = msg;
+  toast.style.borderColor = color;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function gameOver() {
+  gameState.isLocked = true;
+  if (gameState.score > gameState.highScore) {
+    gameState.highScore = gameState.score;
+    localStorage.setItem('swahili_anagram_highscore', gameState.highScore);
+    document.getElementById('end-title').textContent = "New High Score! 🎉";
+  } else {
+    document.getElementById('end-title').textContent = "Game Over!";
+  }
+  
+  document.getElementById('end-score').textContent = gameState.score;
+  document.getElementById('end-solved').textContent = gameState.solved;
+  document.getElementById('end-streak').textContent = gameState.maxStreak;
+  document.getElementById('end-modal').classList.add('active');
+}
+
+// Start in home screen
+showStart();
+</script>
+</body>
+</html>
