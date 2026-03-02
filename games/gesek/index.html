@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>GESEK – Swipe & Learn | Gamelet.site</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700;900&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+:root{
+  --yes:#00E676; --no:#FF1744;
+  --gold:#FFD600; --white:#F0EDE8;
+  --bg:#0A0A0F; --panel:rgba(255,255,255,.05);
+}
+
+html,body{
+  height:100%;overflow:hidden;
+  background:var(--bg);
+  font-family:'DM Sans',sans-serif;
+  color:var(--white);
+  display:flex;flex-direction:column;align-items:center;
+  touch-action:none;
+}
+
+/* ── Grid noise bg ── */
+body::before{
+  content:"";position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;z-index:0;
+}
+
+/* ── Side glow zones shown during drag ── */
+#zone-yes,#zone-no{
+  position:fixed;top:0;bottom:0;width:50%;pointer-events:none;z-index:1;opacity:0;transition:opacity .1s;
+}
+#zone-yes{right:0;background:linear-gradient(270deg,rgba(0,230,118,.25),transparent);}
+#zone-no{left:0;background:linear-gradient(90deg,rgba(255,23,68,.25),transparent);}
+
+/* ── Animations ── */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-14px)}40%{transform:translateX(14px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+@keyframes swipeRight{to{transform:translateX(120vw) rotate(30deg);opacity:0}}
+@keyframes swipeLeft{to{transform:translateX(-120vw) rotate(-30deg);opacity:0}}
+@keyframes cardIn{from{transform:scale(.85) translateY(30px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes burst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+@keyframes timerTick{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.98)}}
+@keyframes stampIn{0%{transform:scale(3) rotate(-12deg);opacity:0}60%{transform:scale(.9)}100%{transform:scale(1) rotate(-8deg);opacity:1}}
+@keyframes comboIn{0%{transform:scale(0) translateY(-20px);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-90px) scale(.8)}}
+@keyframes wrongReveal{from{max-height:0;opacity:0}to{max-height:80px;opacity:1}}
+@keyframes countdown{0%{transform:scale(2.5) rotate(-5deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes heartbeat{0%,100%{transform:scale(1)}25%{transform:scale(1.25)}75%{transform:scale(.9)}}
+@keyframes neonFlicker{0%,100%{opacity:1}92%{opacity:.85}96%{opacity:.6}98%{opacity:.9}}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:24px;}
+.screen.hidden{display:none;}
+
+/* ── START ── */
+#screen-start{background:var(--bg);}
+#start-eyebrow{font-size:11px;letter-spacing:5px;color:rgba(240,237,232,.3);font-weight:700;margin-bottom:8px;}
+#start-logo{
+  font-family:'Anton',sans-serif;font-size:86px;letter-spacing:6px;
+  background:linear-gradient(135deg,#fff 30%,var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  line-height:1;margin-bottom:6px;animation:neonFlicker 6s infinite;
+}
+#start-tagline{font-size:16px;color:rgba(240,237,232,.55);text-align:center;line-height:1.7;margin-bottom:36px;max-width:290px;}
+#start-tagline b{color:var(--gold);}
+.start-stats{display:flex;gap:20px;margin-bottom:38px;}
+.ss{text-align:center;background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px 18px;min-width:80px;}
+.ss .n{font-family:'Anton',sans-serif;font-size:28px;color:var(--gold);}
+.ss .l{font-size:10px;color:rgba(240,237,232,.3);letter-spacing:2px;margin-top:2px;}
+#start-demo{
+  display:flex;align-items:center;gap:14px;margin-bottom:36px;
+  background:var(--panel);border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;padding:14px 20px;width:100%;max-width:320px;
+}
+#start-demo .demo-card{
+  background:rgba(255,255,255,.08);border-radius:12px;padding:10px 18px;
+  font-family:'Anton',sans-serif;font-size:18px;text-align:center;flex:1;
+}
+#start-demo .demo-arrows{font-size:12px;color:rgba(240,237,232,.4);display:flex;flex-direction:column;align-items:center;gap:4px;}
+#start-demo .demo-arrow-yes{color:var(--yes);}
+#start-demo .demo-arrow-no{color:var(--no);}
+.fat-btn{
+  width:100%;max-width:320px;border-radius:50px;padding:18px;
+  font-family:'Anton',sans-serif;font-size:20px;letter-spacing:3px;
+  cursor:pointer;transition:.18s;margin-bottom:12px;border:none;
+}
+.fat-btn.go{background:linear-gradient(135deg,var(--yes),#00C853);color:#000;box-shadow:0 8px 30px rgba(0,230,118,.35);}
+.fat-btn.go:hover{transform:scale(1.04);box-shadow:0 10px 40px rgba(0,230,118,.55);}
+.fat-btn.how{background:transparent;border:2px solid rgba(255,255,255,.15);color:rgba(240,237,232,.5);}
+.fat-btn.how:hover{border-color:rgba(255,255,255,.4);color:var(--white);}
+.fat-btn:active{transform:scale(.96)!important;}
+
+/* ── HOW ── */
+#screen-how{background:var(--bg);}
+#how-logo{font-family:'Anton',sans-serif;font-size:32px;letter-spacing:4px;color:var(--gold);margin-bottom:28px;}
+.hi{display:flex;gap:14px;margin-bottom:18px;width:100%;max-width:340px;align-items:center;}
+.hi-ico{font-size:32px;flex-shrink:0;width:44px;text-align:center;}
+.hi-txt{font-size:15px;line-height:1.5;color:rgba(240,237,232,.75);}
+.hi-txt b{color:var(--gold);}
+
+/* ── COUNTDOWN ── */
+#screen-count{background:var(--bg);}
+#count-label{font-size:12px;letter-spacing:5px;color:rgba(240,237,232,.35);margin-bottom:16px;}
+#count-num{font-family:'Anton',sans-serif;font-size:120px;color:var(--white);animation:countdown .55s ease;text-shadow:0 0 60px rgba(255,255,255,.3);}
+#count-go{font-family:'Anton',sans-serif;font-size:64px;color:var(--yes);animation:countdown .4s ease;text-shadow:0 0 40px rgba(0,230,118,.5);}
+
+/* ── GAME HUD ── */
+#hud{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  padding:14px 20px 10px;
+  background:linear-gradient(180deg,rgba(10,10,15,.9),transparent);
+  display:none;
+}
+#hud-row{display:flex;justify-content:space-between;align-items:center;}
+#hud-score{font-family:'Anton',sans-serif;font-size:38px;color:var(--white);letter-spacing:2px;line-height:1;transition:color .2s;}
+#hud-score.green{color:var(--yes);}
+#hud-score.red{color:var(--no);}
+#hud-right{text-align:right;}
+#hud-combo{font-family:'Anton',sans-serif;font-size:16px;color:var(--gold);letter-spacing:2px;display:none;}
+#hud-combo.show{display:block;animation:comboIn .3s ease;}
+#hud-timer-label{font-size:10px;color:rgba(240,237,232,.35);letter-spacing:3px;margin-top:2px;}
+#hud-timer-big{font-family:'Anton',sans-serif;font-size:26px;color:var(--white);line-height:1;text-align:right;}
+#hud-timer-big.warn{color:var(--gold);}
+#hud-timer-big.danger{color:var(--no);animation:heartbeat .5s infinite;}
+#timer-bar-bg{height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-top:8px;}
+#timer-bar{height:100%;background:linear-gradient(90deg,var(--yes),#69F0AE);width:100%;border-radius:4px;transition:width .25s linear,background .5s;}
+#timer-bar.warn{background:linear-gradient(90deg,var(--gold),#FFD600);}
+#timer-bar.danger{background:linear-gradient(90deg,var(--no),#FF6B6B);}
+
+/* ── SWIPE INDICATOR LABELS ── */
+#swipe-labels{
+  position:fixed;top:50%;left:0;right:0;
+  display:flex;justify-content:space-between;padding:0 20px;
+  transform:translateY(-50%);pointer-events:none;z-index:10;
+}
+.swipe-lbl{
+  font-family:'Anton',sans-serif;font-size:28px;letter-spacing:3px;
+  padding:8px 18px;border-radius:12px;border:3px solid;
+  opacity:0;transition:opacity .1s;
+  transform:rotate(-15deg);
+}
+#lbl-yes{color:var(--yes);border-color:var(--yes);transform:rotate(-8deg);}
+#lbl-no{color:var(--no);border-color:var(--no);transform:rotate(8deg);}
+
+/* ── CARD STACK ── */
+#card-arena{
+  position:fixed;top:80px;bottom:0;left:0;right:0;
+  display:none;align-items:center;justify-content:center;
+  pointer-events:none;z-index:20;
+}
+#card-stack{position:relative;width:320px;height:420px;max-width:92vw;}
+
+.swipe-card{
+  position:absolute;inset:0;
+  background:linear-gradient(160deg,#1C1C28,#12121A);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:28px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:28px 24px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06);
+  cursor:grab;
+  animation:cardIn .4s cubic-bezier(.34,1.56,.64,1);
+  user-select:none;
+  pointer-events:all;
+  will-change:transform;
+}
+.swipe-card:active{cursor:grabbing;}
+
+/* Next card peeking behind */
+#card-next{
+  position:absolute;inset:0;
+  background:linear-gradient(160deg,#181824,#10101A);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:28px;
+  transform:scale(.93) translateY(16px);
+  z-index:0;
+  pointer-events:none;
+}
+
+.card-emoji{font-size:62px;margin-bottom:16px;}
+.card-en{
+  font-family:'Anton',sans-serif;font-size:28px;letter-spacing:2px;
+  color:rgba(240,237,232,.5);margin-bottom:6px;text-transform:uppercase;
+}
+.card-equals{font-size:18px;color:rgba(240,237,232,.25);margin-bottom:6px;}
+.card-id{
+  font-family:'Anton',sans-serif;font-size:48px;letter-spacing:4px;
+  color:var(--white);text-align:center;line-height:1.1;
+}
+.card-pronunciation{font-size:13px;color:rgba(240,237,232,.4);margin-top:10px;letter-spacing:1px;}
+
+/* CORRECT / WRONG stamp overlay */
+.stamp{
+  position:absolute;
+  font-family:'Anton',sans-serif;font-size:40px;letter-spacing:4px;
+  padding:8px 20px;border:4px solid;border-radius:12px;
+  opacity:0;pointer-events:none;
+  top:28px;
+}
+.stamp-yes{color:var(--yes);border-color:var(--yes);right:20px;transform:rotate(15deg);}
+.stamp-no{color:var(--no);border-color:var(--no);left:20px;transform:rotate(-15deg);}
+
+/* Wrong answer reveal */
+#wrong-reveal{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(0deg,rgba(255,23,68,.15),transparent);
+  border-radius:0 0 28px 28px;
+  padding:14px 20px 20px;text-align:center;
+  max-height:0;overflow:hidden;opacity:0;
+}
+#wrong-reveal .wr-label{font-size:10px;color:rgba(255,100,100,.7);letter-spacing:3px;margin-bottom:4px;font-weight:700;}
+#wrong-reveal .wr-answer{font-family:'Anton',sans-serif;font-size:22px;color:var(--no);letter-spacing:2px;}
+
+/* ── SWIPE BUTTONS (touch alternative) ── */
+#swipe-btns{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  display:none;
+  padding:14px 20px 28px;
+  justify-content:center;gap:20px;
+  background:linear-gradient(0deg,rgba(10,10,15,.9),transparent);
+}
+.sw-btn{
+  width:90px;height:90px;border-radius:50%;border:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:32px;cursor:pointer;transition:.15s;
+  font-family:'Anton',sans-serif;font-size:13px;letter-spacing:2px;gap:4px;
+}
+.sw-btn:active{transform:scale(.88);}
+#btn-no{background:rgba(255,23,68,.15);border:2px solid rgba(255,23,68,.4);color:var(--no);}
+#btn-no:hover{background:rgba(255,23,68,.25);}
+#btn-yes{background:rgba(0,230,118,.12);border:2px solid rgba(0,230,118,.35);color:var(--yes);}
+#btn-yes:hover{background:rgba(0,230,118,.22);}
+.sw-btn .sw-ico{font-size:28px;}
+.sw-btn .sw-txt{font-size:10px;letter-spacing:2px;}
+
+/* ── PARTICLES ── */
+#particles{position:fixed;top:45%;left:50%;pointer-events:none;z-index:300;}
+.pt{position:absolute;border-radius:50%;animation:burst .9s ease-out forwards;}
+
+/* ── FLOAT POPUP ── */
+.fpop{position:fixed;left:50%;transform:translateX(-50%);font-family:'Anton',sans-serif;font-size:26px;pointer-events:none;z-index:400;animation:floatUp .85s ease forwards;}
+
+/* ── END SCREEN ── */
+#screen-end{background:var(--bg);}
+#end-top{font-size:10px;letter-spacing:5px;color:rgba(240,237,232,.3);margin-bottom:16px;}
+#end-score{font-family:'Anton',sans-serif;font-size:96px;color:var(--white);line-height:1;margin-bottom:4px;animation:pop .4s ease;}
+#end-best{font-size:13px;color:var(--gold);letter-spacing:3px;margin-bottom:8px;}
+#end-verdict{
+  font-family:'Anton',sans-serif;font-size:24px;letter-spacing:3px;
+  padding:8px 24px;border-radius:12px;margin-bottom:28px;
+}
+#end-verdict.perfect{color:var(--yes);border:3px solid var(--yes);}
+#end-verdict.great{color:var(--gold);border:3px solid var(--gold);}
+#end-verdict.good{color:var(--white);border:3px solid rgba(255,255,255,.3);}
+#end-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:320px;margin-bottom:28px;}
+.eg{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;text-align:center;}
+.eg .ev{font-family:'Anton',sans-serif;font-size:26px;color:var(--gold);}
+.eg .el{font-size:10px;color:rgba(240,237,232,.3);letter-spacing:2px;margin-top:3px;}
+</style>
+</head>
+<body>
+
+<!-- Zone glows -->
+<div id="zone-yes"></div>
+<div id="zone-no"></div>
+<div id="particles"></div>
+<div id="swipe-labels">
+  <div class="swipe-lbl" id="lbl-no">❌ SALAH</div>
+  <div class="swipe-lbl" id="lbl-yes">✅ BENAR</div>
+</div>
+
+<!-- ═══ HUD ═══ -->
+<div id="hud">
+  <div id="hud-row">
+    <div>
+      <div id="hud-score">0</div>
+      <div id="hud-combo">🔥 COMBO ×<span id="combo-num">2</span></div>
+    </div>
+    <div id="hud-right">
+      <div id="hud-timer-big">60</div>
+      <div id="hud-timer-label">SECONDS LEFT</div>
+    </div>
+  </div>
+  <div id="timer-bar-bg"><div id="timer-bar"></div></div>
+</div>
+
+<!-- ═══ CARD ARENA ═══ -->
+<div id="card-arena">
+  <div id="card-stack">
+    <div id="card-next"></div>
+    <div class="swipe-card" id="active-card">
+      <div class="stamp stamp-yes" id="stamp-yes">BENAR!</div>
+      <div class="stamp stamp-no" id="stamp-no">SALAH!</div>
+      <div class="card-emoji" id="card-emoji">💧</div>
+      <div class="card-en" id="card-en">WATER</div>
+      <div class="card-equals">=</div>
+      <div class="card-id" id="card-id">AIR</div>
+      <div class="card-pronunciation" id="card-pronoun">🔊 ah-eer</div>
+      <div id="wrong-reveal">
+        <div class="wr-label">CORRECT ANSWER IS</div>
+        <div class="wr-answer" id="wr-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SWIPE BUTTONS ═══ -->
+<div id="swipe-btns">
+  <button class="sw-btn" id="btn-no" onclick="answer(false)">
+    <div class="sw-ico">❌</div>
+    <div class="sw-txt">SALAH</div>
+  </button>
+  <button class="sw-btn" id="btn-yes" onclick="answer(true)">
+    <div class="sw-ico">✅</div>
+    <div class="sw-txt">BENAR</div>
+  </button>
+</div>
+
+<!-- ═══ START ═══ -->
+<div class="screen" id="screen-start">
+  <div id="start-eyebrow">GAMELET.SITE</div>
+  <div id="start-logo">GESEK</div>
+  <div id="start-tagline">Indonesian word pairs flash up.<br>Swipe <b style="color:var(--yes)">RIGHT = BENAR ✅</b> if correct.<br>Swipe <b style="color:var(--no)">LEFT = SALAH ❌</b> if wrong.<br>60 seconds. How high can you go?</div>
+  <div class="start-stats">
+    <div class="ss"><div class="n" id="sp-best">0</div><div class="l">BEST</div></div>
+    <div class="ss"><div class="n" id="sp-played">0</div><div class="l">PLAYED</div></div>
+    <div class="ss"><div class="n" id="sp-streak">0</div><div class="l">STREAK</div></div>
+  </div>
+  <div id="start-demo">
+    <div class="demo-card">WATER<br><span style="color:var(--gold);font-size:22px;">AIR</span></div>
+    <div class="demo-arrows">
+      <div class="demo-arrow-yes">→ RIGHT ✅</div>
+      <div style="font-size:11px;color:rgba(240,237,232,.25);margin:2px 0;">or</div>
+      <div class="demo-arrow-no">← LEFT ❌</div>
+    </div>
+    <div class="demo-card">HOUSE<br><span style="color:var(--no);font-size:22px;">LAUT?</span></div>
+  </div>
+  <button class="fat-btn go" onclick="startCountdown()">▶ SWIPE NOW</button>
+  <button class="fat-btn how" onclick="showScreen('screen-how')">HOW TO PLAY</button>
+</div>
+
+<!-- ═══ HOW ═══ -->
+<div class="screen hidden" id="screen-how">
+  <div id="how-logo">GESEK</div>
+  <div class="hi"><div class="hi-ico">🃏</div><div class="hi-txt">A card shows an <b>English word</b> and an <b>Indonesian word</b> — sometimes they match, sometimes they don't!</div></div>
+  <div class="hi"><div class="hi-ico">👉</div><div class="hi-txt">Swipe <b style="color:var(--yes)">RIGHT</b> (or tap ✅) if the pair is <b>CORRECT — BENAR!</b></div></div>
+  <div class="hi"><div class="hi-ico">👈</div><div class="hi-txt">Swipe <b style="color:var(--no)">LEFT</b> (or tap ❌) if the pair is <b>WRONG — SALAH!</b></div></div>
+  <div class="hi"><div class="hi-ico">🔥</div><div class="hi-txt">Chain correct answers for a <b>COMBO BONUS</b> — bigger multiplier, bigger score!</div></div>
+  <div class="hi"><div class="hi-ico">⏱</div><div class="hi-txt">You have <b>60 seconds</b>. Answer as many as possible. Speed is rewarded!</div></div>
+  <button class="fat-btn how" style="margin-top:20px;" onclick="showScreen('screen-start')">← BACK</button>
+</div>
+
+<!-- ═══ COUNTDOWN ═══ -->
+<div class="screen hidden" id="screen-count">
+  <div id="count-label">GET READY TO SWIPE</div>
+  <div id="count-num">3</div>
+</div>
+
+<!-- ═══ END ═══ -->
+<div class="screen hidden" id="screen-end">
+  <div id="end-top">FINAL SCORE</div>
+  <div id="end-score">0</div>
+  <div id="end-best">BEST: 0</div>
+  <div id="end-verdict" class="good">GOOD GAME!</div>
+  <div id="end-grid">
+    <div class="eg"><div class="ev" id="eg-correct">0</div><div class="el">CORRECT</div></div>
+    <div class="eg"><div class="ev" id="eg-wrong">0</div><div class="el">WRONG</div></div>
+    <div class="eg"><div class="ev" id="eg-combo">×0</div><div class="el">BEST COMBO</div></div>
+    <div class="eg"><div class="ev" id="eg-acc">0%</div><div class="el">ACCURACY</div></div>
+  </div>
+  <button class="fat-btn go" onclick="startCountdown()">▶ PLAY AGAIN</button>
+  <button class="fat-btn how" onclick="showScreen('screen-start')">HOME</button>
+</div>
+
+<script>
+// ── Word Bank ──────────────────────────────────────────────────────────────
+const PAIRS = [
+  {en:"WATER",   id:"AIR",      e:"💧", p:"ah-eer"},
+  {en:"HOUSE",   id:"RUMAH",    e:"🏠", p:"roo-mah"},
+  {en:"TIGER",   id:"HARIMAU",  e:"🐯", p:"ha-ree-mow"},
+  {en:"LIGHT",   id:"CAHAYA",   e:"💡", p:"cha-ha-ya"},
+  {en:"EARTH",   id:"BUMI",     e:"🌍", p:"boo-mee"},
+  {en:"HAPPY",   id:"SENANG",   e:"😊", p:"seh-nang"},
+  {en:"OCEAN",   id:"LAUT",     e:"🌊", p:"la-oot"},
+  {en:"BREAD",   id:"ROTI",     e:"🍞", p:"ro-tee"},
+  {en:"SNAKE",   id:"ULAR",     e:"🐍", p:"oo-lar"},
+  {en:"NIGHT",   id:"MALAM",    e:"🌙", p:"mah-lam"},
+  {en:"RIVER",   id:"SUNGAI",   e:"🏞️", p:"soong-eye"},
+  {en:"DREAM",   id:"MIMPI",    e:"💭", p:"mim-pee"},
+  {en:"MONEY",   id:"UANG",     e:"💰", p:"oo-ang"},
+  {en:"STARS",   id:"BINTANG",  e:"⭐", p:"been-tang"},
+  {en:"FRIEND",  id:"TEMAN",    e:"👫", p:"teh-man"},
+  {en:"FLOWER",  id:"BUNGA",    e:"🌸", p:"boong-ah"},
+  {en:"FOREST",  id:"HUTAN",    e:"🌳", p:"hoo-tan"},
+  {en:"BIRD",    id:"BURUNG",   e:"🐦", p:"boo-roong"},
+  {en:"HORSE",   id:"KUDA",     e:"🐴", p:"koo-dah"},
+  {en:"MUSIC",   id:"MUSIK",    e:"🎵", p:"moo-seek"},
+  {en:"FIRE",    id:"API",      e:"🔥", p:"ah-pee"},
+  {en:"BRAVE",   id:"BERANI",   e:"💪", p:"beh-rah-nee"},
+  {en:"COLD",    id:"DINGIN",   e:"🥶", p:"ding-in"},
+  {en:"HOT",     id:"PANAS",    e:"🥵", p:"pah-nas"},
+  {en:"FAST",    id:"CEPAT",    e:"⚡", p:"cheh-pat"},
+  {en:"BIG",     id:"BESAR",    e:"🐘", p:"beh-sar"},
+  {en:"ROAD",    id:"JALAN",    e:"🛣️", p:"jah-lan"},
+  {en:"SKY",     id:"LANGIT",   e:"🌤️", p:"lang-it"},
+  {en:"CHILD",   id:"ANAK",     e:"👦", p:"ah-nak"},
+  {en:"PEACE",   id:"DAMAI",    e:"☮️", p:"dah-my"},
+  {en:"HEART",   id:"HATI",     e:"❤️", p:"hah-tee"},
+  {en:"STONE",   id:"BATU",     e:"🪨", p:"bah-too"},
+  {en:"CLOUD",   id:"AWAN",     e:"☁️", p:"ah-wan"},
+  {en:"SUGAR",   id:"GULA",     e:"🍬", p:"goo-lah"},
+  {en:"SCHOOL",  id:"SEKOLAH",  e:"🏫", p:"seh-ko-lah"},
+  {en:"BLOOD",   id:"DARAH",    e:"🩸", p:"dah-rah"},
+  {en:"STORM",   id:"BADAI",    e:"⛈️", p:"bah-dye"},
+  {en:"SMILE",   id:"SENYUM",   e:"😁", p:"seh-nyoom"},
+  {en:"HUNGRY",  id:"LAPAR",    e:"🤤", p:"lah-par"},
+  {en:"SLOW",    id:"LAMBAT",   e:"🐢", p:"lam-bat"},
+  {en:"SMART",   id:"PINTAR",   e:"🧠", p:"peen-tar"},
+  {en:"SUGAR",   id:"GULA",     e:"🍬", p:"goo-lah"},
+  {en:"TRAIN",   id:"KERETA",   e:"🚂", p:"keh-reh-tah"},
+  {en:"FRUIT",   id:"BUAH",     e:"🍎", p:"boo-ah"},
+  {en:"SWORD",   id:"PEDANG",   e:"⚔️", p:"peh-dang"},
+];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let score=0, combo=0, bestCombo=0, correct=0, wrong=0;
+let timerSec=60, timerInt=null, gameActive=false;
+let cardQueue=[], currentCard=null, isCorrectPair=false;
+let dragging=false, startX=0, startY=0, currentX=0;
+let answered=false;
+
+// Persist
+let best    = +localStorage.getItem("g_best")   ||0;
+let played  = +localStorage.getItem("g_played") ||0;
+let bstreak = +localStorage.getItem("g_bstreak")||0;
+let currentStreak=0;
+
+// ── Utils ──────────────────────────────────────────────────────────────────
+function shuffle(a){return[...a].sort(()=>Math.random()-.5);}
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.add("hidden"));document.getElementById(id)?.classList.remove("hidden");}
+function updateStartStats(){
+  document.getElementById("sp-best").textContent=best;
+  document.getElementById("sp-played").textContent=played;
+  document.getElementById("sp-streak").textContent=bstreak;
+}
+
+// ── Particle burst ─────────────────────────────────────────────────────────
+function burst(color){
+  const c=document.getElementById("particles");c.innerHTML="";
+  const cols=color==="yes"
+    ?["#00E676","#69F0AE","#B9F6CA","#FFD600","#fff"]
+    :["#FF1744","#FF6B6B","#FF8A80","#FFD600"];
+  for(let i=0;i<20;i++){
+    const p=document.createElement("div");p.className="pt";
+    const tx=(Math.random()-.5)*220,ty=-(60+Math.random()*160);
+    p.style.cssText=`width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;background:${cols[i%cols.length]};left:${Math.random()*60}px;top:0;--tx:${tx}px;--ty:${ty}px;animation-duration:${.65+Math.random()*.4}s;`;
+    c.appendChild(p);
+  }
+  setTimeout(()=>c.innerHTML="",1400);
+}
+
+function floatPop(txt,color,top){
+  const el=document.createElement("div");el.className="fpop";
+  el.textContent=txt;el.style.color=color;el.style.top=top+"px";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),900);
+}
+
+// ── Generate card pair ─────────────────────────────────────────────────────
+function generateCard(){
+  if(cardQueue.length===0) cardQueue=shuffle([...PAIRS]);
+  const w=cardQueue.pop();
+  const showCorrect = Math.random()>0.45; // ~55% correct, 45% wrong
+  let displayId;
+  if(showCorrect){
+    displayId=w.id; isCorrectPair=true;
+  } else {
+    // Pick a random WRONG Indonesian word
+    const others=PAIRS.filter(p=>p.id!==w.id);
+    displayId=others[Math.floor(Math.random()*others.length)].id;
+    isCorrectPair=false;
+  }
+  currentCard={en:w.en,id:displayId,correctId:w.id,emoji:w.e,pronoun:w.p,isCorrect:showCorrect};
+}
+
+function renderCard(){
+  document.getElementById("card-emoji").textContent=currentCard.emoji;
+  document.getElementById("card-en").textContent=currentCard.en;
+  document.getElementById("card-id").textContent=currentCard.id;
+  document.getElementById("card-pronoun").textContent="🔊 "+currentCard.pronoun;
+  // Reset card position and stamps
+  const card=document.getElementById("active-card");
+  card.style.transform="";card.style.transition="";
+  card.style.boxShadow="0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)";
+  document.getElementById("stamp-yes").style.opacity=0;
+  document.getElementById("stamp-no").style.opacity=0;
+  document.getElementById("wrong-reveal").style.maxHeight=0;
+  document.getElementById("wrong-reveal").style.opacity=0;
+  document.getElementById("lbl-yes").style.opacity=0;
+  document.getElementById("lbl-no").style.opacity=0;
+  document.getElementById("zone-yes").style.opacity=0;
+  document.getElementById("zone-no").style.opacity=0;
+  answered=false;
+}
+
+// ── ANSWER ────────────────────────────────────────────────────────────────
+function answer(userSaysCorrect){
+  if(!gameActive||answered) return;
+  answered=true;
+  const correct_answer = currentCard.isCorrect;
+  const isRight = (userSaysCorrect===correct_answer);
+
+  if(isRight){
+    combo++;bestCombo=Math.max(bestCombo,combo);correct++;currentStreak++;
+    const pts=10+(combo>1?(combo-1)*5:0);
+    score+=pts;
+    burst("yes");
+    floatPop("+"+(pts)+" "+(combo>1?"🔥×"+combo:"✓"),"#00E676",window.innerHeight*.35);
+    animateCardOut(userSaysCorrect);
+    // Flash score green
+    const hs=document.getElementById("hud-score");
+    hs.classList.add("green");setTimeout(()=>hs.classList.remove("green"),300);
+  } else {
+    combo=0;wrong++;currentStreak=0;
+    floatPop("❌","#FF1744",window.innerHeight*.35);
+    burst("no");
+    // Show correct answer
+    if(!userSaysCorrect && !currentCard.isCorrect){
+      // User said SALAH but it was actually BENAR
+      document.getElementById("wr-text").textContent=currentCard.id+" ✅ (it was correct!)";
+    } else {
+      document.getElementById("wr-text").textContent=currentCard.en+" = "+currentCard.correctId;
+    }
+    const wr=document.getElementById("wrong-reveal");
+    wr.style.maxHeight="80px";wr.style.opacity=1;
+    // Shake card
+    const card=document.getElementById("active-card");
+    card.style.animation="none";void card.offsetWidth;card.style.animation="shake .4s ease";
+    const hs=document.getElementById("hud-score");
+    hs.classList.add("red");setTimeout(()=>hs.classList.remove("red"),300);
+    setTimeout(()=>animateCardOut(userSaysCorrect),700);
+  }
+
+  updateHUD();
+}
+
+function animateCardOut(toRight){
+  const card=document.getElementById("active-card");
+  card.style.transition="transform .4s ease, opacity .4s ease";
+  card.style.transform=toRight
+    ?`translateX(110vw) rotate(20deg)`
+    :`translateX(-110vw) rotate(-20deg)`;
+  card.style.opacity=0;
+  setTimeout(()=>{
+    generateCard();
+    renderCard();
+    card.style.animation="none";
+    void card.offsetWidth;
+    card.style.animation="cardIn .35s cubic-bezier(.34,1.56,.64,1)";
+  },380);
+}
+
+// ── SWIPE (drag) ──────────────────────────────────────────────────────────
+const cardEl=()=>document.getElementById("active-card");
+
+function onDragStart(e){
+  if(!gameActive||answered)return;
+  dragging=true;
+  const pt=e.touches?e.touches[0]:e;
+  startX=pt.clientX;startY=pt.clientY;currentX=0;
+  cardEl().style.transition="none";
+}
+
+function onDragMove(e){
+  if(!dragging||!gameActive||answered)return;
+  e.preventDefault();
+  const pt=e.touches?e.touches[0]:e;
+  currentX=pt.clientX-startX;
+  const rotate=currentX*0.08;
+  cardEl().style.transform=`translateX(${currentX}px) rotate(${rotate}deg)`;
+
+  // Side glows + stamps
+  const pct=Math.min(Math.abs(currentX)/120,1);
+  if(currentX>0){
+    document.getElementById("zone-yes").style.opacity=pct*.7;
+    document.getElementById("zone-no").style.opacity=0;
+    document.getElementById("lbl-yes").style.opacity=pct;
+    document.getElementById("lbl-no").style.opacity=0;
+    document.getElementById("stamp-yes").style.opacity=pct;
+    document.getElementById("stamp-no").style.opacity=0;
+    cardEl().style.boxShadow=`0 30px 80px rgba(0,0,0,.6),0 0 40px rgba(0,230,118,${pct*.4})`;
+  } else if(currentX<0){
+    document.getElementById("zone-no").style.opacity=pct*.7;
+    document.getElementById("zone-yes").style.opacity=0;
+    document.getElementById("lbl-no").style.opacity=pct;
+    document.getElementById("lbl-yes").style.opacity=0;
+    document.getElementById("stamp-no").style.opacity=pct;
+    document.getElementById("stamp-yes").style.opacity=0;
+    cardEl().style.boxShadow=`0 30px 80px rgba(0,0,0,.6),0 0 40px rgba(255,23,68,${pct*.4})`;
+  } else {
+    document.getElementById("zone-yes").style.opacity=0;
+    document.getElementById("zone-no").style.opacity=0;
+    document.getElementById("lbl-yes").style.opacity=0;
+    document.getElementById("lbl-no").style.opacity=0;
+    document.getElementById("stamp-yes").style.opacity=0;
+    document.getElementById("stamp-no").style.opacity=0;
+  }
+}
+
+function onDragEnd(e){
+  if(!dragging)return;
+  dragging=false;
+  const THRESHOLD=90;
+  if(currentX>THRESHOLD){ answer(true); }
+  else if(currentX<-THRESHOLD){ answer(false); }
+  else {
+    // Snap back
+    cardEl().style.transition="transform .35s cubic-bezier(.34,1.56,.64,1)";
+    cardEl().style.transform="";
+    cardEl().style.boxShadow="0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)";
+    document.getElementById("zone-yes").style.opacity=0;
+    document.getElementById("zone-no").style.opacity=0;
+    document.getElementById("lbl-yes").style.opacity=0;
+    document.getElementById("lbl-no").style.opacity=0;
+    document.getElementById("stamp-yes").style.opacity=0;
+    document.getElementById("stamp-no").style.opacity=0;
+  }
+  currentX=0;
+}
+
+// Attach drag events
+window.addEventListener("mousedown",e=>{if(e.target.closest(".swipe-card"))onDragStart(e);});
+window.addEventListener("mousemove",onDragMove);
+window.addEventListener("mouseup",onDragEnd);
+window.addEventListener("touchstart",e=>{if(e.target.closest(".swipe-card"))onDragStart(e);},{passive:false});
+window.addEventListener("touchmove",onDragMove,{passive:false});
+window.addEventListener("touchend",onDragEnd);
+
+// Keyboard shortcuts
+window.addEventListener("keydown",e=>{
+  if(!gameActive)return;
+  if(e.key==="ArrowRight"||e.key==="l"||e.key==="L")answer(true);
+  if(e.key==="ArrowLeft"||e.key==="h"||e.key==="H")answer(false);
+});
+
+// ── HUD ────────────────────────────────────────────────────────────────────
+function updateHUD(){
+  document.getElementById("hud-score").textContent=score;
+  const cb=document.getElementById("hud-combo");
+  if(combo>=2){cb.classList.add("show");document.getElementById("combo-num").textContent=combo;}
+  else cb.classList.remove("show");
+}
+
+function updateTimer(){
+  document.getElementById("hud-timer-big").textContent=timerSec;
+  const bar=document.getElementById("timer-bar");
+  const pct=(timerSec/60)*100;
+  bar.style.width=pct+"%";
+  const th=document.getElementById("hud-timer-big");
+  bar.className="";th.className="";
+  if(timerSec<=10){bar.classList.add("danger");th.classList.add("danger");}
+  else if(timerSec<=25){bar.classList.add("warn");th.classList.add("warn");}
+}
+
+// ── COUNTDOWN ────────────────────────────────────────────────────────────
+function startCountdown(){
+  score=0;combo=0;bestCombo=0;correct=0;wrong=0;answered=false;currentStreak=0;
+  cardQueue=[];
+  showScreen("screen-count");
+  let n=3;
+  const el=document.getElementById("count-num");
+  const goEl=document.getElementById("count-go");
+  goEl.style.display="none";el.style.display="block";
+  setCnt(el,n);
+  const t=setInterval(()=>{
+    n--;
+    if(n===0){
+      el.style.display="none";
+      goEl.style.display="block";
+      goEl.style.animation="none";void goEl.offsetWidth;goEl.style.animation="countdown .4s ease";
+      setTimeout(()=>startGame(),500);
+      clearInterval(t);
+    } else {
+      setCnt(el,n);
+    }
+  },900);
+}
+function setCnt(el,n){el.textContent=n;el.style.animation="none";void el.offsetWidth;el.style.animation="countdown .55s ease";}
+
+// ── GAME ──────────────────────────────────────────────────────────────────
+function startGame(){
+  gameActive=true;timerSec=60;
+  showScreen("screen-count");document.getElementById("screen-count").classList.add("hidden");
+  document.getElementById("hud").style.display="block";
+  document.getElementById("card-arena").style.display="flex";
+  document.getElementById("swipe-btns").style.display="flex";
+  generateCard();renderCard();updateHUD();updateTimer();
+
+  timerInt=setInterval(()=>{
+    timerSec--;updateTimer();
+    if(timerSec<=0){clearInterval(timerInt);endGame();}
+  },1000);
+}
+
+function endGame(){
+  gameActive=false;
+  document.getElementById("hud").style.display="none";
+  document.getElementById("card-arena").style.display="none";
+  document.getElementById("swipe-btns").style.display="none";
+
+  played++;
+  if(score>best)best=score;
+  bstreak=Math.max(bstreak,currentStreak);
+  localStorage.setItem("g_best",best);
+  localStorage.setItem("g_played",played);
+  localStorage.setItem("g_bstreak",bstreak);
+
+  const total=correct+wrong;
+  const acc=total>0?Math.round(correct/total*100):0;
+
+  document.getElementById("end-score").textContent=score;
+  document.getElementById("end-best").textContent="BEST: "+best;
+  document.getElementById("eg-correct").textContent=correct;
+  document.getElementById("eg-wrong").textContent=wrong;
+  document.getElementById("eg-combo").textContent="×"+bestCombo;
+  document.getElementById("eg-acc").textContent=acc+"%";
+
+  const verdict=document.getElementById("end-verdict");
+  verdict.className="";
+  if(acc>=90&&correct>=20){verdict.textContent="SEMPURNA! 🏆";verdict.classList.add("perfect");}
+  else if(acc>=70&&correct>=12){verdict.textContent="BAGUS! 🔥";verdict.classList.add("great");}
+  else{verdict.textContent="KEEP GOING! 💪";verdict.classList.add("good");}
+
+  updateStartStats();
+  showScreen("screen-end");
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+// Make sure count-go is a separate element
+document.getElementById("count-num").insertAdjacentHTML("afterend","<div id='count-go' style='display:none;font-family:Anton,sans-serif;font-size:80px;color:var(--yes);text-shadow:0 0 40px rgba(0,230,118,.5);'>GO!</div>");
+
+updateStartStats();
+showScreen("screen-start");
+</script>
+</body>
+</html>
