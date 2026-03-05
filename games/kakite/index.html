@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+        <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JDJ9TGXZ7Q"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-JDJ9TGXZ7Q');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KAKITE · 書いて</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#faf7f0;--surface:#f0ebe0;--surface2:#e8e0d0;--card:#fff;
+  --red:#c0392b;--red2:#e74c3c;--red3:#fdecea;
+  --ink:#1a0e0e;--ink2:#3d2b2b;--muted:#9a8878;--muted2:#c0b0a0;
+  --gold:#b8860b;--gold2:#f0c040;
+  --correct:#1a7a40;--correct2:#e6f7ed;
+  --shadow:rgba(60,20,20,.09);
+}
+html,body{background:var(--bg);color:var(--ink);font-family:Georgia,'Times New Roman',serif;
+  min-height:100svh;overflow-x:hidden}
+body{display:flex;flex-direction:column;align-items:center}
+
+/* ── LAYOUT ── */
+.app{width:100%;max-width:1120px;min-height:100svh;display:flex;
+  flex-direction:column;align-items:center}
+
+.screen{width:100%;display:none;flex-direction:column;align-items:center;padding:24px 16px 48px}
+.screen.active{display:flex}
+
+@media(min-width:860px){
+  .app{flex-direction:row;align-items:flex-start}
+  .sidebar{width:260px;min-height:100svh;padding:32px 20px;
+    border-right:2px solid var(--surface2);display:flex;flex-direction:column;
+    gap:10px;position:sticky;top:0;flex-shrink:0}
+  .main{flex:1;max-width:720px;padding:32px 36px 52px;
+    display:flex;flex-direction:column;align-items:center}
+  .screen{padding:0}
+}
+@media(max-width:859px){
+  .sidebar{display:none!important}
+  .main{width:100%;padding:20px 16px 40px;display:flex;flex-direction:column;align-items:center}
+}
+
+/* ── HOME ── */
+.home-hero{text-align:center;padding:10px 0 6px;width:100%}
+.deco-line{font-size:1.1rem;letter-spacing:12px;color:var(--muted2);margin-bottom:4px}
+.logo-k{font-size:clamp(4.5rem,12vw,7rem);color:var(--red);
+  text-shadow:2px 3px 0 rgba(192,57,43,.15);line-height:1}
+.logo-r{font-size:clamp(1rem,3vw,1.4rem);letter-spacing:10px;color:var(--ink2);
+  font-variant:small-caps;margin-top:4px}
+.logo-s{font-size:.7rem;color:var(--muted);letter-spacing:3px;margin-top:5px}
+.logo-meaning{font-size:.78rem;color:var(--red);margin-top:3px;font-style:italic}
+
+.stats-row{display:flex;gap:clamp(10px,3vw,28px);margin:18px 0;
+  padding:14px clamp(14px,4vw,36px);background:var(--card);
+  border-radius:14px;box-shadow:0 2px 12px var(--shadow);border:1px solid var(--surface2)}
+.st{text-align:center}
+.st-n{font-size:clamp(1.4rem,4vw,2rem);color:var(--red)}
+.st-l{font-size:.6rem;color:var(--muted);letter-spacing:1px;margin-top:2px}
+
+.xp-wrap{width:100%;max-width:500px;padding:0 2px;margin-bottom:8px}
+.xp-row{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-bottom:5px}
+.xp-bar{height:6px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--red2));
+  border-radius:4px;transition:width .6s ease}
+
+.sec-title{font-size:.65rem;letter-spacing:3px;color:var(--muted);
+  text-transform:uppercase;margin:18px 0 10px;text-align:center}
+
+.cat-grid{display:grid;width:100%;
+  grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+@media(min-width:860px){.cat-grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:600px) and (max-width:859px){.cat-grid{grid-template-columns:repeat(3,1fr)}}
+
+.cat-tile{background:var(--card);border:2px solid var(--surface2);border-radius:14px;
+  padding:16px 12px;text-align:center;cursor:pointer;transition:all .18s;position:relative;
+  box-shadow:0 1px 6px var(--shadow)}
+.cat-tile:hover{border-color:var(--red);background:var(--red3);transform:translateY(-2px);
+  box-shadow:0 4px 16px rgba(192,57,43,.12)}
+.cat-tile:active{transform:scale(.97)}
+.cat-disp{font-size:clamp(2rem,5vw,2.6rem);display:block;color:var(--red);margin-bottom:6px;line-height:1.1}
+.cat-name{font-size:.82rem;color:var(--ink2)}
+.cat-cnt{font-size:.6rem;color:var(--muted);margin-top:3px}
+.cat-tile.done::after{content:'✓';position:absolute;top:8px;right:10px;color:var(--correct);font-size:.8rem;font-weight:bold}
+
+/* ── SHARED HDR ── */
+.hdr{width:100%;max-width:620px;display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:14px}
+.back-btn{background:var(--card);border:1.5px solid var(--surface2);color:var(--muted);
+  font-size:.75rem;cursor:pointer;padding:7px 13px;border-radius:8px;
+  font-family:Georgia,serif;letter-spacing:1px;transition:all .15s;box-shadow:0 1px 4px var(--shadow)}
+.back-btn:hover{border-color:var(--red);color:var(--red)}
+.phase-tag{font-size:.65rem;letter-spacing:3px;color:var(--red);text-transform:uppercase;
+  background:var(--red3);padding:5px 11px;border-radius:20px;border:1px solid rgba(192,57,43,.2)}
+.ctr-tag{font-size:.75rem;color:var(--muted)}
+
+.prog-wrap{width:100%;max-width:620px;height:5px;background:var(--surface2);
+  border-radius:4px;margin-bottom:20px;overflow:hidden}
+.prog-fill{height:100%;background:var(--red);border-radius:4px;transition:width .4s ease}
+
+/* ── TIMER BAR ── */
+.timer-wrap{width:100%;max-width:620px;height:7px;background:var(--surface2);
+  border-radius:4px;margin-bottom:18px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--correct),var(--gold2));
+  border-radius:4px;transition:width .1s linear}
+.timer-fill.warn{background:linear-gradient(90deg,#e67e22,#e74c3c)}
+.timer-fill.danger{background:#c0392b}
+
+/* ── QUIZ CARD ── */
+.q-card{width:100%;max-width:540px;background:var(--card);border-radius:20px;
+  box-shadow:0 4px 28px var(--shadow);border:1.5px solid var(--surface2);
+  padding:clamp(20px,4vw,36px) clamp(18px,4vw,40px);
+  display:flex;flex-direction:column;align-items:center;margin-bottom:18px;
+  position:relative;overflow:hidden}
+.q-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--red),var(--red2))}
+
+.q-kanji{font-size:clamp(5rem,16vw,8rem);color:var(--ink);line-height:1;text-align:center;
+  margin-bottom:6px;text-shadow:1px 2px 0 rgba(0,0,0,.06)}
+.q-eng{font-size:clamp(.95rem,3vw,1.3rem);color:var(--muted);text-align:center;
+  font-style:italic;margin-bottom:4px}
+.q-cat{font-size:.62rem;color:var(--muted2);letter-spacing:2px;text-align:center}
+
+/* hint */
+.hint-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.hint-btn{background:none;border:1px solid var(--muted2);color:var(--muted);
+  font-size:.7rem;padding:5px 12px;border-radius:20px;cursor:pointer;
+  font-family:Georgia,serif;transition:all .15s}
+.hint-btn:hover{border-color:var(--gold);color:var(--gold)}
+.hint-text{font-size:1.05rem;color:var(--red);opacity:0;transition:opacity .3s;min-width:60px;text-align:center;
+  cursor:pointer;border-bottom:1px dashed var(--red);padding-bottom:1px;letter-spacing:1px}
+.hint-text.show{opacity:1}
+.hint-text:hover{color:var(--red2)}
+
+/* ── INPUT AREA ── */
+.input-area{width:100%;max-width:540px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.inp-wrap{width:100%;display:flex;gap:8px;align-items:stretch}
+.romaji-input{flex:1;padding:14px 18px;font-size:clamp(1rem,3vw,1.25rem);
+  border:2px solid var(--surface2);border-radius:12px;background:var(--card);
+  color:var(--ink);font-family:Georgia,serif;outline:none;text-align:center;
+  letter-spacing:1px;box-shadow:0 2px 8px var(--shadow);transition:border .2s}
+.romaji-input:focus{border-color:var(--red);box-shadow:0 2px 12px rgba(192,57,43,.12)}
+.romaji-input.correct{border-color:var(--correct);background:var(--correct2)}
+.romaji-input.wrong{border-color:var(--red2);background:var(--red3);animation:shake .3s}
+.sub-btn{padding:14px 20px;background:var(--red);color:#fff;border:none;
+  border-radius:12px;font-size:1rem;cursor:pointer;font-family:Georgia,serif;
+  transition:background .15s;box-shadow:0 2px 8px rgba(192,57,43,.25)}
+.sub-btn:hover{background:var(--red2)}
+.sub-btn:active{transform:scale(.97)}
+
+/* feedback */
+.fb-area{width:100%;max-width:540px;min-height:56px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:12px 18px;border-radius:12px;
+  opacity:0;transition:opacity .25s;text-align:center}
+.fb-area.on{opacity:1}
+.fb-area.ok{background:var(--correct2);border:1.5px solid rgba(26,122,64,.25)}
+.fb-area.bad{background:var(--red3);border:1.5px solid rgba(192,57,43,.25)}
+.fb-main{font-size:.95rem;color:var(--ink)}
+.fb-detail{font-size:.78rem;color:var(--muted);margin-top:3px}
+
+/* hud */
+.hud{display:flex;align-items:center;justify-content:space-between;
+  width:100%;max-width:540px;margin-bottom:10px;padding:9px 14px;
+  background:var(--card);border-radius:10px;border:1px solid var(--surface2);
+  box-shadow:0 1px 6px var(--shadow)}
+.hud-h{font-size:.9rem;letter-spacing:2px}
+.hud-s{font-size:.8rem;color:var(--red);font-weight:bold}
+.hud-x{font-size:.7rem;color:var(--muted)}
+
+.btn{flex:1;padding:13px;border:none;border-radius:12px;font-size:.85rem;cursor:pointer;
+  font-family:Georgia,serif;letter-spacing:1px;transition:all .15s;box-shadow:0 1px 4px var(--shadow)}
+.btn-sec{background:var(--card);color:var(--muted);border:1.5px solid var(--surface2)}
+.btn-sec:hover{border-color:var(--red);color:var(--red)}
+.btn-pri{background:var(--red);color:#fff}
+.btn-pri:hover{background:var(--red2)}
+.btn:active{transform:scale(.97)}
+.btn-full{width:100%;max-width:540px;padding:14px;font-size:.9rem;letter-spacing:2px}
+
+.nav-row{display:flex;gap:10px;width:100%;max-width:540px;margin-top:6px}
+
+/* ── RESULTS ── */
+.res-wrap{width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center}
+.res-ring{width:clamp(100px,20vw,130px);height:clamp(100px,20vw,130px);
+  border:4px solid var(--red);border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:16px 0;
+  box-shadow:0 4px 20px rgba(192,57,43,.15)}
+.res-big{font-size:clamp(2rem,6vw,3rem);color:var(--red)}
+.res-sm{font-size:.68rem;color:var(--muted)}
+.res-msg{font-size:1.05rem;color:var(--ink2);margin-bottom:4px;text-align:center}
+.res-xp{font-size:.82rem;color:var(--gold);margin-bottom:18px}
+.breakdown{width:100%;background:var(--card);border-radius:12px;overflow:hidden;
+  border:1px solid var(--surface2);margin-bottom:18px;max-height:320px;overflow-y:auto;
+  box-shadow:0 2px 12px var(--shadow)}
+.bk-row{display:flex;align-items:center;padding:11px 14px;
+  border-bottom:1px solid var(--surface);gap:10px}
+.bk-row:last-child{border-bottom:none}
+.bk-k{width:46px;height:46px;background:var(--surface);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.bk-info{flex:1;min-width:0}
+.bk-e{font-size:.86rem}
+.bk-r{font-size:.7rem;color:var(--muted);margin-top:2px}
+.bk-you{font-size:.7rem;color:var(--red);margin-top:1px}
+.bk-ic{flex-shrink:0;font-size:1rem}
+
+/* ── SIDEBAR ── */
+.sb-logo{font-size:3rem;color:var(--red);text-align:center;text-shadow:1px 2px 0 rgba(192,57,43,.15)}
+.sb-title{font-size:.7rem;letter-spacing:5px;color:var(--ink2);text-align:center;margin-bottom:14px}
+.sb-stat{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;
+  background:var(--surface);border-radius:8px;font-size:.78rem;border:1px solid var(--surface2)}
+.sb-v{color:var(--red);font-size:1rem;font-weight:bold}
+.sb-div{height:1px;background:var(--surface2);margin:6px 0}
+.sb-tip{font-size:.65rem;color:var(--muted);line-height:1.8}
+
+/* ── ANIMS ── */
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.pop{animation:pop .3s ease}
+
+/* brush strokes deco */
+.brush{position:fixed;pointer-events:none;opacity:.035;z-index:0;
+  font-size:clamp(8rem,20vw,14rem);color:var(--red);transform:rotate(-15deg);
+  top:5%;right:-2%}
+.brush2{top:auto;bottom:5%;right:auto;left:-2%;transform:rotate(10deg)}
+</style>
+</head>
+<body>
+<div class="brush">書</div>
+<div class="brush brush2">い</div>
+
+<div class="app">
+  <!-- SIDEBAR desktop -->
+  <div class="sidebar" id="sidebar" style="display:none">
+    <div><div class="sb-logo">書い</div><div class="sb-title">K A K I T E</div></div>
+    <div class="sb-stat"><span>XP</span><span class="sb-v" id="sb-xp">0</span></div>
+    <div class="sb-stat"><span>Level</span><span class="sb-v" id="sb-lv">1</span></div>
+    <div class="sb-stat"><span>Best Streak</span><span class="sb-v" id="sb-str">0</span></div>
+    <div class="sb-stat"><span>Words Mastered</span><span class="sb-v" id="sb-wm">0</span></div>
+    <div class="sb-stat"><span>Accuracy</span><span class="sb-v" id="sb-acc">—</span></div>
+    <div class="sb-div"></div>
+    <div class="xp-bar"><div class="xp-fill" id="sb-xpf" style="width:0%"></div></div>
+    <div class="sb-div"></div>
+    <div class="sb-tip">
+      <div>✍️ Type the romaji spelling</div>
+      <div>💡 Use hint (costs streak)</div>
+      <div>⏱ Bonus XP for speed</div>
+      <div>🔥 Streak bonus at 4+</div>
+      <div>❤️ 3 lives per session</div>
+    </div>
+    <div style="margin-top:auto">
+      <button class="btn btn-sec" style="width:100%;font-size:.73rem" onclick="goHome()">← Categories</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainPanel">
+
+    <!-- HOME -->
+    <div class="screen active" id="homeScreen">
+      <div class="home-hero">
+        <div class="deco-line">— ✦ —</div>
+        <div class="logo-k">書いて</div>
+        <div class="logo-r">K A K I T E</div>
+        <div class="logo-s">Japanese Romaji Typing Game</div>
+        <div class="logo-meaning">"Write it" in Japanese</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="st"><div class="st-n" id="h-xp">0</div><div class="st-l">XP</div></div>
+        <div class="st"><div class="st-n" id="h-streak">0</div><div class="st-l">Best Streak</div></div>
+        <div class="st"><div class="st-n" id="h-words">0</div><div class="st-l">Mastered</div></div>
+        <div class="st"><div class="st-n" id="h-done">0</div><div class="st-l">Completed</div></div>
+      </div>
+
+      <div class="xp-wrap">
+        <div class="xp-row"><span id="h-lvl">Level 1</span><span id="h-xplbl">0 / 100 XP</span></div>
+        <div class="xp-bar"><div class="xp-fill" id="h-xpfill" style="width:0%"></div></div>
+      </div>
+
+      <div class="sec-title">Choose a Category</div>
+      <div class="cat-grid" id="catGrid"></div>
+      <div style="margin-top:22px;font-size:.62rem;color:var(--muted);letter-spacing:1px;text-align:center">
+        See kanji · Type the romaji · Learn to write Japanese
+      </div>
+    </div>
+
+    <!-- GAME -->
+    <div class="screen" id="gameScreen">
+      <div class="hdr">
+        <button class="back-btn" onclick="goHome()">← Home</button>
+        <div class="phase-tag">✍️ Write It</div>
+        <div class="ctr-tag" id="g-ctr">1 / 10</div>
+      </div>
+      <div class="prog-wrap"><div class="prog-fill" id="g-prog"></div></div>
+
+      <div class="hud">
+        <div class="hud-h" id="g-hearts">❤️❤️❤️</div>
+        <div class="hud-s">🔥 <span id="g-streak">0</span> streak</div>
+        <div class="hud-x" id="g-xp">+0 XP</div>
+      </div>
+
+      <div class="timer-wrap"><div class="timer-fill" id="g-timer" style="width:100%"></div></div>
+
+      <div class="q-card" id="qCard">
+        <div class="q-kanji" id="q-kanji">山</div>
+        <div class="q-eng" id="q-eng">Mountain</div>
+        <div class="q-cat" id="q-cat">NATURE</div>
+        <div class="hint-row">
+          <button class="hint-btn" onclick="showHint()">💡 Reveal Answer</button>
+          <div class="hint-text" id="hint-text" onclick="copyHint()" title="Click to copy"></div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="inp-wrap">
+          <input class="romaji-input" id="romajiInput" type="text" autocomplete="off"
+            autocorrect="off" autocapitalize="off" spellcheck="false"
+            placeholder="type romaji here…" onkeydown="handleKey(event)">
+          <button class="sub-btn" onclick="submitAnswer()">→</button>
+        </div>
+
+        <div class="fb-area" id="fb">
+          <div class="fb-main" id="fb-main"></div>
+          <div class="fb-detail" id="fb-detail"></div>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-sec" id="skipBtn" onclick="skipWord()">Skip →</button>
+          <button class="btn btn-pri btn-full" id="nextBtn" onclick="nextWord()" style="display:none">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="screen" id="resultsScreen">
+      <div class="res-wrap">
+        <div style="font-size:.65rem;letter-spacing:3px;color:var(--muted);margin-top:8px">SESSION RESULTS</div>
+        <div class="res-ring">
+          <div class="res-big" id="r-score">0</div>
+          <div class="res-sm" id="r-tot">/ 0 correct</div>
+        </div>
+        <div class="res-msg" id="r-msg"></div>
+        <div class="res-xp" id="r-xp"></div>
+        <div class="breakdown" id="breakdown"></div>
+        <div style="display:flex;gap:10px;width:100%">
+          <button class="btn btn-sec" onclick="replayGame()">Retry ↺</button>
+          <button class="btn btn-pri" onclick="goHome()">Done ✓</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  VOCABULARY — 9 categories, 130+ words
+//  Each word: k=kanji/kana, h=hiragana, r=romaji, e=English, a=alt accepted romaji
+// ══════════════════════════════════════════
+const CATS = [
+  {id:'greet',name:'Greetings',emoji:'👋',disp:'挨拶',words:[
+    {k:'こんにちは',h:'こんにちは',r:'konnichiwa',a:['konnichiha'],e:'Hello / Good Afternoon'},
+    {k:'おはよう',h:'おはよう',r:'ohayou',a:['ohayo'],e:'Good Morning'},
+    {k:'おはようございます',h:'おはようございます',r:'ohayou gozaimasu',a:['ohayo gozaimasu'],e:'Good Morning (formal)'},
+    {k:'こんばんは',h:'こんばんは',r:'konbanwa',a:['konbanha'],e:'Good Evening'},
+    {k:'おやすみ',h:'おやすみ',r:'oyasumi',a:[],e:'Good Night'},
+    {k:'ありがとう',h:'ありがとう',r:'arigatou',a:['arigatoo','arigato'],e:'Thank You'},
+    {k:'すみません',h:'すみません',r:'sumimasen',a:[],e:'Excuse Me / Sorry'},
+    {k:'ごめんなさい',h:'ごめんなさい',r:'gomennasai',a:[],e:"I'm Sorry"},
+    {k:'さようなら',h:'さようなら',r:'sayounara',a:['sayonara'],e:'Goodbye'},
+    {k:'またね',h:'またね',r:'mata ne',a:['matane'],e:'See You Later'},
+    {k:'はじめまして',h:'はじめまして',r:'hajimemashite',a:[],e:'Nice to Meet You'},
+    {k:'よろしく',h:'よろしく',r:'yoroshiku',a:[],e:'Please be kind to me'},
+  ]},
+  {id:'nums',name:'Numbers',emoji:'🔢',disp:'数字',words:[
+    {k:'一',h:'いち',r:'ichi',a:[],e:'One'},
+    {k:'二',h:'に',r:'ni',a:[],e:'Two'},
+    {k:'三',h:'さん',r:'san',a:[],e:'Three'},
+    {k:'四',h:'よん',r:'yon',a:['shi'],e:'Four'},
+    {k:'五',h:'ご',r:'go',a:[],e:'Five'},
+    {k:'六',h:'ろく',r:'roku',a:[],e:'Six'},
+    {k:'七',h:'なな',r:'nana',a:['shichi'],e:'Seven'},
+    {k:'八',h:'はち',r:'hachi',a:[],e:'Eight'},
+    {k:'九',h:'きゅう',r:'kyuu',a:['kyu'],e:'Nine'},
+    {k:'十',h:'じゅう',r:'juu',a:['ju'],e:'Ten'},
+    {k:'百',h:'ひゃく',r:'hyaku',a:[],e:'One Hundred'},
+    {k:'千',h:'せん',r:'sen',a:[],e:'One Thousand'},
+    {k:'万',h:'まん',r:'man',a:[],e:'Ten Thousand'},
+    {k:'零',h:'れい',r:'rei',a:['zero'],e:'Zero'},
+  ]},
+  {id:'nature',name:'Nature',emoji:'🌸',disp:'自然',words:[
+    {k:'山',h:'やま',r:'yama',a:[],e:'Mountain'},
+    {k:'川',h:'かわ',r:'kawa',a:[],e:'River'},
+    {k:'海',h:'うみ',r:'umi',a:[],e:'Sea / Ocean'},
+    {k:'木',h:'き',r:'ki',a:[],e:'Tree'},
+    {k:'花',h:'はな',r:'hana',a:[],e:'Flower'},
+    {k:'月',h:'つき',r:'tsuki',a:[],e:'Moon'},
+    {k:'空',h:'そら',r:'sora',a:[],e:'Sky'},
+    {k:'雨',h:'あめ',r:'ame',a:[],e:'Rain'},
+    {k:'雪',h:'ゆき',r:'yuki',a:[],e:'Snow'},
+    {k:'火',h:'ひ',r:'hi',a:[],e:'Fire'},
+    {k:'風',h:'かぜ',r:'kaze',a:[],e:'Wind'},
+    {k:'森',h:'もり',r:'mori',a:[],e:'Forest'},
+    {k:'島',h:'しま',r:'shima',a:[],e:'Island'},
+    {k:'星',h:'ほし',r:'hoshi',a:[],e:'Star'},
+    {k:'雲',h:'くも',r:'kumo',a:[],e:'Cloud'},
+    {k:'石',h:'いし',r:'ishi',a:[],e:'Stone / Rock'},
+  ]},
+  {id:'animals',name:'Animals',emoji:'🐱',disp:'動物',words:[
+    {k:'犬',h:'いぬ',r:'inu',a:[],e:'Dog'},
+    {k:'猫',h:'ねこ',r:'neko',a:[],e:'Cat'},
+    {k:'鳥',h:'とり',r:'tori',a:[],e:'Bird'},
+    {k:'魚',h:'さかな',r:'sakana',a:[],e:'Fish'},
+    {k:'馬',h:'うま',r:'uma',a:[],e:'Horse'},
+    {k:'牛',h:'うし',r:'ushi',a:[],e:'Cow'},
+    {k:'熊',h:'くま',r:'kuma',a:[],e:'Bear'},
+    {k:'虎',h:'とら',r:'tora',a:[],e:'Tiger'},
+    {k:'狐',h:'きつね',r:'kitsune',a:[],e:'Fox'},
+    {k:'兎',h:'うさぎ',r:'usagi',a:[],e:'Rabbit'},
+    {k:'豚',h:'ぶた',r:'buta',a:[],e:'Pig'},
+    {k:'鹿',h:'しか',r:'shika',a:[],e:'Deer'},
+    {k:'猿',h:'さる',r:'saru',a:[],e:'Monkey'},
+    {k:'鯨',h:'くじら',r:'kujira',a:[],e:'Whale'},
+    {k:'蛇',h:'へび',r:'hebi',a:[],e:'Snake'},
+  ]},
+  {id:'food',name:'Food & Drink',emoji:'🍣',disp:'食べ物',words:[
+    {k:'水',h:'みず',r:'mizu',a:[],e:'Water'},
+    {k:'お茶',h:'おちゃ',r:'ocha',a:['o-cha'],e:'Green Tea'},
+    {k:'ご飯',h:'ごはん',r:'gohan',a:[],e:'Cooked Rice / Meal'},
+    {k:'肉',h:'にく',r:'niku',a:[],e:'Meat'},
+    {k:'卵',h:'たまご',r:'tamago',a:[],e:'Egg'},
+    {k:'酒',h:'さけ',r:'sake',a:[],e:'Sake / Alcohol'},
+    {k:'塩',h:'しお',r:'shio',a:[],e:'Salt'},
+    {k:'麺',h:'めん',r:'men',a:[],e:'Noodles'},
+    {k:'野菜',h:'やさい',r:'yasai',a:[],e:'Vegetables'},
+    {k:'果物',h:'くだもの',r:'kudamono',a:[],e:'Fruit'},
+    {k:'パン',h:'ぱん',r:'pan',a:[],e:'Bread'},
+    {k:'牛乳',h:'ぎゅうにゅう',r:'gyuunyuu',a:['gyuunyu'],e:'Milk'},
+    {k:'砂糖',h:'さとう',r:'satou',a:['sato'],e:'Sugar'},
+    {k:'豆腐',h:'とうふ',r:'toufu',a:['tofu'],e:'Tofu'},
+  ]},
+  {id:'colors',name:'Colors',emoji:'🎨',disp:'色',words:[
+    {k:'赤',h:'あか',r:'aka',a:[],e:'Red'},
+    {k:'青',h:'あお',r:'ao',a:[],e:'Blue'},
+    {k:'白',h:'しろ',r:'shiro',a:[],e:'White'},
+    {k:'黒',h:'くろ',r:'kuro',a:[],e:'Black'},
+    {k:'黄色',h:'きいろ',r:'kiiro',a:['ki iro'],e:'Yellow'},
+    {k:'緑',h:'みどり',r:'midori',a:[],e:'Green'},
+    {k:'橙',h:'だいだい',r:'daidai',a:[],e:'Orange'},
+    {k:'紫',h:'むらさき',r:'murasaki',a:[],e:'Purple'},
+    {k:'茶色',h:'ちゃいろ',r:'chairo',a:['cha iro'],e:'Brown'},
+    {k:'桃色',h:'ももいろ',r:'momoiro',a:[],e:'Pink'},
+    {k:'灰色',h:'はいいろ',r:'haiiro',a:[],e:'Grey'},
+    {k:'金色',h:'きんいろ',r:'kin\'iro',a:['kiniro'],e:'Gold'},
+  ]},
+  {id:'body',name:'Body & Health',emoji:'🧍',disp:'体',words:[
+    {k:'目',h:'め',r:'me',a:[],e:'Eye'},
+    {k:'耳',h:'みみ',r:'mimi',a:[],e:'Ear'},
+    {k:'口',h:'くち',r:'kuchi',a:[],e:'Mouth'},
+    {k:'手',h:'て',r:'te',a:[],e:'Hand'},
+    {k:'足',h:'あし',r:'ashi',a:[],e:'Foot / Leg'},
+    {k:'頭',h:'あたま',r:'atama',a:[],e:'Head'},
+    {k:'体',h:'からだ',r:'karada',a:[],e:'Body'},
+    {k:'心',h:'こころ',r:'kokoro',a:[],e:'Heart / Mind'},
+    {k:'顔',h:'かお',r:'kao',a:[],e:'Face'},
+    {k:'鼻',h:'はな',r:'hana',a:[],e:'Nose'},
+    {k:'歯',h:'は',r:'ha',a:[],e:'Teeth'},
+    {k:'骨',h:'ほね',r:'hone',a:[],e:'Bone'},
+    {k:'血',h:'ち',r:'chi',a:[],e:'Blood'},
+  ]},
+  {id:'time',name:'Time & Days',emoji:'🕐',disp:'時間',words:[
+    {k:'今日',h:'きょう',r:'kyou',a:['kyo'],e:'Today'},
+    {k:'明日',h:'あした',r:'ashita',a:['asu'],e:'Tomorrow'},
+    {k:'昨日',h:'きのう',r:'kinou',a:['kino'],e:'Yesterday'},
+    {k:'今',h:'いま',r:'ima',a:[],e:'Now'},
+    {k:'朝',h:'あさ',r:'asa',a:[],e:'Morning'},
+    {k:'昼',h:'ひる',r:'hiru',a:[],e:'Noon / Daytime'},
+    {k:'夜',h:'よる',r:'yoru',a:[],e:'Night'},
+    {k:'月曜日',h:'げつようび',r:'getsuyoubi',a:['getsuyobi'],e:'Monday'},
+    {k:'火曜日',h:'かようび',r:'kayoubi',a:['kayobi'],e:'Tuesday'},
+    {k:'水曜日',h:'すいようび',r:'suiyoubi',a:['suiyobi'],e:'Wednesday'},
+    {k:'木曜日',h:'もくようび',r:'mokuyoubi',a:['mokuyobi'],e:'Thursday'},
+    {k:'金曜日',h:'きんようび',r:'kinyoubi',a:['kinyobi'],e:'Friday'},
+    {k:'土曜日',h:'どようび',r:'doyoubi',a:['doyobi'],e:'Saturday'},
+    {k:'日曜日',h:'にちようび',r:'nichiyoubi',a:['nichiyobi'],e:'Sunday'},
+  ]},
+  {id:'kanji',name:'Core Kanji',emoji:'✍️',disp:'漢字',words:[
+    {k:'人',h:'ひと',r:'hito',a:[],e:'Person'},
+    {k:'日',h:'にち',r:'nichi',a:['hi'],e:'Day / Sun'},
+    {k:'年',h:'ねん',r:'nen',a:[],e:'Year'},
+    {k:'大',h:'おお',r:'oo',a:['o'],e:'Big / Large'},
+    {k:'小',h:'ちい',r:'chii',a:['chi'],e:'Small'},
+    {k:'上',h:'うえ',r:'ue',a:[],e:'Above / Up'},
+    {k:'下',h:'した',r:'shita',a:[],e:'Below / Down'},
+    {k:'中',h:'なか',r:'naka',a:[],e:'Inside / Middle'},
+    {k:'本',h:'ほん',r:'hon',a:[],e:'Book / Origin'},
+    {k:'道',h:'みち',r:'michi',a:[],e:'Road / Way'},
+    {k:'名',h:'な',r:'na',a:[],e:'Name'},
+    {k:'見',h:'み',r:'mi',a:[],e:'See / Look'},
+    {k:'来',h:'く',r:'ku',a:[],e:'Come'},
+    {k:'行',h:'い',r:'i',a:['iku'],e:'Go'},
+    {k:'食',h:'た',r:'ta',a:['shoku'],e:'Eat / Food'},
+    {k:'言',h:'い',r:'i',a:['kotoba'],e:'Say / Word'},
+  ]},
+];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const XPL=100;
+let S={xp:0,level:1,bestStreak:0,mastered:new Set(),done:new Set(),totalCorrect:0,totalAnswered:0};
+let G={cat:null,words:[],idx:0,results:[],hearts:3,sxp:0,streak:0,answered:false,
+       hintUsed:false,timerInt:null,timeLeft:100};
+
+function save(){localStorage.setItem('kakite1',JSON.stringify({
+  xp:S.xp,level:S.level,bestStreak:S.bestStreak,
+  mastered:[...S.mastered],done:[...S.done],
+  totalCorrect:S.totalCorrect,totalAnswered:S.totalAnswered
+}));}
+function load(){try{const d=JSON.parse(localStorage.getItem('kakite1')||'{}');
+  S.xp=d.xp||0;S.level=d.level||1;S.bestStreak=d.bestStreak||0;
+  S.mastered=new Set(d.mastered||[]);S.done=new Set(d.done||[]);
+  S.totalCorrect=d.totalCorrect||0;S.totalAnswered=d.totalAnswered||0;}catch(e){}}
+function addXP(n){S.xp+=n;G.sxp+=n;S.level=Math.floor(S.xp/XPL)+1;}
+
+// ══════════════════════════════════════════
+//  SCREENS
+// ══════════════════════════════════════════
+function screen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const sb=document.getElementById('sidebar');
+  if(window.innerWidth>=860) sb.style.display=(id==='homeScreen')?'none':'flex';
+  else sb.style.display='none';
+  updateSB();
+}
+function updateSB(){
+  const inLvl=S.xp%XPL;
+  document.getElementById('sb-xp').textContent=S.xp;
+  document.getElementById('sb-lv').textContent=S.level;
+  document.getElementById('sb-str').textContent=S.bestStreak;
+  document.getElementById('sb-wm').textContent=S.mastered.size;
+  document.getElementById('sb-acc').textContent=S.totalAnswered?
+    Math.round(S.totalCorrect/S.totalAnswered*100)+'%':'—';
+  document.getElementById('sb-xpf').style.width=(inLvl/XPL*100)+'%';
+}
+function goHome(){stopTimer();renderHome();screen('homeScreen');}
+
+// ══════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════
+function renderHome(){
+  const inLvl=S.xp%XPL;
+  document.getElementById('h-xp').textContent=S.xp;
+  document.getElementById('h-streak').textContent=S.bestStreak;
+  document.getElementById('h-words').textContent=S.mastered.size;
+  document.getElementById('h-done').textContent=S.done.size;
+  document.getElementById('h-lvl').textContent=`Level ${S.level}`;
+  document.getElementById('h-xplbl').textContent=`${inLvl} / ${XPL} XP`;
+  document.getElementById('h-xpfill').style.width=(inLvl/XPL*100)+'%';
+  document.getElementById('catGrid').innerHTML=CATS.map(c=>`
+    <div class="cat-tile ${S.done.has(c.id)?'done':''}" onclick="startGame('${c.id}')">
+      <span class="cat-disp">${c.disp}</span>
+      <div class="cat-name">${c.emoji} ${c.name}</div>
+      <div class="cat-cnt">${c.words.length} words</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  GAME
+// ══════════════════════════════════════════
+function startGame(id){
+  const c=CATS.find(x=>x.id===id);
+  G.cat=c;G.words=shuffle([...c.words]);G.idx=0;G.results=[];
+  G.hearts=3;G.sxp=0;G.streak=0;G.answered=false;
+  renderWord();screen('gameScreen');
+  // focus input on desktop
+  setTimeout(()=>{if(window.innerWidth>=600)document.getElementById('romajiInput').focus();},200);
+}
+
+const TIMER_TOTAL=20; // seconds
+function startTimer(){
+  stopTimer();G.timeLeft=100;
+  const fill=document.getElementById('g-timer');
+  fill.style.width='100%';fill.className='timer-fill';
+  let elapsed=0;
+  G.timerInt=setInterval(()=>{
+    elapsed+=0.1;G.timeLeft=Math.max(0,100-(elapsed/TIMER_TOTAL*100));
+    fill.style.width=G.timeLeft+'%';
+    if(G.timeLeft<30)fill.className='timer-fill warn';
+    if(G.timeLeft<10)fill.className='timer-fill danger';
+    if(G.timeLeft<=0){clearInterval(G.timerInt);timeUp();}
+  },100);
+}
+function stopTimer(){clearInterval(G.timerInt);G.timerInt=null;}
+
+function timeUp(){
+  if(G.answered)return;
+  G.answered=true;
+  const w=G.words[G.idx];
+  G.hearts=Math.max(0,G.hearts-1);G.streak=0;
+  S.totalAnswered++;
+  setFB(false,'⏱ Time\'s up!',`Answer: ${w.r}  ·  ${w.h}`);
+  G.results.push({w,ok:false,typed:'(time up)'});
+  lockInput(false);updateHUD();
+  document.getElementById('nextBtn').style.display='block';
+  document.getElementById('skipBtn').style.display='none';
+  save();
+}
+
+function renderWord(){
+  const w=G.words[G.idx],tot=G.words.length;
+  G.answered=false;G.hintUsed=false;
+  document.getElementById('g-ctr').textContent=`${G.idx+1} / ${tot}`;
+  document.getElementById('g-prog').style.width=(G.idx/tot*100)+'%';
+  document.getElementById('q-kanji').textContent=w.k;
+  document.getElementById('q-eng').textContent=w.e;
+  document.getElementById('q-cat').textContent=G.cat.name.toUpperCase();
+  document.getElementById('hint-text').textContent='';
+  document.getElementById('hint-text').classList.remove('show');
+  const inp=document.getElementById('romajiInput');
+  inp.value='';inp.className='romaji-input';inp.disabled=false;
+  inp.placeholder='type romaji here…';
+  document.getElementById('fb').className='fb-area';
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('skipBtn').style.display='block';
+  updateHUD();
+  startTimer();
+  if(window.innerWidth>=600)inp.focus();
+}
+
+function handleKey(e){if(e.key==='Enter')submitAnswer();}
+
+function normalise(s){return s.trim().toLowerCase().replace(/['\-]/g,'');}
+
+function submitAnswer(){
+  if(G.answered)return;
+  const inp=document.getElementById('romajiInput');
+  const typed=inp.value.trim();
+  if(!typed)return;
+  stopTimer();G.answered=true;
+  const w=G.words[G.idx];
+  const typed_n=normalise(typed);
+  const correct_n=normalise(w.r);
+  const alts=w.a.map(normalise);
+  const ok=typed_n===correct_n||alts.includes(typed_n);
+  S.totalAnswered++;
+  if(ok){
+    const spd=G.timeLeft>60?10:G.timeLeft>30?5:0;
+    const streak_bonus=G.streak>=3?5:0;
+    const xp=10+spd+streak_bonus;
+    addXP(xp);G.streak++;
+    if(G.streak>S.bestStreak)S.bestStreak=G.streak;
+    S.mastered.add(w.k);S.totalCorrect++;
+    inp.className='romaji-input correct';
+    const parts=[`+${xp} XP`];
+    if(spd)parts.push(`+${spd} speed`);
+    if(streak_bonus)parts.push(`+${streak_bonus} streak`);
+    setFB(true,`✓ Correct! ${parts.join(' · ')}`,`${w.k} · ${w.h} · ${w.r}`);
+    G.results.push({w,ok:true,typed});
+  } else {
+    G.hearts=Math.max(0,G.hearts-1);G.streak=0;
+    inp.className='romaji-input wrong';
+    setFB(false,`✗ Incorrect — you wrote: "${typed}"`,`Correct: ${w.r}  ·  ${w.h}`);
+    G.results.push({w,ok:false,typed});
+  }
+  lockInput(true);updateHUD();
+  document.getElementById('nextBtn').style.display='block';
+  document.getElementById('skipBtn').style.display='none';
+  save();
+}
+
+function setFB(ok,m,d){
+  const fb=document.getElementById('fb');
+  fb.className='fb-area on '+(ok?'ok':'bad');
+  document.getElementById('fb-main').textContent=m;
+  document.getElementById('fb-detail').textContent=d;
+}
+function lockInput(answered){
+  const inp=document.getElementById('romajiInput');
+  inp.disabled=answered;
+}
+function updateHUD(){
+  document.getElementById('g-hearts').textContent='❤️'.repeat(G.hearts)+'🖤'.repeat(3-G.hearts);
+  document.getElementById('g-streak').textContent=G.streak;
+  document.getElementById('g-xp').textContent=`+${G.sxp} XP`;
+}
+function showHint(){
+  if(G.answered)return;
+  const w=G.words[G.idx];
+  const ht=document.getElementById('hint-text');
+  ht.textContent=w.r;
+  ht.classList.add('show');
+  ht.title='Click to copy romaji';
+}
+function copyHint(){
+  const w=G.words[G.idx];
+  if(!w)return;
+  navigator.clipboard.writeText(w.r).then(()=>{
+    const ht=document.getElementById('hint-text');
+    const prev=ht.textContent;
+    ht.textContent='Copied!';
+    setTimeout(()=>{ht.textContent=prev;},900);
+  }).catch(()=>{
+    // fallback: fill input
+    const inp=document.getElementById('romajiInput');
+    inp.value=w.r;inp.focus();
+  });
+}
+function skipWord(){
+  if(G.answered)return;
+  stopTimer();G.answered=true;G.streak=0;G.hearts=Math.max(0,G.hearts-1);
+  const w=G.words[G.idx];
+  setFB(false,'⏭ Skipped',`Answer: ${w.r}  ·  ${w.h}`);
+  G.results.push({w,ok:false,typed:'(skipped)'});
+  lockInput(true);updateHUD();
+  document.getElementById('nextBtn').style.display='block';
+  document.getElementById('skipBtn').style.display='none';
+  save();
+}
+function nextWord(){
+  G.idx++;
+  if(G.idx>=G.words.length||G.hearts===0)showResults();
+  else{renderWord();}
+}
+
+// ══════════════════════════════════════════
+//  RESULTS
+// ══════════════════════════════════════════
+function showResults(){
+  stopTimer();
+  const ok=G.results.filter(r=>r.ok).length,tot=G.results.length;
+  const pct=tot?Math.round(ok/tot*100):0;
+  document.getElementById('r-score').textContent=ok;
+  document.getElementById('r-tot').textContent=`/ ${tot} correct`;
+  const msgs=[['Perfect! 書いて Master! 🎉',100],['Excellent Writing! ✨',80],
+    ['Good Effort! 👍',55],['Keep Practicing! 📚',0]];
+  document.getElementById('r-msg').textContent=msgs.find(m=>pct>=m[1])[0];
+  document.getElementById('r-xp').textContent=`+${G.sxp} XP earned this session`;
+  if(pct===100)S.done.add(G.cat.id);
+  document.getElementById('breakdown').innerHTML=G.results.map(r=>`
+    <div class="bk-row">
+      <div class="bk-k">${r.w.k[0]}</div>
+      <div class="bk-info">
+        <div class="bk-e">${r.w.e}</div>
+        <div class="bk-r">${r.w.k} · ${r.w.h} · <strong>${r.w.r}</strong></div>
+        ${!r.ok&&r.typed!=='(skipped)'&&r.typed!=='(time up)'?`<div class="bk-you">You typed: "${r.typed}"</div>`:''}
+      </div>
+      <div class="bk-ic">${r.ok?'✅':r.typed==='(skipped)'?'⏭':'❌'}</div>
+    </div>`).join('');
+  save();screen('resultsScreen');
+}
+function replayGame(){startGame(G.cat.id);}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ── INIT ──
+load();renderHome();
+window.addEventListener('resize',()=>{
+  const id=document.querySelector('.screen.active')?.id;
+  if(id)screen(id);
+});
+</script>
+</body>
+</html>
