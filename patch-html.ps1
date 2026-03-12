@@ -1,7 +1,7 @@
 $files = Get-ChildItem -Recurse -Filter *.html
 foreach ($file in $files) {
     $path = $file.FullName
-    $content = Get-Content $path -Raw
+    $content = Get-Content $path -Raw -Encoding UTF8
     $rel = $path.Substring((Get-Location).Path.Length).TrimStart('\').Replace('\\','/')
     $canonical = 'https://gamelet.site/'
     if ($rel -eq 'index.html') { $canonical = 'https://gamelet.site/' }
@@ -13,8 +13,8 @@ foreach ($file in $files) {
         $content = $content -replace "(gtag\('js', new Date\(\)\);)", "$1`n  gtag('consent','default', {'ad_storage':'denied','analytics_storage':'denied'});" }
     $content = $content -replace "gtag\('config', 'G-JDJ9TGXZ7Q'\);", "gtag('config', 'G-JDJ9TGXZ7Q', { 'anonymize_ip': true });"
 
-    # insert SEO tags
-    if ($content -notmatch '<meta name="robots"') {
+    # insert SEO tags ONLY if file does not already have them
+    if ($content -notmatch '<meta name="robots"' -and $content -notmatch '<meta name="description"') {
         $meta = @"
 <!-- SEO & Crawlability -->
 <meta name="description" content="Play free online puzzle, action, and Swahili learning games at Gamelet. Fun browser games for all ages.">
@@ -76,7 +76,7 @@ foreach ($file in $files) {
 <!-- Cookie Consent Banner -->
 <div id="cookie-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#1a1a2e; color:#fff; padding:16px 24px; z-index:9999; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; font-family:sans-serif; font-size:14px; box-shadow:0 -2px 10px rgba(0,0,0,0.3);">
   <p style="margin:0; flex:1; min-width:200px;">
-    🍪 We use cookies to improve your experience and show personalized ads. By continuing, you agree to our 
+    &#127850; We use cookies to improve your experience and show personalized ads. By continuing, you agree to our 
     <a href="privacy-policy.html" style="color:#a78bfa;">Privacy Policy</a>.
   </p>
   <div style="display:flex; gap:10px;">
@@ -104,5 +104,7 @@ foreach ($file in $files) {
         $replacement = $banner + "`n</body>"
         $content = $content -replace '(?i)</body>', $replacement
     }
-    Set-Content -Path $path -Value $content
+
+    # Write file as UTF-8 without BOM to prevent encoding corruption
+    [System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
 }
