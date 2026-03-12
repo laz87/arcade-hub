@@ -471,11 +471,13 @@
             <input type="text" id="searchInput" placeholder="Search games and genres" onkeyup="searchGames()">
             <span class="search-icon">🔍</span>
         </div>
-        <div class="user-profile">
-            👤
-        </div>
     </div>
 </header>
+<!-- Ad Placement: Leaderboard -->
+<div id="ad-leaderboard" style="min-height: 90px; text-align: center; margin: 20px auto; max-width: 970px; display: flex; align-items: center; justify-content: center; background: transparent;">
+    <!-- Place Google AdSense Leaderboard code here -->
+</div>
+
 <!-- Categories -->
 <div class="categories-wrapper">
     <section class="categories">
@@ -666,6 +668,11 @@
             </div>
         </div>
 
+<!-- Ad Placement: In-feed Unit 1 -->
+        <div class="game-card ad-container" style="grid-column: 1 / -1; min-height: 120px; display: flex; align-items: center; justify-content: center; background: transparent;">
+            <!-- Place Google AdSense In-feed code here -->
+        </div>
+
 <!--IND+ENG-->
          <!-- Game new: kata/say -->
         <div class="game-card" data-category="IND+ENG" onclick="playGame('kata')">
@@ -813,16 +820,7 @@
             </div>
         </div>
 
-<!--
-        <div class="game-card coming-soon" data-category="puzzle">
-            <div class="game-thumbnail"><div style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; font-size: 3rem; background: #eee; color: #999;">?</div></div>
-            <div class="game-info">
-                <div class="game-title">Coming soon</div>
-                <span class="game-category">n/a</span>
-            </div>
-        </div>
     </div>
-    -->
 
 </section>
 
@@ -925,11 +923,8 @@
             const splash = document.getElementById('splash-screen');
             splash.style.display = 'flex';
             
-            setTimeout(() => {
-                window.location.href = gameUrls[gameName];
-            }, 2000); // 2 seconds delay for splash screen
-        } else {
-            alert('Coming soon! 🎮');
+            // Proceed immediately; no artificial delay
+            window.location.href = gameUrls[gameName];
         }
     }
 
