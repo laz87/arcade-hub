@@ -834,6 +834,7 @@
 </script>
 
 <!-- Cookie Consent Banner -->
+ <!-- commented cookie consent banner 
 <div id="cookie-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#1a1a2e; color:#fff; padding:16px 24px; z-index:9999; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; font-family:sans-serif; font-size:14px; box-shadow:0 -2px 10px rgba(0,0,0,0.3);">
   <p style="margin:0; flex:1; min-width:200px;">
     🍪 We use cookies to improve your experience and show personalized ads. By continuing, you agree to our 
@@ -844,7 +845,9 @@
     <button onclick="declineCookies()" style="background:transparent; color:#ccc; border:1px solid #555; padding:10px 20px; border-radius:6px; cursor:pointer;">Decline</button>
   </div>
 </div>
+-->
 <script>
+/* commented cookie consent logic
   function acceptCookies() {
     localStorage.setItem('cookieConsent', 'accepted');
     document.getElementById('cookie-banner').style.display = 'none';
@@ -859,6 +862,7 @@
       document.getElementById('cookie-banner').style.display = 'flex';
     }
   });
+  */
 </script>
 </body>
 </html>
